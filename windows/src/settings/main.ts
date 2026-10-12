@@ -7,6 +7,7 @@ import {
   Bridge,
   onEvent,
   type HookStatus,
+  type MemoryRecord,
   type OllamaStatus,
   type OpenRouterAccount,
 } from "../core/bridge";
@@ -186,7 +187,7 @@ function claudeSection(status: HookStatus): HTMLElement {
 const MODELS: [string, string][] = [
   ["openrouter/free", "Automatic — select a free model for each task"],
   ["stealth/space-bunny-alpha", "Space Bunny Alpha — general, coding, reasoning, vision"],
-  ["nvidia/nemotron-3-ultra-550b-a5b5:free", "Nemotron 3 Ultra 550B — complex reasoning, planning, coding"],
+  ["nvidia/nemotron-3-ultra-550b-a55b:free", "Nemotron 3 Ultra — complex reasoning, planning, coding"],
   ["poolside/laguna-s-2.1:free", "Laguna S 2.1 — software engineering and coding agents"],
   ["nvidia/nemotron-3.5-lightning:free", "Nemotron 3.5 Lightning — fast agentic tasks"],
   ["dots-studio/dots-3-note-preview:free", "Dots 3 Note — reasoning, coding, multimodal, long context"],
@@ -494,6 +495,50 @@ function integrationsSection(present: Record<string, boolean>): HTMLElement {
     const used = settings.activeIntegrations.length;
     note.textContent = `Pick up to ${MAX_ACTIVE} pills to show next to Macha — ${used}/${MAX_ACTIVE} in use. Keys are stored in the Windows Credential Manager, never on disk.`;
   }
+
+  const elevenLabsKey = "elevenlabs-api-key";
+  const elevenLabsInput = h("input", {
+    type: "password",
+    placeholder: present[elevenLabsKey] ? "••••••••  (stored)" : "API key",
+    autocomplete: "off",
+    spellcheck: "false",
+    style: "flex:1 1 auto;min-width:0",
+  }) as HTMLInputElement;
+  const elevenLabsDot = statusDot(present[elevenLabsKey] ?? false);
+  const elevenLabsFeedback = h("div", { class: "hint" });
+  const saveElevenLabsKey = h("button", { text: "Save" });
+  saveElevenLabsKey.addEventListener("click", async () => {
+    saveElevenLabsKey.disabled = true;
+    clear(elevenLabsFeedback);
+    const value = elevenLabsInput.value.trim();
+    try {
+      await Bridge.secretSet(elevenLabsKey, value);
+      present[elevenLabsKey] = value.length > 0;
+      elevenLabsInput.value = "";
+      elevenLabsInput.placeholder = value ? "••••••••  (stored)" : "API key";
+      elevenLabsDot.style.background = value ? "#22c55e" : "#f4505e";
+      elevenLabsFeedback.textContent = "Saved securely in the OS credential manager.";
+    } catch (error) {
+      elevenLabsFeedback.textContent = `Could not save key: ${String(error).replace(/^Error:\s*/, "")}`;
+    } finally {
+      saveElevenLabsKey.disabled = false;
+    }
+  });
+  list.append(
+    h("div", { style: "display:flex;gap:12px;align-items:flex-start" },
+      h("div", { style: "display:flex;align-items:center;gap:8px;min-width:132px;padding-top:4px" },
+        h("i", { class: "dot", style: "background:#F4C15D" }),
+        h("span", { style: "font-size:12.5px", text: "ElevenLabs" }),
+      ),
+      h("div", { style: "display:flex;flex-direction:column;gap:6px;flex:1 1 auto;min-width:0" },
+        h("div", { class: "row" },
+          h("label", { style: "min-width:104px", text: "API key" }),
+          elevenLabsInput, saveElevenLabsKey, elevenLabsDot,
+        ),
+        elevenLabsFeedback,
+      ),
+    ),
+  );
 
   for (const def of INTEGRATIONS) {
     const active = settings.activeIntegrations.includes(def.id);
@@ -887,10 +932,126 @@ function automationSection(): HTMLElement {
     h("h2", {}, h("span", { text: "Local automation" })),
     h("div", {
       class: "hint",
-      text: "Macha can open installed apps and work with files only inside these folders. Each action needs your approval. File edits show a preview and create a backup first. Deleting files and running commands are not available. Files you ask Macha to read are sent to the selected chat provider.",
+      text: "Macha can open installed apps, open websites in your system browser, and work with files only inside these folders. Each action needs your approval. File edits show a preview and create a backup first. Deleting files and running commands are not available. Files you ask Macha to read are sent to the selected chat provider.",
     }),
     list,
     h("div", { class: "row" }, add),
+    feedback,
+  );
+}
+
+function memorySection(): HTMLElement {
+  const list = h("div", { style: "display:flex;flex-direction:column;gap:8px" });
+  const feedback = h("div", {});
+  let memories: MemoryRecord[] = [];
+  const category = h("select", { "aria-label": "Memory category" }) as HTMLSelectElement;
+  for (const [value, label] of [
+    ["identity", "Identity"],
+    ["preference", "Preference"],
+    ["goal", "Goal"],
+    ["project", "Project"],
+    ["relationship", "Relationship"],
+    ["emotional", "Life event"],
+    ["behavior", "Behavior"],
+  ] as const) {
+    category.append(h("option", { value, text: label }));
+  }
+  const fact = h("input", {
+    type: "text",
+    maxlength: 500,
+    placeholder: "A detail to remember",
+    "aria-label": "A detail to remember",
+  }) as HTMLInputElement;
+  const add = h("button", {
+    class: "primary",
+    text: "Remember",
+    onclick: async () => {
+      if (!fact.value.trim()) {
+        feedback.replaceChildren(h("div", {
+          class: "notice warn",
+          text: "Enter a detail to remember.",
+        }));
+        return;
+      }
+      add.disabled = true;
+      try {
+        await Bridge.memoryRemember(category.value as MemoryRecord["category"], fact.value);
+        fact.value = "";
+        await reload();
+      } catch (error) {
+        feedback.replaceChildren(h("div", {
+          class: "notice err",
+          text: `Could not save this memory: ${String(error).replace(/^Error:\s*/, "")}`,
+        }));
+      } finally {
+        add.disabled = false;
+      }
+    },
+  });
+
+  function render() {
+    clear(list);
+    if (memories.length === 0) {
+      list.append(h("div", { class: "hint", text: "No saved memories yet." }));
+      return;
+    }
+    for (const memory of memories) {
+      const remove = h("button", {
+        class: "danger",
+        text: "Forget",
+        "aria-label": `Forget memory: ${memory.text}`,
+        onclick: async () => {
+          remove.disabled = true;
+          try {
+            await Bridge.memoryForget(memory.id);
+            memories = memories.filter((entry) => entry.id !== memory.id);
+            clear(feedback);
+            render();
+          } catch (error) {
+            remove.disabled = false;
+            feedback.replaceChildren(h("div", {
+              class: "notice err",
+              text: `Could not forget this memory: ${String(error).replace(/^Error:\s*/, "")}`,
+            }));
+          }
+        },
+      });
+      list.append(h("div", { class: "row" },
+        h("span", { class: "path", text: `[${memory.category}] ${memory.text}`, style: "flex:1 1 300px" }),
+        remove,
+      ));
+    }
+  }
+
+  async function reload() {
+    try {
+      memories = await Bridge.memoryList();
+      clear(feedback);
+      render();
+    } catch (error) {
+      feedback.replaceChildren(h("div", {
+        class: "notice err",
+        text: `Could not load saved memories: ${String(error).replace(/^Error:\s*/, "")}`,
+      }));
+    }
+  }
+
+  const refresh = h("button", {
+    text: "Refresh",
+    onclick: () => void reload(),
+  });
+  void reload();
+  return h(
+    "section",
+    {},
+    h("h2", {}, h("span", { text: "Memory" })),
+    h("div", {
+      class: "hint",
+      text: "Macha may save durable details to help in future conversations. You can also add memories yourself. Memories stay on this device and are included when you use chat; review or forget them here at any time.",
+    }),
+    h("div", { class: "row" }, category, fact, add),
+    list,
+    h("div", { class: "row" }, refresh),
     feedback,
   );
 }
@@ -924,7 +1085,7 @@ async function main() {
 
   const keys = [
     "stripe-api-key", "github-token", "vercel-token",
-    "spotify-client-id", "notion-api-key", "calcom-api-key",
+    "spotify-client-id", "notion-api-key", "calcom-api-key", "elevenlabs-api-key",
   ];
   const present: Record<string, boolean> = {};
   for (const k of keys) present[k] = (await Bridge.secretPresent(k)) ?? false;
@@ -934,6 +1095,7 @@ async function main() {
     h("h1", {}, h("span", { text: "Coucou" }), h("span", { class: "version", text: version })),
     claudeSection(status),
     apiSection(openRouterAccounts, ollamaStatus, openRouterError),
+    memorySection(),
     automationSection(),
     integrationsSection(present),
     generalSection(),

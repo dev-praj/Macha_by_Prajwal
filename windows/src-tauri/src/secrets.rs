@@ -22,6 +22,7 @@ pub struct OpenRouterAccount {
 pub const KNOWN_KEYS: &[&str] = &[
     "openrouter-api-key",
     "anthropic-api-key",
+    "elevenlabs-api-key",
     "n8n-url",
     "n8n-api-key",
     "vercel-token",

@@ -41,6 +41,8 @@ pub fn supports(name: &str) -> bool {
             | "read_file"
             | "open_path"
             | "open_app"
+            | "open_website"
+            | "search_web"
             | "create_directory"
             | "create_file"
             | "move_file"
@@ -167,6 +169,40 @@ pub fn prepare(
     mut action: AutomationAction,
     folders: &[String],
 ) -> Result<AutomationAction, String> {
+    if action.name == "search_web" {
+        let query = string_argument(&action.arguments, "query")?;
+        if query.trim().is_empty() || query.len() > 500 {
+            return Err("Search queries must be between 1 and 500 characters.".into());
+        }
+        let engine = action
+            .arguments
+            .get("engine")
+            .and_then(Value::as_str)
+            .unwrap_or("google");
+        let base = match engine {
+            "google" => "https://www.google.com/search",
+            "youtube" => "https://www.youtube.com/results",
+            "github" => "https://github.com/search",
+            "duckduckgo" => "https://duckduckgo.com/",
+            "bing" => "https://www.bing.com/search",
+            _ => return Err("Unsupported web search engine.".into()),
+        };
+        let mut parameters = url::form_urlencoded::Serializer::new(String::new());
+        parameters.append_pair(
+            if engine == "youtube" {
+                "search_query"
+            } else {
+                "q"
+            },
+            query.trim(),
+        );
+        action.name = "open_website".into();
+        action.arguments = serde_json::json!({ "url": format!("{base}?{}", parameters.finish()) });
+    }
+    if action.name == "open_website" {
+        validate_website_url(string_argument(&action.arguments, "url")?)?;
+        return Ok(action);
+    }
     if action.name == "open_app" {
         let app_name = action
             .arguments
@@ -177,7 +213,7 @@ pub fn prepare(
         let targets = find_app_targets(app_name)?;
         if targets.is_empty() {
             return Err(format!(
-                "I couldn't find an installed app with the exact full name “{app_name}”. Say its full name as shown in the Windows Start menu."
+                "I couldn't find an installed app matching “{app_name}”. Try its full name as shown in the Windows Start menu."
             ));
         }
         let arguments = action
@@ -280,7 +316,28 @@ pub fn prepare(
     Ok(action)
 }
 
+fn validate_website_url(value: &str) -> Result<(), String> {
+    let parsed = url::Url::parse(value)
+        .map_err(|_| "Enter a valid HTTP or HTTPS website URL.".to_string())?;
+    if !matches!(parsed.scheme(), "http" | "https")
+        || parsed.host_str().is_none()
+        || !parsed.username().is_empty()
+        || parsed.password().is_some()
+    {
+        return Err(
+            "Only HTTP or HTTPS website URLs without embedded credentials can be opened.".into(),
+        );
+    }
+    Ok(())
+}
+
 pub fn execute(action: &AutomationAction, folders: &[String]) -> Result<String, String> {
+    if action.name == "open_website" {
+        let url = string_argument(&action.arguments, "url")?;
+        validate_website_url(url)?;
+        crate::platform::open_url(url)?;
+        return Ok(format!("Opened {url} in the system browser."));
+    }
     if action.name == "open_app" {
         let target = action
             .arguments
@@ -670,13 +727,27 @@ fn exact_app_name_match(installed_name: &str, requested_name: &str) -> bool {
     !requested.is_empty() && normalize_app_name(installed_name) == requested
 }
 
+fn app_alias_match(installed_name: &str, requested_name: &str) -> bool {
+    let requested = normalize_app_name(requested_name);
+    let installed = normalize_app_name(installed_name);
+    requested.chars().count() >= 3 && installed.contains(&requested)
+}
+
 #[cfg(target_os = "windows")]
 fn find_app_targets(name: &str) -> Result<Vec<AppLaunchTarget>, String> {
     let wanted = normalize_app_name(name);
     if wanted.is_empty() {
         return Ok(Vec::new());
     }
-    let targets = start_app_targets(windows_start_apps()?, &wanted);
+    let (targets, catalog_error) = match windows_start_apps() {
+        Ok(apps) => (start_app_targets(apps, &wanted), None),
+        Err(error) => {
+            crate::log::line(format!(
+                "Windows Start app catalog lookup failed; checking Start menu shortcuts: {error}"
+            ));
+            (Vec::new(), Some(error))
+        }
+    };
     if !targets.is_empty() {
         return Ok(targets);
     }
@@ -702,6 +773,13 @@ fn find_app_targets(name: &str) -> Result<Vec<AppLaunchTarget>, String> {
     }
     shortcuts.sort_by(|left, right| left.0.cmp(&right.0));
     shortcuts.dedup_by(|left, right| left.0 == right.0);
+    if shortcuts.is_empty() {
+        if let Some(error) = catalog_error {
+            return Err(format!(
+                "Could not query the Windows Start app catalog ({error}), and no matching Start menu shortcut was found."
+            ));
+        }
+    }
     let multiple = shortcuts.len() > 1;
     Ok(shortcuts
         .into_iter()
@@ -732,7 +810,7 @@ fn find_app_targets(name: &str) -> Result<Vec<AppLaunchTarget>, String> {
 }
 
 #[cfg(target_os = "windows")]
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 struct WindowsStartApp {
     #[serde(rename = "Name")]
     name: String,
@@ -742,9 +820,8 @@ struct WindowsStartApp {
 
 #[cfg(target_os = "windows")]
 fn start_app_targets(apps: Vec<WindowsStartApp>, wanted: &str) -> Vec<AppLaunchTarget> {
-    let mut targets = apps
+    let mut targets: Vec<AppLaunchTarget> = apps
         .into_iter()
-        .filter(|app| exact_app_name_match(&app.name, wanted))
         .map(|app| AppLaunchTarget {
             id: format!("registered:{}", app.app_id),
             label: app.name,
@@ -752,6 +829,16 @@ fn start_app_targets(apps: Vec<WindowsStartApp>, wanted: &str) -> Vec<AppLaunchT
             target: app.app_id,
         })
         .collect::<Vec<_>>();
+    let exact = targets
+        .iter()
+        .filter(|target| exact_app_name_match(&target.label, wanted))
+        .cloned()
+        .collect::<Vec<_>>();
+    if !exact.is_empty() {
+        targets = exact;
+    } else {
+        targets.retain(|target| app_alias_match(&target.label, wanted));
+    }
     targets.sort_by(|left, right| left.id.cmp(&right.id));
     targets.dedup_by(|left, right| left.id == right.id);
     targets
@@ -829,7 +916,9 @@ fn collect_shortcuts(directory: &Path, wanted: &str, depth: usize, matches: &mut
             && path
                 .file_stem()
                 .and_then(|stem| stem.to_str())
-                .is_some_and(|stem| exact_app_name_match(stem, wanted))
+                .is_some_and(|stem| {
+                    exact_app_name_match(stem, wanted) || app_alias_match(stem, wanted)
+                })
         {
             matches.push(path);
         }
@@ -884,11 +973,15 @@ fn collect_desktop_files(directory: &Path, wanted: &str, targets: &mut Vec<AppLa
         let stem_matches = path
             .file_stem()
             .and_then(|stem| stem.to_str())
-            .is_some_and(|stem| exact_app_name_match(stem, wanted));
+            .is_some_and(|stem| {
+                exact_app_name_match(stem, wanted) || app_alias_match(stem, wanted)
+            });
         let display_name_matches = fs::read_to_string(&path).ok().is_some_and(|contents| {
             contents.lines().any(|line| {
-                line.strip_prefix("Name=")
-                    .is_some_and(|installed_name| exact_app_name_match(installed_name, wanted))
+                line.strip_prefix("Name=").is_some_and(|installed_name| {
+                    exact_app_name_match(installed_name, wanted)
+                        || app_alias_match(installed_name, wanted)
+                })
             })
         });
         if stem_matches || display_name_matches {
@@ -897,7 +990,10 @@ fn collect_desktop_files(directory: &Path, wanted: &str, targets: &mut Vec<AppLa
                 .and_then(|contents| {
                     contents.lines().find_map(|line| {
                         line.strip_prefix("Name=")
-                            .filter(|installed_name| exact_app_name_match(installed_name, wanted))
+                            .filter(|installed_name| {
+                                exact_app_name_match(installed_name, wanted)
+                                    || app_alias_match(installed_name, wanted)
+                            })
                             .map(str::to_string)
                     })
                 })
@@ -1029,7 +1125,7 @@ fn open_registered_app(_app_id: &str) -> Result<(), String> {
 }
 #[cfg(test)]
 mod tests {
-    use super::{execute, AutomationAction};
+    use super::{execute, prepare, AutomationAction};
     use serde_json::json;
     use std::fs;
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -1055,6 +1151,46 @@ mod tests {
             preview: None,
             preview_hash: None,
         }
+    }
+
+    #[test]
+    fn web_search_becomes_a_confirmable_http_url_without_folder_access() {
+        let search = prepare(
+            action(
+                "search_web",
+                json!({ "query": "Mochi & Coucou", "engine": "youtube" }),
+            ),
+            &[],
+        )
+        .unwrap();
+        assert_eq!(search.name, "open_website");
+        let url = search.arguments["url"].as_str().unwrap();
+        assert!(url.starts_with("https://www.youtube.com/results?search_query="));
+        assert!(url.contains("Mochi+%26+Coucou"));
+
+        let website = prepare(
+            action("open_website", json!({ "url": "https://example.com" })),
+            &[],
+        )
+        .unwrap();
+        assert_eq!(website.arguments["url"], "https://example.com");
+    }
+
+    #[test]
+    fn website_urls_reject_non_http_schemes_and_embedded_credentials() {
+        assert!(prepare(
+            action("open_website", json!({ "url": "javascript:alert(1)" })),
+            &[],
+        )
+        .is_err());
+        assert!(prepare(
+            action(
+                "open_website",
+                json!({ "url": "https://user:password@example.com" }),
+            ),
+            &[],
+        )
+        .is_err());
     }
 
     #[test]
@@ -1108,7 +1244,7 @@ mod tests {
     }
 
     #[test]
-    fn app_lookup_requires_the_full_installed_name() {
+    fn app_lookup_prefers_exact_names_and_accepts_unambiguous_aliases() {
         assert!(super::exact_app_name_match(
             "Microsoft Teams",
             "Microsoft Teams"
@@ -1122,6 +1258,9 @@ mod tests {
             "Visual Studio Code",
             "Visual Studio"
         ));
+        assert!(super::app_alias_match("Microsoft Teams", "Teams"));
+        assert!(super::app_alias_match("Google Chrome", "Chrome"));
+        assert!(!super::app_alias_match("Microsoft Teams", "ms"));
     }
 
     #[test]
@@ -1160,7 +1299,12 @@ mod tests {
             r#"[{"Name":"Spotify","AppID":"spotify"},{"Name":"Spotify","AppID":"spotify-beta"}]"#,
         )
         .unwrap();
-        assert!(super::start_app_targets(partial, "Spot").is_empty());
+        assert!(super::start_app_targets(partial, "Sp").is_empty());
+        let alias = super::parse_windows_start_apps(
+            r#"[{"Name":"Google Chrome","AppID":"chrome"},{"Name":"Google Chrome Beta","AppID":"chrome-beta"}]"#,
+        )
+        .unwrap();
+        assert_eq!(super::start_app_targets(alias, "Chrome").len(), 2);
     }
 
     #[test]

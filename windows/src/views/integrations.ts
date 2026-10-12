@@ -355,6 +355,14 @@ function spotifySnapshot(): SpotifySnapshot {
   };
 }
 
+function spotifyTrackIdentity(track: SpotifyTrack | null): string | null {
+  return track?.uri ?? (track ? `${track.name}\0${track.artists}` : null);
+}
+
+function wait(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
 async function spotifyAction(
   action: "play" | "pause" | "next" | "previous" | "seek" | "play_track",
   positionMs?: number,
@@ -364,11 +372,41 @@ async function spotifyAction(
     await Bridge.spotifyControl(action, positionMs, trackUri);
     const info = State.integrations.integration_spotify;
     if (info) info.error = null;
-    void Bridge.refreshIntegration("integration_spotify");
   } catch (error) {
     const info = State.integrations.integration_spotify;
     if (info) info.error = String(error).replace(/^Error:\s*/, "");
     console.error("[coucou] Spotify playback action failed", error);
+    State.notify();
+    return;
+  }
+
+  const previousTrack = spotifyTrackIdentity(spotifySnapshot().track);
+  const waitForTrackChange = action === "next" || action === "previous" || action === "play_track";
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    await wait(attempt === 0 ? 450 : 650);
+    try {
+      const snapshot = await Bridge.refreshSpotify();
+      lastError = null;
+      const info = State.integrations.integration_spotify;
+      if (info) {
+        info.data = { ...snapshot };
+        info.error = null;
+      }
+      const trackChanged = spotifyTrackIdentity(snapshot.track) !== previousTrack;
+      State.notify();
+      if (!waitForTrackChange || trackChanged) return;
+    } catch (error) {
+      lastError = error;
+      console.error("[coucou] Spotify playback refresh failed", error);
+    }
+  }
+
+  const info = State.integrations.integration_spotify;
+  if (info) {
+    info.error = lastError
+      ? `Playback command sent, but Spotify status could not be refreshed: ${String(lastError).replace(/^Error:\s*/, "")}`
+      : "Playback command sent, but Spotify has not reported the track change yet.";
   }
   State.notify();
 }
@@ -580,7 +618,7 @@ function spotifyCard(openSettings: () => void): HTMLElement {
   return h(
     "div",
     { class: "int-card spotify-card" },
-    header("#1DB954", "Spotify", "Now playing"),
+    header("#1DB954", "Spotify", error ? "Status unavailable" : "Now playing"),
     error ? h("div", { class: "int-status", text: error }) : null,
     nowPlaying,
     timeline,

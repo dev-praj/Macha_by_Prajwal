@@ -148,6 +148,11 @@ function enqueue(chunks: string[]) {
 }
 
 const streamWaiters: Array<() => void> = [];
+const streamFinishWaiters: Array<() => void> = [];
+
+function resolveStreamFinishWaiters(): void {
+  for (const resolve of streamFinishWaiters.splice(0)) resolve();
+}
 
 function sentenceBoundary(text: string): number {
   let boundary = -1;
@@ -184,11 +189,13 @@ export function speakStreamChunk(textDelta: string): void {
   }
 }
 
-export function finishStream(): void {
+export function finishStream(): Promise<void> {
   if (streamBuffer) enqueue(splitSpeechText(streamBuffer));
   streamBuffer = "";
   streamOpen = false;
   for (const wake of streamWaiters.splice(0)) wake();
+  if (!running && !queue.length) return Promise.resolve();
+  return new Promise<void>((resolve) => streamFinishWaiters.push(resolve));
 }
 
 export async function speak(text: string): Promise<void> {
@@ -223,6 +230,7 @@ export async function stop(): Promise<void> {
   activeUtterance = null;
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();
   for (const wake of streamWaiters.splice(0)) wake();
+  resolveStreamFinishWaiters();
   if (IS_TAURI) await Bridge.ttsStop();
   if (running) {
     running = false;
@@ -311,6 +319,7 @@ async function drain(drainGeneration: number): Promise<void> {
     if (drainGeneration === generation) {
       running = false;
       notify(false, failure);
+      if (!streamOpen && !queue.length) resolveStreamFinishWaiters();
     }
   }
 }

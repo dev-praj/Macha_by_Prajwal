@@ -17,7 +17,7 @@
 <h2>3. Data stored on your computer</h2>
 <table>
 <tr><th>What</th><th>Where</th><th>Why</th></tr>
-<tr><td>API keys and tokens you enter (Anthropic, Google AI, OpenAI, Stripe, GitHub, Vercel, Resend, Notion, Cal.com, n8n)</td><td>macOS Keychain, Windows Credential Manager, or the Secret Service on Linux (GNOME Keyring, KWallet)</td><td>To call these services on your behalf</td></tr>
+<tr><td>API keys and tokens you enter (Anthropic, Google AI, OpenAI, ElevenLabs, Stripe, GitHub, Vercel, Resend, Notion, Cal.com, n8n)</td><td>macOS Keychain, Windows Credential Manager, or the Secret Service on Linux (GNOME Keyring, KWallet)</td><td>To configure integrations; requests are made only when the corresponding feature uses a key</td></tr>
 <tr><td>Preferences (sound, delays, active pill selection, chat provider and model, shortcut)</td><td>App preferences on your Mac, or <code>%APPDATA%\Coucou</code> on Windows; <code>~/.config/coucou</code> on Linux</td><td>To remember your settings</td></tr>
 <tr><td>Files you drop on the notch</td><td>A copy in the app’s own folder (on Windows: <code>%LOCALAPPDATA%\Coucou</code>; on Linux: <code>~/.local/share/coucou</code>)</td><td>So you can ask a question about them or attach them to an email</td></tr>
 <tr><td>Claude Code session events (project name, current step, permission requests, file edits received from hooks)</td><td>In memory only</td><td>To show them in the notch</td></tr>

@@ -8,6 +8,7 @@ mod integrations;
 mod island;
 mod llm_client;
 mod log;
+mod memory;
 mod messages;
 mod pipe;
 mod platform;
@@ -38,6 +39,13 @@ use settings::Settings;
 const HOTKEY: &str = "CTRL+ALT+SPACE";
 const HOTKEY_DEBOUNCE: Duration = Duration::from_millis(300);
 static LAST_VOICE_HOTKEY: std::sync::OnceLock<Mutex<Option<Instant>>> = std::sync::OnceLock::new();
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ChatStreamDelta {
+    request_id: String,
+    delta: Option<String>,
+}
 
 pub struct Shared {
     pub settings: Mutex<Settings>,
@@ -297,6 +305,7 @@ fn approval_decline(app: AppHandle, request_id: String) {
 /// One chat turn. The API key and any file bytes stay on the Rust side.
 #[tauri::command]
 async fn chat_send(
+    app: AppHandle,
     shared: State<'_, Shared>,
     chat: State<'_, Chat>,
     conversation_id: String,
@@ -305,10 +314,46 @@ async fn chat_send(
     request_id: String,
     local_only: Option<bool>,
     voice_request: Option<bool>,
+    screen_image: Option<String>,
     context: Option<ChatContext>,
     shared_context: Vec<SharedConversationContext>,
 ) -> Result<ChatReply, String> {
     let mut cancel = chat.begin_request(&request_id)?;
+    let voice_deltas = if voice_request.unwrap_or(false) {
+        let (sender, mut receiver) = tokio::sync::mpsc::unbounded_channel();
+        let stream_app = app.clone();
+        let stream_request_id = request_id.clone();
+        tauri::async_runtime::spawn(async move {
+            while let Some(delta) = receiver.recv().await {
+                if let Err(error) = stream_app.emit(
+                    "chat-stream-delta",
+                    ChatStreamDelta {
+                        request_id: stream_request_id.clone(),
+                        delta: Some(delta),
+                    },
+                ) {
+                    log::line(format!(
+                        "could not deliver a voice response update: {error}"
+                    ));
+                    break;
+                }
+            }
+            if let Err(error) = stream_app.emit(
+                "chat-stream-delta",
+                ChatStreamDelta {
+                    request_id: stream_request_id,
+                    delta: None,
+                },
+            ) {
+                log::line(format!(
+                    "could not signal voice response completion: {error}"
+                ));
+            }
+        });
+        Some(sender)
+    } else {
+        None
+    };
     let (model, automation_folders, provider_mode, ollama_model) = {
         let settings = shared.settings.lock().unwrap();
         (
@@ -335,6 +380,8 @@ async fn chat_send(
         &automation_folders,
         &provider_mode,
         &ollama_model,
+        screen_image.as_deref(),
+        voice_deltas.as_ref(),
         &mut cancel,
     )
     .await;
@@ -397,6 +444,21 @@ fn chat_delete(chat: State<Chat>, conversation_id: String) {
     chat.delete(&conversation_id);
 }
 
+#[tauri::command]
+fn memories_list() -> Result<Vec<memory::Memory>, String> {
+    memory::list()
+}
+
+#[tauri::command]
+fn memory_remember(category: String, text: String) -> Result<memory::Memory, String> {
+    memory::remember(&category, &text, None)
+}
+
+#[tauri::command]
+fn memory_forget(id: String) -> Result<(), String> {
+    memory::forget(&id)
+}
+
 /// Copies a dropped file into the inbox and reports its name back.
 #[tauri::command]
 fn ingest_file(path: String) -> Result<DroppedFile, String> {
@@ -443,10 +505,15 @@ fn openrouter_account_reveal(id: String) -> Result<String, String> {
 #[tauri::command]
 async fn refresh_integration(app: AppHandle, id: String) {
     if id == "integration_spotify" {
-        spotify::poll_once(app).await;
+        let _ = spotify::poll_once(app).await;
     } else {
         integrations::poll_once(app, &id).await;
     }
+}
+
+#[tauri::command]
+async fn refresh_spotify(app: AppHandle) -> Result<spotify::SpotifySnapshot, String> {
+    spotify::poll_once(app).await
 }
 
 /// Lets the island write to the same log as the Rust side.
@@ -587,6 +654,9 @@ pub fn run() {
             ollama_status,
             chat_reset,
             chat_delete,
+            memories_list,
+            memory_remember,
+            memory_forget,
             ingest_file,
             secret_present,
             secret_set,
@@ -602,6 +672,7 @@ pub fn run() {
             spotify::spotify_connect,
             spotify::spotify_control,
             spotify::spotify_disconnect,
+            refresh_spotify,
             open_settings_window,
             set_paused,
             toggle_auto_hide,

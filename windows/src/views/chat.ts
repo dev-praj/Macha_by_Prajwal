@@ -164,9 +164,51 @@ function contextChip(label: string): HTMLElement {
   return chip;
 }
 
+async function captureScreenSnapshot(): Promise<string> {
+  if (!navigator.mediaDevices?.getDisplayMedia) {
+    throw new Error("Screen sharing is unavailable in this window.");
+  }
+  const stream = await navigator.mediaDevices.getDisplayMedia({
+    video: { width: { max: 1280 }, height: { max: 800 } },
+    audio: false,
+  });
+  try {
+    const video = document.createElement("video");
+    video.muted = true;
+    video.playsInline = true;
+    video.srcObject = stream;
+    await video.play();
+    if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+      await new Promise<void>((resolve, reject) => {
+        video.addEventListener("loadeddata", () => resolve(), { once: true });
+        video.addEventListener("error", () => reject(new Error("Could not read the selected screen.")), { once: true });
+      });
+    }
+    if (!video.videoWidth || !video.videoHeight) {
+      throw new Error("The selected screen did not provide a video frame.");
+    }
+    const scale = Math.min(1, 1280 / video.videoWidth, 800 / video.videoHeight);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+    canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Could not prepare the screen snapshot.");
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const image = canvas.toDataURL("image/jpeg", 0.58);
+    if (image.length > 2_000_000) {
+      throw new Error("This screen snapshot is too large. Share a smaller window or screen.");
+    }
+    return image;
+  } finally {
+    stream.getTracks().forEach((track) => track.stop());
+  }
+}
+
 function actionDescription(action: AutomationAction): string {
   switch (action.name) {
     case "open_app": return `open ${String(action.arguments.appName ?? "the app")}`;
+    case "open_website": return `open ${String(action.arguments.url ?? "a website")}`;
+    case "search_web": return "open a web search";
     case "list_directory": return "list files in a folder";
     case "read_file": return "read a file (contents go to the selected chat provider)";
     case "open_path": return "open an item in the file manager";
@@ -181,8 +223,9 @@ function actionDescription(action: AutomationAction): string {
 
 function isOpenAction(
   action: AutomationAction | null,
-): action is AutomationAction & { name: "open_app" | "open_path" } {
-  return action?.name === "open_app" || action?.name === "open_path";
+): action is AutomationAction & { name: "open_app" | "open_path" | "open_website" } {
+  return action?.name === "open_app" || action?.name === "open_path" ||
+    action?.name === "open_website";
 }
 
 interface AppChoice {
@@ -215,11 +258,17 @@ function openActionQuestion(action: AutomationAction, selectedLabel?: string): s
     ?? launchTarget(action)?.label
     ?? (action.name === "open_app"
       ? String(action.arguments.appName ?? "this application")
-      : String(action.arguments.path ?? "this file or folder"));
+      : action.name === "open_website"
+        ? String(action.arguments.url ?? "this website")
+        : String(action.arguments.path ?? "this file or folder"));
   if (action.name === "open_app" && choices.length > 1 && !selectedLabel) {
     return "Which of these exact-name applications should I open?";
   }
-  const description = action.name === "open_app" ? "application" : "file or folder";
+  const description = action.name === "open_app"
+    ? "application"
+    : action.name === "open_website"
+      ? "website"
+      : "file or folder";
   return `Are you sure you want to open the ${description} ${target}?`;
 }
 
@@ -290,6 +339,8 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
   let actionConfirmationStage: "choose" | "confirm" = "confirm";
   let selectedAppChoiceId: string | null = null;
   let wakeConversationHeld = false;
+  let screenImage: string | null = null;
+  let screenCaptureInProgress = false;
 
   const historyToggle = h("button", {
     class: "chat-action",
@@ -311,6 +362,35 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     },
   });
   const toolbar = h("div", { class: "chat-toolbar" }, historyToggle, newChat);
+  const screenCapture = h("button", {
+    class: "chat-action",
+    text: "Capture screen",
+    title: "Capture one screen snapshot to include with your next message",
+    "aria-label": "Capture one screen snapshot",
+    onclick: async () => {
+      if (screenCaptureInProgress || sending || pendingAction) return;
+      if (screenImage) {
+        screenImage = null;
+        State.notify();
+        return;
+      }
+      screenCaptureInProgress = true;
+      screenCapture.disabled = true;
+      try {
+        screenImage = await captureScreenSnapshot();
+        voiceNotice = "Screen snapshot ready for your next message.";
+        voiceNoticeIsError = false;
+      } catch (error) {
+        voiceNotice = String(error).replace(/^Error:\s*/, "");
+        voiceNoticeIsError = true;
+      } finally {
+        screenCaptureInProgress = false;
+        screenCapture.disabled = false;
+        State.notify();
+      }
+    },
+  }) as HTMLButtonElement;
+  toolbar.append(screenCapture);
   const historyList = h("div", { class: "conversation-list" });
   historyList.hidden = true;
   const chipRow = h("div", { class: "chip-row" });
@@ -983,6 +1063,8 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     activeRequestId = requestId;
     cancelRequested = false;
     const history = State.chatHistory.map((message) => ({ ...message }));
+    const screenImageForRequest = screenImage;
+    screenImage = null;
     input.value = "";
     sending = true;
     Sound.play("send");
@@ -996,8 +1078,36 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     const file = State.droppedFile;
     const context: ChatContext | null = file ? { kind: "file", name: file.name, path: file.path } : null;
     const sharedContext = State.sharedConversationContext(conversationId);
+    const streamSpeechEnabled = voiceRequest
+      && State.settings.speakRepliesMode !== "off";
+    let streamListener: (() => void) | undefined;
+    let streamedSpeech = false;
+    let acknowledgementPending = Boolean(acknowledgement);
+    let pendingSpeechText = "";
+    let resolveStreamFinished: (() => void) | undefined;
+    const streamFinished = new Promise<void>((resolve) => {
+      resolveStreamFinished = resolve;
+    });
 
     try {
+      if (streamSpeechEnabled) {
+        streamListener = await onEvent<{ requestId: string; delta: string | null }>(
+          "chat-stream-delta",
+          (event) => {
+            if (event.requestId !== requestId) return;
+            if (event.delta === null) {
+              resolveStreamFinished?.();
+              return;
+            }
+            if (acknowledgementPending) {
+              pendingSpeechText += event.delta;
+              return;
+            }
+            streamedSpeech = true;
+            TTS.speakStreamChunk(event.delta);
+          },
+        );
+      }
       const reply = await Bridge.chatSend(
         conversationId,
         history,
@@ -1007,9 +1117,23 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         requestId,
         false,
         voiceRequest,
+        screenImageForRequest,
       );
-      await showReply(reply, conversationId, voiceRequest, acknowledgement);
+      if (streamSpeechEnabled) await streamFinished;
+      const prepareStreamSpeech = streamSpeechEnabled
+        ? () => {
+          acknowledgementPending = false;
+          if (pendingSpeechText) {
+            streamedSpeech = true;
+            TTS.speakStreamChunk(pendingSpeechText);
+            pendingSpeechText = "";
+          }
+          return streamedSpeech ? { completion: TTS.finishStream() } : undefined;
+        }
+        : undefined;
+      await showReply(reply, conversationId, voiceRequest, acknowledgement, prepareStreamSpeech);
     } catch (err) {
+      if (streamedSpeech || pendingSpeechText) await TTS.stop();
       const lastMessage = State.chatHistory[State.chatHistory.length - 1];
       if (lastMessage?.role === "user" && lastMessage.content === query) {
         State.chatHistory.pop();
@@ -1023,6 +1147,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       }
       if (voiceRequest) await releaseVoiceSession();
     } finally {
+      streamListener?.();
       sending = false;
       activeRequestId = null;
       cancelRequested = false;
@@ -1036,6 +1161,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       } else if (voiceState === "idle") {
         void reconcileWakeWord();
       }
+      window.dispatchEvent(new Event("coucou-assistant-task-finished"));
     }
   }
 
@@ -1044,6 +1170,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     conversationId: string,
     voiceRequest = false,
     acknowledgement?: Promise<void>,
+    prepareStreamSpeech?: () => { completion: Promise<void> } | undefined,
   ): Promise<void> {
     pendingAction = reply.action;
     pendingConversationId = reply.action ? conversationId : null;
@@ -1070,6 +1197,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     State.notify();
     onHeightChange();
     if (acknowledgement) await acknowledgement;
+    const streamedSpeech = prepareStreamSpeech?.()?.completion;
     const shouldSpeak = State.settings.speakRepliesMode === "always"
       || (State.settings.speakRepliesMode === "voiceOnly" && voiceRequest);
     if (shouldSpeak && safeReplyText.trim()) {
@@ -1079,7 +1207,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       if (assistantMessage?.role === "assistant") {
         assistantMessage.content = "";
         State.notify();
-        const speech = TTS.speak(safeReplyText);
+        const speech = streamedSpeech ?? TTS.speak(safeReplyText);
         await Promise.all([
           speech,
           revealReplyWhileSpeaking(assistantMessage, content, speech),
@@ -1089,7 +1217,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         State.notify();
         onHeightChange();
       } else {
-        await TTS.speak(safeReplyText);
+        await (streamedSpeech ?? TTS.speak(safeReplyText));
       }
     } else if (voiceRequest && !reply.action) {
       void releaseVoiceSession();
@@ -1173,6 +1301,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       } else {
         releaseWakeConversation();
       }
+      window.dispatchEvent(new Event("coucou-assistant-task-finished"));
     }
   }
 
@@ -1315,16 +1444,21 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     el,
     sync() {
       const file = State.droppedFile;
-      const wantChip = file?.name ?? "";
+      const wantChip = [file?.name, screenImage ? "Screen snapshot ready" : ""]
+        .filter(Boolean)
+        .join(" · ");
       if (chipRow.dataset.label !== wantChip) {
         chipRow.dataset.label = wantChip;
         clear(chipRow);
-        if (wantChip) chipRow.append(contextChip(wantChip));
+        if (file) chipRow.append(contextChip(file.name));
+        if (screenImage) chipRow.append(contextChip("Screen snapshot ready"));
       }
 
       historyToggle.classList.toggle("selected", historyOpen);
       historyToggle.disabled = sending || !!pendingAction;
       newChat.disabled = sending || !!pendingAction;
+      screenCapture.disabled = screenCaptureInProgress || sending || !!pendingAction;
+      screenCapture.textContent = screenImage ? "Remove snapshot" : "Capture screen";
       voiceButton.disabled = actionConfirmationActive
         || voiceState === "transcribing" || (sending && voiceState !== "speaking");
       if (sending) {

@@ -77,6 +77,11 @@ async function main() {
       console.error("[coucou] could not release the wake conversation visibility hold", error);
     });
   });
+  window.addEventListener("coucou-assistant-task-finished", () => {
+    if (State.mode === "hidden" || State.mode === "compact") {
+      island.alert(State.view);
+    }
+  });
 
   // The settings window writes preferences; apply them here without a restart.
   await onEvent<Settings>("settings-changed", (s) => {

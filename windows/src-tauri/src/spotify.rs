@@ -6,7 +6,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
 use rand::RngCore;
-use reqwest::{Client, Method, Response, StatusCode};
+use reqwest::{Client, Method, RequestBuilder, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::Digest;
@@ -43,22 +43,22 @@ struct TokenResponse {
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
-struct SpotifyTrack {
-    name: String,
-    artists: String,
-    image_url: Option<String>,
-    duration_ms: u64,
-    uri: Option<String>,
+pub struct SpotifyTrack {
+    pub name: String,
+    pub artists: String,
+    pub image_url: Option<String>,
+    pub duration_ms: u64,
+    pub uri: Option<String>,
 }
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
-struct SpotifySnapshot {
-    connected: bool,
-    playing: bool,
-    progress_ms: u64,
-    track: Option<SpotifyTrack>,
-    queue: Vec<SpotifyTrack>,
+pub struct SpotifySnapshot {
+    pub connected: bool,
+    pub playing: bool,
+    pub progress_ms: u64,
+    pub track: Option<SpotifyTrack>,
+    pub queue: Vec<SpotifyTrack>,
 }
 
 #[tauri::command]
@@ -241,12 +241,12 @@ pub fn start(app: AppHandle) {
                 continue;
             }
             match publish_snapshot(&app).await {
-                Ok(()) => retry_delay = POLL_INTERVAL,
+                Ok(_) => retry_delay = POLL_INTERVAL,
                 Err(error) => {
                     log::line(format!("Spotify playback refresh failed: {error}"));
                     let _ = app.emit_to(WINDOW_LABEL, "spotify-error", error);
                     tokio::time::sleep(retry_delay).await;
-                    retry_delay = (retry_delay * 2).min(Duration::from_secs(60));
+                    retry_delay = (retry_delay * 2).min(Duration::from_secs(8));
                     continue;
                 }
             }
@@ -255,14 +255,18 @@ pub fn start(app: AppHandle) {
     });
 }
 
-pub async fn poll_once(app: AppHandle) {
-    if let Err(error) = publish_snapshot(&app).await {
-        log::line(format!("Spotify refresh failed: {error}"));
-        let _ = app.emit_to(WINDOW_LABEL, "spotify-error", error);
+pub async fn poll_once(app: AppHandle) -> Result<SpotifySnapshot, String> {
+    match publish_snapshot(&app).await {
+        Ok(snapshot) => Ok(snapshot),
+        Err(error) => {
+            log::line(format!("Spotify refresh failed: {error}"));
+            let _ = app.emit_to(WINDOW_LABEL, "spotify-error", error.clone());
+            Err(error)
+        }
     }
 }
 
-async fn publish_snapshot(app: &AppHandle) -> Result<(), String> {
+async fn publish_snapshot(app: &AppHandle) -> Result<SpotifySnapshot, String> {
     let mut token = valid_token().await?;
     let current = authorized_request(
         &Method::GET,
@@ -323,8 +327,9 @@ async fn publish_snapshot(app: &AppHandle) -> Result<(), String> {
         track,
         queue,
     };
-    app.emit_to(WINDOW_LABEL, "spotify-update", snapshot)
-        .map_err(|error| format!("Could not update Spotify player: {error}"))
+    app.emit_to(WINDOW_LABEL, "spotify-update", snapshot.clone())
+        .map_err(|error| format!("Could not update Spotify player: {error}"))?;
+    Ok(snapshot)
 }
 
 fn track_from_value(value: &Value) -> Option<SpotifyTrack> {
@@ -382,30 +387,65 @@ async fn authorized_request_with_body(
     body: Option<&Value>,
 ) -> Result<Response, String> {
     let client = http_client()?;
-    let mut request = client
-        .request(method.clone(), endpoint)
-        .bearer_auth(&token.access_token);
-    if let Some(body) = body {
-        request = request.json(body);
-    }
-    let response = request
-        .send()
-        .await
-        .map_err(|error| format!("Spotify request failed: {error}"))?;
+    let response = send_request(&client, method, endpoint, &token.access_token, body).await?;
     if response.status() != StatusCode::UNAUTHORIZED {
         return Ok(response);
     }
     *token = refresh_token(&token.refresh_token).await?;
-    let mut retry = client
-        .request(method.clone(), endpoint)
-        .bearer_auth(&token.access_token);
-    if let Some(body) = body {
-        retry = retry.json(body);
+    send_request(&client, method, endpoint, &token.access_token, body).await
+}
+
+async fn send_request(
+    client: &Client,
+    method: &Method,
+    endpoint: &str,
+    access_token: &str,
+    body: Option<&Value>,
+) -> Result<Response, String> {
+    let attempts = if *method == Method::GET { 3 } else { 1 };
+    for attempt in 0..attempts {
+        match authorized_builder(client, method, endpoint, access_token, body)
+            .send()
+            .await
+        {
+            Ok(response) => return Ok(response),
+            Err(error) if attempt + 1 < attempts => {
+                log::line(format!(
+                    "Spotify GET request failed (attempt {} of {attempts}); retrying: {error}",
+                    attempt + 1
+                ));
+                tokio::time::sleep(Duration::from_millis(350 * (attempt as u64 + 1))).await;
+            }
+            Err(error) => {
+                let label = if attempt == 0 {
+                    "Spotify request failed"
+                } else {
+                    "Spotify request failed after retries"
+                };
+                return Err(format!("{label}: {error}"));
+            }
+        }
     }
-    retry
-        .send()
-        .await
-        .map_err(|error| format!("Spotify retry failed: {error}"))
+    Err("Spotify request failed without a response.".into())
+}
+
+fn authorized_builder(
+    client: &Client,
+    method: &Method,
+    endpoint: &str,
+    access_token: &str,
+    body: Option<&Value>,
+) -> RequestBuilder {
+    let request = client
+        .request(method.clone(), endpoint)
+        .bearer_auth(access_token);
+    match body {
+        Some(body) => request.json(body),
+        None if *method == Method::POST || *method == Method::PUT => {
+            request.header(reqwest::header::CONTENT_LENGTH, "0")
+        }
+        None => request,
+    }
 }
 
 async fn valid_token() -> Result<OAuthToken, String> {
@@ -590,18 +630,30 @@ fn http_client() -> Result<Client, String> {
 
 async fn api_error(response: Response) -> String {
     let status = response.status();
+    let is_html = response
+        .headers()
+        .get(reqwest::header::CONTENT_TYPE)
+        .and_then(|value| value.to_str().ok())
+        .is_some_and(|value| value.to_ascii_lowercase().contains("text/html"));
     let body = response.text().await.unwrap_or_default();
-    let message = serde_json::from_str::<Value>(&body)
-        .ok()
-        .and_then(|value| {
-            value
-                .get("error")
-                .and_then(|error| error.get("message").or(Some(error)))
-                .and_then(Value::as_str)
-                .map(ToOwned::to_owned)
-        })
-        .filter(|message| !message.is_empty())
-        .unwrap_or_else(|| body.chars().take(400).collect());
+    let message = if is_html {
+        status
+            .canonical_reason()
+            .unwrap_or("Unexpected response")
+            .to_string()
+    } else {
+        serde_json::from_str::<Value>(&body)
+            .ok()
+            .and_then(|value| {
+                value
+                    .get("error")
+                    .and_then(|error| error.get("message").or(Some(error)))
+                    .and_then(Value::as_str)
+                    .map(ToOwned::to_owned)
+            })
+            .filter(|message| !message.is_empty())
+            .unwrap_or_else(|| body.chars().take(400).collect())
+    };
     format!("Spotify API error {status}: {message}")
 }
 
@@ -620,7 +672,64 @@ fn unix_time() -> Result<u64, String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{choose_playback_device, track_from_value};
+    use super::{authorized_builder, choose_playback_device, track_from_value};
+    use reqwest::{Client, Method};
+
+    #[test]
+    fn bodyless_post_requests_send_zero_content_length() {
+        let request = authorized_builder(
+            &Client::new(),
+            &Method::POST,
+            "https://api.spotify.com/v1/me/player/next",
+            "test-token",
+            None,
+        )
+        .build()
+        .unwrap();
+        assert_eq!(
+            request
+                .headers()
+                .get(reqwest::header::CONTENT_LENGTH)
+                .unwrap(),
+            "0"
+        );
+    }
+
+    #[test]
+    fn bodyless_put_requests_send_zero_content_length() {
+        let request = authorized_builder(
+            &Client::new(),
+            &Method::PUT,
+            "https://api.spotify.com/v1/me/player/pause",
+            "test-token",
+            None,
+        )
+        .build()
+        .unwrap();
+        assert_eq!(
+            request
+                .headers()
+                .get(reqwest::header::CONTENT_LENGTH)
+                .unwrap(),
+            "0"
+        );
+    }
+
+    #[test]
+    fn bodyless_get_requests_do_not_send_content_length() {
+        let request = authorized_builder(
+            &Client::new(),
+            &Method::GET,
+            "https://api.spotify.com/v1/me/player/devices",
+            "test-token",
+            None,
+        )
+        .build()
+        .unwrap();
+        assert!(!request
+            .headers()
+            .contains_key(reqwest::header::CONTENT_LENGTH));
+    }
 
     #[test]
     fn playback_actions_prefer_the_active_spotify_device() {

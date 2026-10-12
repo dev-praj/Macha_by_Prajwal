@@ -122,6 +122,7 @@ export const Bridge = {
     requestId: string,
     localOnly = false,
     voiceRequest = false,
+    screenImage: string | null = null,
   ) => callOrThrow<ChatReply>("chat_send", {
     conversationId,
     history,
@@ -131,6 +132,7 @@ export const Bridge = {
     requestId,
     localOnly,
     voiceRequest,
+    screenImage,
   }),
   chatAction: (
     conversationId: string,
@@ -161,6 +163,10 @@ export const Bridge = {
     callOrThrow<OllamaStatus>("ollama_status", { refresh }),
   chatDelete: (conversationId: string) =>
     callOrThrow<void>("chat_delete", { conversationId }),
+  memoryList: () => callOrThrow<MemoryRecord[]>("memories_list"),
+  memoryRemember: (category: MemoryRecord["category"], text: string) =>
+    callOrThrow<MemoryRecord>("memory_remember", { category, text }),
+  memoryForget: (id: string) => callOrThrow<void>("memory_forget", { id }),
   chatReset: () => call<void>("chat_reset"),
   /** Copies a dropped file into the inbox. */
   ingestFile: (path: string) => callOrThrow<DroppedFile>("ingest_file", { path }),
@@ -203,6 +209,7 @@ export const Bridge = {
     positionMs: positionMs ?? null,
     trackUri: trackUri ?? null,
   }),
+  refreshSpotify: () => callOrThrow<SpotifySnapshot>("refresh_spotify"),
   spotifyDisconnect: () => callOrThrow<void>("spotify_disconnect"),
 
   /** Tray → Pause. Stops the integration pollers, not just the island. */
@@ -235,6 +242,14 @@ export interface ChatReply {
   action: AutomationAction | null;
   provider: string;
   fallbackNotice: string | null;
+}
+
+export interface MemoryRecord {
+  id: string;
+  category: "identity" | "preference" | "goal" | "project" | "relationship" | "emotional" | "behavior";
+  text: string;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface OllamaStatus {

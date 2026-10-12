@@ -209,6 +209,146 @@ pub async fn chat(
     })
 }
 
+pub async fn chat_stream(
+    messages: Vec<Value>,
+    tools: Option<Value>,
+    mode: &str,
+    ollama_model: &str,
+    openrouter_model: &str,
+    cancel: &mut watch::Receiver<bool>,
+    deltas: &tokio::sync::mpsc::UnboundedSender<String>,
+) -> Result<ChatReply, String> {
+    let mode = ProviderMode::parse(mode);
+    let mut emitted_text = false;
+    if mode == ProviderMode::VoiceAuto {
+        let local_result = ollama_completion_stream(
+            messages.clone(),
+            tools.clone(),
+            ollama_model,
+            false,
+            cancel,
+            Some(VOICE_OLLAMA_TIMEOUT),
+            Some(VOICE_OLLAMA_MAX_TOKENS),
+            deltas,
+            &mut emitted_text,
+        )
+        .await;
+        match local_result {
+            Ok(response) => {
+                crate::log::line(format!("voice chat provider=ollama model={ollama_model}"));
+                return Ok(ChatReply {
+                    response,
+                    provider: "ollama".into(),
+                    model: ollama_model.into(),
+                    fallback_notice: None,
+                });
+            }
+            Err(error) if error.message == "Request cancelled." => return Err(error.message),
+            Err(error) if emitted_text => return Err(error.message),
+            Err(error) => {
+                crate::log::line(format!(
+                    "voice chat Ollama unavailable; trying OpenRouter: {}",
+                    error.message
+                ));
+            }
+        }
+        return match openrouter_completion_stream(
+            messages,
+            tools,
+            openrouter_model,
+            cancel,
+            VOICE_OPENROUTER_TIMEOUT,
+            VOICE_OPENROUTER_MAX_TOKENS,
+            deltas,
+            &mut emitted_text,
+        )
+        .await
+        {
+            Ok((response, actual_model)) => Ok(ChatReply {
+                response,
+                provider: "openrouter".into(),
+                model: actual_model,
+                fallback_notice: Some("Using OpenRouter (Ollama unavailable)".into()),
+            }),
+            Err(error) => Err(error),
+        };
+    }
+
+    if mode != ProviderMode::OpenRouterOnly {
+        match ollama_completion_stream(
+            messages.clone(),
+            tools.clone(),
+            ollama_model,
+            mode == ProviderMode::OllamaOnly,
+            cancel,
+            None,
+            None,
+            deltas,
+            &mut emitted_text,
+        )
+        .await
+        {
+            Ok(response) => {
+                crate::log::line(format!("chat provider=ollama model={ollama_model}"));
+                return Ok(ChatReply {
+                    response,
+                    provider: "ollama".into(),
+                    model: ollama_model.into(),
+                    fallback_notice: None,
+                });
+            }
+            Err(error) if error.message == "Request cancelled." => return Err(error.message),
+            Err(error) if emitted_text => return Err(error.message),
+            Err(error) if mode == ProviderMode::OllamaOnly => return Err(error.message),
+            Err(error) if !error.retry_openrouter => return Err(error.message),
+            Err(ollama_error) => {
+                return match openrouter_completion_stream(
+                    messages,
+                    tools,
+                    openrouter_model,
+                    cancel,
+                    Duration::from_secs(60),
+                    OPENROUTER_MAX_TOKENS,
+                    deltas,
+                    &mut emitted_text,
+                )
+                .await
+                {
+                    Ok((response, actual_model)) => Ok(ChatReply {
+                        response,
+                        provider: "openrouter".into(),
+                        model: actual_model,
+                        fallback_notice: Some("Using OpenRouter (Ollama unavailable)".into()),
+                    }),
+                    Err(openrouter_error) => Err(format!(
+                        "Ollama failed: {}. OpenRouter failed: {}",
+                        ollama_error.message, openrouter_error
+                    )),
+                };
+            }
+        }
+    }
+
+    let (response, actual_model) = openrouter_completion_stream(
+        messages,
+        tools,
+        openrouter_model,
+        cancel,
+        Duration::from_secs(60),
+        OPENROUTER_MAX_TOKENS,
+        deltas,
+        &mut emitted_text,
+    )
+    .await?;
+    crate::log::line(format!("chat provider=openrouter model={actual_model}"));
+    Ok(ChatReply {
+        response,
+        provider: "openrouter".into(),
+        model: actual_model,
+        fallback_notice: None,
+    })
+}
+
 async fn ollama_completion(
     messages: Vec<Value>,
     tools: Option<Value>,
@@ -253,6 +393,59 @@ async fn ollama_completion(
         "ollama",
         body,
         cancel,
+    )
+    .await
+}
+
+async fn ollama_completion_stream(
+    messages: Vec<Value>,
+    tools: Option<Value>,
+    model: &str,
+    wait_for_start: bool,
+    cancel: &mut watch::Receiver<bool>,
+    response_timeout: Option<Duration>,
+    max_tokens: Option<u32>,
+    deltas: &tokio::sync::mpsc::UnboundedSender<String>,
+    emitted_text: &mut bool,
+) -> Result<Value, ProviderError> {
+    let status = if wait_for_start {
+        ensure_ollama().await
+    } else {
+        ensure_ollama_for_auto_chat().await
+    };
+    if !status.reachable {
+        return Err(ProviderError::local(
+            status
+                .error
+                .unwrap_or_else(|| "Ollama is not reachable at http://localhost:11434.".into()),
+            true,
+        ));
+    }
+    if !status.models.iter().any(|installed| installed == model) {
+        return Err(ProviderError::local(
+            format!("Ollama model {model} is not installed. Run: ollama pull {model}"),
+            true,
+        ));
+    }
+    let timeout = response_timeout.unwrap_or_else(|| {
+        if model == "qwen2.5:7b" {
+            Duration::from_secs(60)
+        } else {
+            Duration::from_secs(120)
+        }
+    });
+    let client = client(timeout).map_err(|error| ProviderError::local(error, true))?;
+    let mut body = request_body(model, messages, tools, max_tokens, true);
+    body["stream"] = json!(true);
+    send_json_stream(
+        &client,
+        format!("{OLLAMA_BASE}/v1/chat/completions"),
+        "ollama",
+        "ollama",
+        body,
+        cancel,
+        deltas,
+        emitted_text,
     )
     .await
 }
@@ -311,6 +504,98 @@ async fn openrouter_completion_with_timeout(
             }
             Err(error) if error == "Request cancelled." => return Err(error),
             Err(error) => errors.push(error),
+        }
+    }
+    if errors
+        .iter()
+        .any(|error| error.contains("OpenRouter credits exhausted"))
+    {
+        return Err("OpenRouter credits exhausted.".into());
+    }
+    Err(errors
+        .first()
+        .cloned()
+        .unwrap_or_else(|| "OpenRouter request failed.".into()))
+}
+
+async fn openrouter_completion_stream(
+    messages: Vec<Value>,
+    tools: Option<Value>,
+    model: &str,
+    cancel: &mut watch::Receiver<bool>,
+    response_timeout: Duration,
+    max_tokens: u32,
+    deltas: &tokio::sync::mpsc::UnboundedSender<String>,
+    emitted_text: &mut bool,
+) -> Result<(Value, String), String> {
+    let mut accounts = secrets::openrouter_accounts()?;
+    if accounts.is_empty() {
+        return Err("No OpenRouter API key is configured in the OS credential manager.".into());
+    }
+    let active = ACTIVE_OPENROUTER_ACCOUNT.get_or_init(|| Mutex::new(None));
+    if let Some(id) = active.lock().unwrap().clone() {
+        if let Some(index) = accounts.iter().position(|account| account.id == id) {
+            accounts.rotate_left(index);
+        }
+    }
+    let client = client(response_timeout).map_err(|error| format!("OpenRouter: {error}"))?;
+    let mut errors = Vec::new();
+    for account in accounts {
+        let key = secrets::openrouter_key_for_account(&account.id)
+            .map_err(|_| "OpenRouter could not read the configured credential.".to_string())?;
+        let mut body = request_body(
+            &openrouter_model(model),
+            messages.clone(),
+            tools.clone(),
+            Some(max_tokens),
+            false,
+        );
+        body["stream"] = json!(true);
+        let mut completed = None;
+        for attempt in 0..=1 {
+            match send_json_stream(
+                &client,
+                format!("{OPENROUTER_BASE}/chat/completions"),
+                &key,
+                "openrouter",
+                body.clone(),
+                cancel,
+                deltas,
+                emitted_text,
+            )
+            .await
+            {
+                Ok(response) => {
+                    completed = Some(response);
+                    break;
+                }
+                Err(error) if error.message == "Request cancelled." => return Err(error.message),
+                Err(error) if *emitted_text => return Err(error.message),
+                Err(error)
+                    if attempt == 0
+                        && error.status == Some(StatusCode::PAYMENT_REQUIRED)
+                        && error.message.to_ascii_lowercase().contains("max_tokens") =>
+                {
+                    let current = body["max_tokens"]
+                        .as_u64()
+                        .and_then(|value| u32::try_from(value).ok())
+                        .unwrap_or(max_tokens);
+                    body["max_tokens"] = json!(reduced_max_tokens(&error.message, current));
+                }
+                Err(error) if error.status == Some(StatusCode::PAYMENT_REQUIRED) => {
+                    errors.push("OpenRouter credits exhausted.".to_string());
+                    break;
+                }
+                Err(error) => {
+                    errors.push(error.message);
+                    break;
+                }
+            }
+        }
+        if let Some(response) = completed {
+            let actual_model = response_model(&response, &openrouter_model(model));
+            *active.lock().unwrap() = Some(account.id);
+            return Ok((response, actual_model));
         }
     }
     if errors
@@ -478,6 +763,197 @@ async fn send_json(
             false,
         )
     })
+}
+
+async fn send_json_stream(
+    client: &Client,
+    endpoint: String,
+    credential: &str,
+    provider: &str,
+    body: Value,
+    cancel: &mut watch::Receiver<bool>,
+    deltas: &tokio::sync::mpsc::UnboundedSender<String>,
+    emitted_text: &mut bool,
+) -> Result<Value, ProviderError> {
+    let mut request = client
+        .post(endpoint)
+        .header("content-type", "application/json")
+        .json(&body);
+    if provider == "ollama" {
+        request = request.bearer_auth("ollama");
+    } else {
+        request = request
+            .bearer_auth(credential)
+            .header("HTTP-Referer", "https://github.com/Louis-CFM/coucou")
+            .header("X-Title", "Coucou");
+    }
+    let mut response = tokio::select! {
+        response = request.send() => response.map_err(classify_network_error)?,
+        _ = cancelled(cancel) => return Err(ProviderError::local("Request cancelled.", false)),
+    };
+    let status = response.status();
+    if !status.is_success() {
+        let text = tokio::select! {
+            text = response.text() => text.map_err(classify_network_error)?,
+            _ = cancelled(cancel) => return Err(ProviderError::local("Request cancelled.", false)),
+        };
+        let parsed = serde_json::from_str::<Value>(&text).ok();
+        let detail = parsed
+            .as_ref()
+            .and_then(|value| value.get("error"))
+            .and_then(|error| error.get("message").or(Some(error)))
+            .and_then(Value::as_str)
+            .map(str::to_string)
+            .unwrap_or_else(|| text.chars().take(240).collect());
+        let lower_detail = detail.to_ascii_lowercase();
+        let model_missing = lower_detail.contains("model not found")
+            || (status == StatusCode::NOT_FOUND && lower_detail.contains("model"));
+        return Err(ProviderError {
+            message: if provider == "ollama" && model_missing {
+                format!("Ollama model is unavailable: {detail}")
+            } else {
+                format!("HTTP {status}: {detail}")
+            },
+            retry_openrouter: provider == "ollama"
+                && ollama_failure_allows_fallback(status, &detail),
+            status: Some(status),
+        });
+    }
+
+    let mut response_body = json!({
+        "choices": [{
+            "message": { "role": "assistant", "content": "", "tool_calls": [] },
+            "finish_reason": null
+        }]
+    });
+    let mut line_buffer = Vec::new();
+    loop {
+        let chunk = tokio::select! {
+            chunk = response.chunk() => chunk.map_err(classify_network_error)?,
+            _ = cancelled(cancel) => return Err(ProviderError::local("Request cancelled.", false)),
+        };
+        let Some(chunk) = chunk else { break };
+        for byte in chunk {
+            if byte == b'\n' {
+                let line = String::from_utf8_lossy(&line_buffer);
+                let line = line.trim();
+                if let Some(data) = line.strip_prefix("data:") {
+                    let data = data.trim();
+                    if data == "[DONE]" {
+                        return Ok(response_body);
+                    }
+                    if !data.is_empty() {
+                        let event = serde_json::from_str::<Value>(data).map_err(|error| {
+                            ProviderError::local(
+                                format!("Invalid streaming response from {provider}: {error}"),
+                                provider == "ollama",
+                            )
+                        })?;
+                        append_stream_event(&mut response_body, &event, deltas, emitted_text)?;
+                    }
+                }
+                line_buffer.clear();
+            } else {
+                line_buffer.push(byte);
+            }
+        }
+    }
+    if !line_buffer.is_empty() {
+        let line = String::from_utf8_lossy(&line_buffer);
+        if let Some(data) = line.trim().strip_prefix("data:") {
+            let data = data.trim();
+            if data != "[DONE]" && !data.is_empty() {
+                let event = serde_json::from_str::<Value>(data).map_err(|error| {
+                    ProviderError::local(
+                        format!("Invalid streaming response from {provider}: {error}"),
+                        provider == "ollama",
+                    )
+                })?;
+                append_stream_event(&mut response_body, &event, deltas, emitted_text)?;
+            }
+        }
+    }
+    Ok(response_body)
+}
+
+fn append_stream_event(
+    response: &mut Value,
+    event: &Value,
+    deltas: &tokio::sync::mpsc::UnboundedSender<String>,
+    emitted_text: &mut bool,
+) -> Result<(), ProviderError> {
+    if let Some(error) = event.get("error") {
+        let message = error
+            .get("message")
+            .and_then(Value::as_str)
+            .or_else(|| error.as_str())
+            .unwrap_or("The provider returned an error while streaming.");
+        return Err(ProviderError::local(
+            format!("Streaming response error: {message}"),
+            false,
+        ));
+    }
+    if let Some(model) = event.get("model") {
+        response["model"] = model.clone();
+    }
+    let Some(choice) = event
+        .get("choices")
+        .and_then(Value::as_array)
+        .and_then(|choices| choices.first())
+    else {
+        return Ok(());
+    };
+    if let Some(reason) = choice.get("finish_reason") {
+        response["choices"][0]["finish_reason"] = reason.clone();
+    }
+    let Some(delta) = choice.get("delta") else {
+        return Ok(());
+    };
+    if let Some(text) = delta.get("content").and_then(Value::as_str) {
+        let current = response["choices"][0]["message"]["content"]
+            .as_str()
+            .unwrap_or_default()
+            .to_string();
+        response["choices"][0]["message"]["content"] = json!(format!("{current}{text}"));
+        *emitted_text |= !text.is_empty();
+        if !deltas.is_closed() && deltas.send(text.to_string()).is_err() {
+            crate::log::line("voice response listener closed while streaming a reply");
+        }
+    }
+    if let Some(tool_calls) = delta.get("tool_calls").and_then(Value::as_array) {
+        for tool_delta in tool_calls {
+            let Some(index) = tool_delta.get("index").and_then(Value::as_u64) else {
+                continue;
+            };
+            let index = index as usize;
+            let calls = response["choices"][0]["message"]["tool_calls"]
+                .as_array_mut()
+                .expect("tool_calls is initialized as an array");
+            while calls.len() <= index {
+                calls.push(json!({
+                    "id": "",
+                    "type": "function",
+                    "function": { "name": "", "arguments": "" }
+                }));
+            }
+            let call = &mut calls[index];
+            if let Some(id) = tool_delta.get("id").and_then(Value::as_str) {
+                call["id"] = json!(id);
+            }
+            if let Some(kind) = tool_delta.get("type").and_then(Value::as_str) {
+                call["type"] = json!(kind);
+            }
+            if let Some(name) = tool_delta["function"].get("name").and_then(Value::as_str) {
+                let current = call["function"]["name"].as_str().unwrap_or_default();
+                call["function"]["name"] = json!(format!("{current}{name}"));
+            }
+            if let Some(arguments) = tool_delta["function"]["arguments"].as_str() {
+                let current = call["function"]["arguments"].as_str().unwrap_or_default();
+                call["function"]["arguments"] = json!(format!("{current}{arguments}"));
+            }
+        }
+    }
+    Ok(())
 }
 
 fn classify_network_error(error: reqwest::Error) -> ProviderError {
@@ -734,8 +1210,8 @@ fn affordable_tokens(message: &str) -> Option<u32> {
 #[cfg(test)]
 mod tests {
     use super::{
-        affordable_tokens, ollama_failure_allows_fallback, openrouter_model, reduced_max_tokens,
-        request_body, send_json, send_openrouter_with_retry_at, ProviderMode,
+        affordable_tokens, append_stream_event, ollama_failure_allows_fallback, openrouter_model,
+        reduced_max_tokens, request_body, send_json, send_openrouter_with_retry_at, ProviderMode,
     };
     use reqwest::{Client, StatusCode};
     use serde_json::Value;
@@ -754,6 +1230,67 @@ mod tests {
         );
         assert_eq!(ProviderMode::parse("voiceAuto"), ProviderMode::VoiceAuto);
         assert_eq!(ProviderMode::parse("invalid"), ProviderMode::Auto);
+    }
+
+    #[test]
+    fn streaming_response_accumulates_text_and_tool_call_fragments() {
+        let (deltas, mut received) = tokio::sync::mpsc::unbounded_channel();
+        let mut emitted_text = false;
+        let mut response = serde_json::json!({
+            "choices": [{
+                "message": { "role": "assistant", "content": "", "tool_calls": [] },
+                "finish_reason": null
+            }]
+        });
+        let events = [
+            serde_json::json!({
+                "model": "local-model",
+                "choices": [{
+                    "delta": {
+                        "content": "Hello. ",
+                        "tool_calls": [{
+                            "index": 0,
+                            "id": "call-1",
+                            "type": "function",
+                            "function": { "name": "open_", "arguments": "{\"url\":" }
+                        }]
+                    },
+                    "finish_reason": null
+                }]
+            }),
+            serde_json::json!({
+                "choices": [{
+                    "delta": {
+                        "content": "Opening now.",
+                        "tool_calls": [{
+                            "index": 0,
+                            "function": { "name": "website", "arguments": "\"https://example.com\"}" }
+                        }]
+                    },
+                    "finish_reason": "tool_calls"
+                }]
+            }),
+        ];
+        for event in events {
+            append_stream_event(&mut response, &event, &deltas, &mut emitted_text).unwrap();
+        }
+
+        assert_eq!(received.try_recv().unwrap(), "Hello. ");
+        assert_eq!(received.try_recv().unwrap(), "Opening now.");
+        assert_eq!(
+            response["choices"][0]["message"]["content"],
+            "Hello. Opening now."
+        );
+        assert_eq!(
+            response["choices"][0]["message"]["tool_calls"][0]["function"]["name"],
+            "open_website"
+        );
+        assert_eq!(
+            response["choices"][0]["message"]["tool_calls"][0]["function"]["arguments"],
+            "{\"url\":\"https://example.com\"}"
+        );
+        assert_eq!(response["choices"][0]["finish_reason"], "tool_calls");
+        assert_eq!(response["model"], "local-model");
     }
 
     #[test]

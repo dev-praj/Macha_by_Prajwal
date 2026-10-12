@@ -102,6 +102,18 @@ in Coucou's local inbox. New conversations can also use the text and attachment
 contents from previous chats as context when the original attachment is still
 available in Coucou's inbox; visible conversation transcripts remain separate.
 
+Macha can keep a small set of durable memories between conversations. They are
+stored locally in the user's Coucou data folder, included in requests to the
+selected chat provider, and can be reviewed or removed in **Settings → Memory**.
+You can add memories directly in Settings as well. Models without function-call
+support still answer normally; use Settings to save memories when automatic
+memory capture is unavailable. Do not save credentials or other sensitive
+information. **Capture screen** asks
+Windows or the desktop environment which screen or window to share, captures a
+single still image, and attaches it only to the next chat message; it is not
+stored in the transcript. Chat also offers to open websites or web searches in
+the system browser, and always waits for approval before opening them.
+
 ### Local automation
 
 In **Settings… → Local automation**, choose the folders Mochi may work in.
@@ -116,8 +128,10 @@ that access.
 When Mochi reads a file, its contents and the authorized folder paths are sent
 to the selected chat provider (local Ollama or OpenRouter). Only authorize
 folders and request file reads you are comfortable sharing with that provider.
-Models that do not support tool calls may answer normally without performing
-local actions.
+Models that do not support native tool calls use a compatibility prompt for
+local actions where supported. Coucou validates every proposed action, applies
+the same folder restrictions, and still requires explicit approval before
+opening an app or website or changing local files.
 
 No telemetry. The only network requests Coucou makes are to the services you
 configure yourself.
@@ -166,7 +180,8 @@ only, preferring en-US and then en-IN; install an English Windows speech voice i
 none is available. Configure **Settings… → General → Speak replies** to keep it
 off, enable it only for voice messages (the default), or speak every reply. The
 voice, engine, rate, and volume are configurable there; speech text is processed
-on-device.
+on-device. Spoken replies begin as the configured model streams text, rather
+than waiting for the complete answer before playback starts.
 
 The **Wake phrase "Hey Macha"** setting is enabled by default. While enabled,
 Coucou listens locally for speech and sends completed speech segments only to

@@ -65,6 +65,7 @@ struct SettingsView: View {
     // Integration keys
     @State private var resendKey: String    = KeychainStore.shared.get("resend-api-key")  ?? ""
     @State private var resendFrom: String   = KeychainStore.shared.get("resend-from")     ?? ""
+    @State private var elevenLabsKey: String = KeychainStore.shared.get("elevenlabs-api-key") ?? ""
     @State private var n8nUrl: String       = KeychainStore.shared.get("n8n-url")         ?? ""
     @State private var n8nKey: String       = KeychainStore.shared.get("n8n-api-key")     ?? ""
     @State private var vercelToken: String  = KeychainStore.shared.get("vercel-token")    ?? ""
@@ -709,6 +710,16 @@ struct SettingsView: View {
         GroupBox {
             VStack(alignment: .leading, spacing: 14) {
 
+                // ElevenLabs
+                VStack(alignment: .leading, spacing: 5) {
+                    HStack(spacing: 6) {
+                        Circle().fill(Color(hex: "#F4C15D")).frame(width: 8, height: 8)
+                        Text("ElevenLabs").font(.system(size: 12, weight: .semibold))
+                    }
+                    SecureField("API key", text: $elevenLabsKey)
+                        .textFieldStyle(.roundedBorder)
+                }
+
                 // Resend
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 6) {
@@ -1070,6 +1081,7 @@ struct SettingsView: View {
     #endif
 
     private func saveIntegrations() {
+        saveKey("elevenlabs-api-key", value: elevenLabsKey)
         saveKey("resend-api-key",  value: resendKey)
         saveKey("resend-from",     value: resendFrom)
         saveKey("n8n-url",         value: n8nUrl)

@@ -4,7 +4,7 @@
 // API requests and file reads stay on the Rust side; key reveal is a separate,
 // explicit Settings action.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
@@ -16,6 +16,7 @@ use crate::{automation, llm_client};
 /// Text and code files are inlined; anything larger is skipped, as on macOS.
 const MAX_INLINE_TEXT: u64 = 200_000;
 const MAX_AUTOMATION_ACTIONS: u8 = 5;
+const MAX_SCREEN_IMAGE_BYTES: usize = 2_000_000;
 
 pub const DEFAULT_MODEL: &str = "openrouter/free";
 
@@ -25,7 +26,10 @@ When the user explicitly asks to open an installed app, folder, or file, use the
 For file edits, write_file replaces all existing contents and erase_file_content clears them; state that clearly and wait for the user's approval. \
 Respond in the user's language. Be thorough and complete — use as much detail as the task requires. \
 Use fenced code blocks for code, commands, configuration, and other copyable snippets; add a language tag when known. \
-Keep surrounding prose plain and readable.";
+Keep surrounding prose plain and readable. \
+Use the existing configured model and provider; do not claim to use another model. \
+Use persistent memory sparingly for durable facts, preferences, goals, and projects; update a listed memory by its ID when it changes, and never save credentials or secrets. \
+Use open_website or search_web only when useful; Coucou always asks the user before opening a link or search.";
 
 #[derive(Default)]
 pub struct Chat {
@@ -38,7 +42,22 @@ pub struct Chat {
 
 struct PendingAction {
     tool_call_id: Option<String>,
+    call_index: usize,
     action: automation::AutomationAction,
+    remaining: VecDeque<QueuedAction>,
+    results: Vec<QueuedActionResult>,
+}
+
+struct QueuedAction {
+    call_index: usize,
+    tool_call_id: String,
+    action: automation::AutomationAction,
+}
+
+struct QueuedActionResult {
+    call_index: usize,
+    tool_call_id: String,
+    content: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -242,8 +261,13 @@ pub async fn send(
     automation_folders: &[String],
     provider_mode: &str,
     ollama_model: &str,
+    screen_image: Option<&str>,
+    voice_deltas: Option<&tokio::sync::mpsc::UnboundedSender<String>>,
     cancel: &mut watch::Receiver<bool>,
 ) -> Result<ChatReply, String> {
+    if let Some(image) = screen_image {
+        validate_screen_image(image)?;
+    }
     chat.seed_history(
         &conversation_id,
         &history,
@@ -271,6 +295,7 @@ pub async fn send(
         return propose_local_action(chat, &conversation_id, &query, action, automation_folders);
     }
 
+    let memories = crate::memory::list()?;
     // File / window context rides along with the first message only, exactly
     // like ClaudeService.chat().
     let mut content: Vec<Value> = Vec::new();
@@ -285,16 +310,69 @@ pub async fn send(
         json!({ "role": "user", "content": content }),
     );
 
-    let completion = match llm_client::chat(
-        provider_messages(chat.snapshot(&conversation_id), automation_folders),
-        (!automation_folders.is_empty()).then(automation_tools),
-        provider_mode,
-        ollama_model,
-        model,
-        cancel,
-    )
-    .await
-    {
+    let request_messages = with_screen_image(
+        provider_messages(
+            chat.snapshot(&conversation_id),
+            automation_folders,
+            &memories,
+        ),
+        screen_image,
+    );
+    let compatibility_mode = !automation_folders.is_empty() && local_file_action_intent(&query);
+    let tools = Some(assistant_tools(automation_folders));
+    let completion_result = if compatibility_mode {
+        crate::log::line(
+            "local file action detected; using provider-independent action-envelope compatibility mode",
+        );
+        llm_client::chat(
+            compatibility_messages(request_messages.clone(), automation_folders)?,
+            None,
+            provider_mode,
+            ollama_model,
+            model,
+            cancel,
+        )
+        .await
+    } else if let Some(deltas) = voice_deltas {
+        llm_client::chat_stream(
+            request_messages.clone(),
+            tools.clone(),
+            provider_mode,
+            ollama_model,
+            model,
+            cancel,
+            deltas,
+        )
+        .await
+    } else {
+        llm_client::chat(
+            request_messages.clone(),
+            tools,
+            provider_mode,
+            ollama_model,
+            model,
+            cancel,
+        )
+        .await
+    };
+    let completion = match completion_result {
+        Err(error) if tool_support_error(&error) => {
+            crate::log::line(
+                "configured model does not support function calls; retrying with an action-envelope compatibility prompt",
+            );
+            llm_client::chat(
+                compatibility_messages(request_messages, automation_folders)?,
+                None,
+                provider_mode,
+                ollama_model,
+                model,
+                cancel,
+            )
+            .await
+        }
+        result => result,
+    };
+    let completion = match completion {
         Ok(completion) => completion,
         Err(error) => {
             chat.pop(&conversation_id);
@@ -311,6 +389,133 @@ pub async fn send(
     }
 }
 
+fn tool_support_error(error: &str) -> bool {
+    let message = error.to_ascii_lowercase();
+    (message.contains("tool") || message.contains("function"))
+        && [
+            "unsupported",
+            "not supported",
+            "doesn't support",
+            "does not support",
+            "not available",
+            "not enabled",
+            "not allowed",
+            "disabled",
+            "no endpoints",
+            "invalid",
+        ]
+        .iter()
+        .any(|marker| message.contains(marker))
+}
+
+fn local_file_action_intent(query: &str) -> bool {
+    let mut query = query.trim().to_ascii_lowercase();
+    if ["how ", "what ", "why ", "explain ", "tell me how "]
+        .iter()
+        .any(|prefix| query.starts_with(prefix))
+    {
+        return false;
+    }
+    for prefix in ["please ", "can you ", "could you ", "would you "] {
+        if let Some(stripped) = query.strip_prefix(prefix) {
+            query = stripped.to_string();
+            break;
+        }
+    }
+    let starts_with_action = [
+        "create ",
+        "make ",
+        "write ",
+        "edit ",
+        "update ",
+        "replace ",
+        "clear ",
+        "empty ",
+        "erase ",
+        "move ",
+        "copy ",
+        "save ",
+        "read ",
+        "list ",
+        "show ",
+        "open ",
+        "fix ",
+        "organize ",
+    ]
+    .iter()
+    .any(|verb| query.starts_with(verb));
+    starts_with_action
+        && [
+            "file",
+            "folder",
+            "directory",
+            "document",
+            "text file",
+            "authorized folder",
+            "workspace",
+            "://",
+            ":\\",
+            "/",
+        ]
+        .iter()
+        .any(|subject| query.contains(subject))
+}
+
+fn compatibility_messages(
+    mut messages: Vec<Value>,
+    automation_folders: &[String],
+) -> Result<Vec<Value>, String> {
+    let schema = serde_json::to_string(&assistant_tools(automation_folders)).map_err(|error| {
+        format!("Could not prepare the model action compatibility prompt: {error}")
+    })?;
+    let system = messages
+        .first_mut()
+        .filter(|message| message.get("role").and_then(Value::as_str) == Some("system"))
+        .ok_or_else(|| "The chat request is missing its system instructions.".to_string())?;
+    let system_content = system
+        .get("content")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "The chat system instructions are invalid.".to_string())?;
+    system["content"] = json!(format!(
+        "{system_content}\n\n\
+         Native function calling is unavailable for this configured model. To request one supported action, \
+         return exactly one <coucou_action>JSON</coucou_action> block with this shape: \
+         {{\"name\":\"tool_name\",\"arguments\":{{...}}}}. Do not put the block in Markdown fences. \
+         Available action definitions: {schema}. \
+         A block is only a proposal: Coucou validates it and asks the user before performing any action that \
+         changes local data or opens an app, path, or website. Never claim the action is already completed. \
+         If no action is needed, answer normally without a block."
+    ));
+    messages.retain_mut(|message| {
+        if message.get("role").and_then(Value::as_str) == Some("assistant")
+            && message.get("tool_calls").is_some()
+        {
+            message
+                .as_object_mut()
+                .map(|object| object.remove("tool_calls"));
+            if message
+                .get("content")
+                .and_then(Value::as_str)
+                .map_or(true, str::is_empty)
+            {
+                return false;
+            }
+        }
+        if message.get("role").and_then(Value::as_str) == Some("tool") {
+            let result = message
+                .get("content")
+                .and_then(Value::as_str)
+                .unwrap_or("No action result was returned.");
+            *message = json!({
+                "role": "assistant",
+                "content": format!("Coucou action result: {result}"),
+            });
+        }
+        true
+    });
+    Ok(messages)
+}
+
 fn propose_local_action(
     chat: &Chat,
     conversation_id: &str,
@@ -324,7 +529,10 @@ fn propose_local_action(
         conversation_id.to_string(),
         PendingAction {
             tool_call_id: None,
+            call_index: 0,
             action: action.clone(),
+            remaining: VecDeque::new(),
+            results: Vec::new(),
         },
     );
     Ok(ChatReply {
@@ -354,7 +562,7 @@ pub async fn resolve_action(
             .ok_or_else(|| "This local action is no longer pending.".to_string())?;
         automation::select_app_target(&mut pending.action, selected_app_id.as_deref())?;
     }
-    let pending = chat
+    let mut pending = chat
         .take_pending_action(conversation_id)
         .ok_or_else(|| "This local action is no longer pending.".to_string())?;
     let Some(tool_call_id) = pending.tool_call_id else {
@@ -379,39 +587,97 @@ pub async fn resolve_action(
             fallback_notice: None,
         });
     };
+    let memories = crate::memory::list()?;
     let result = if approved {
         automation::execute(&pending.action, automation_folders)
             .unwrap_or_else(|error| format!("Action failed: {error}"))
     } else {
         "The user denied this action. Do not repeat it; explain that no change was made.".into()
     };
-    chat.push(
-        conversation_id,
-        json!({
-            "role": "tool",
-            "tool_call_id": tool_call_id,
-            "content": result,
-        }),
+    let mut results = pending.results;
+    results.push(QueuedActionResult {
+        call_index: pending.call_index,
+        tool_call_id,
+        content: result,
+    });
+    if let Some(next) = pending.remaining.pop_front() {
+        let reply = ChatReply {
+            text: String::new(),
+            model: "Local automation".into(),
+            action: Some(next.action.clone()),
+            provider: "local".into(),
+            fallback_notice: None,
+        };
+        chat.increment_action_count(conversation_id);
+        chat.pending_actions.lock().unwrap().insert(
+            conversation_id.to_string(),
+            PendingAction {
+                tool_call_id: Some(next.tool_call_id),
+                call_index: next.call_index,
+                action: next.action,
+                remaining: pending.remaining,
+                results,
+            },
+        );
+        return Ok(reply);
+    }
+    results.sort_by_key(|result| result.call_index);
+    for result in results {
+        chat.push(
+            conversation_id,
+            json!({
+                "role": "tool",
+                "tool_call_id": result.tool_call_id,
+                "content": result.content,
+            }),
+        );
+    }
+    let messages = provider_messages(
+        chat.snapshot(conversation_id),
+        automation_folders,
+        &memories,
     );
-    let completion = llm_client::chat(
-        provider_messages(chat.snapshot(conversation_id), automation_folders),
-        (!automation_folders.is_empty()).then(automation_tools),
+    let completion = match llm_client::chat(
+        messages.clone(),
+        Some(assistant_tools(automation_folders)),
         provider_mode,
         ollama_model,
         model,
         cancel,
     )
-    .await?;
+    .await
+    {
+        Err(error) if tool_support_error(&error) => {
+            crate::log::line(
+                "configured model does not support function calls; retrying action follow-up with compatibility prompt",
+            );
+            llm_client::chat(
+                compatibility_messages(messages, automation_folders)?,
+                None,
+                provider_mode,
+                ollama_model,
+                model,
+                cancel,
+            )
+            .await?
+        }
+        result => result?,
+    };
     handle_response(chat, conversation_id, automation_folders, completion)
 }
 
-fn provider_messages(mut history: Vec<Value>, automation_folders: &[String]) -> Vec<Value> {
+fn provider_messages(
+    mut history: Vec<Value>,
+    automation_folders: &[String],
+    memories: &[crate::memory::Memory],
+) -> Vec<Value> {
     const MAX_HISTORY_MESSAGES: usize = 20;
     if history.len() > MAX_HISTORY_MESSAGES {
         history.drain(..history.len() - MAX_HISTORY_MESSAGES);
     }
     let automation_context = if automation_folders.is_empty() {
-        String::new()
+        "\nNo local folders are authorized for file actions. Do not claim to inspect or change local files."
+            .to_string()
     } else {
         format!(
             "\nThe user authorized local file actions only inside these folders: {}. \
@@ -422,10 +688,132 @@ Local actions require explicit user approval; request one action at a time.",
     };
     let mut messages = vec![json!({
         "role": "system",
-        "content": format!("{SYSTEM_PROMPT}{automation_context}"),
+        "content": format!(
+            "{SYSTEM_PROMPT}{automation_context}{}",
+            crate::memory::system_context(memories),
+        ),
     })];
     messages.extend(history);
     messages
+}
+
+fn with_screen_image(mut messages: Vec<Value>, image: Option<&str>) -> Vec<Value> {
+    let Some(image) = image else {
+        return messages;
+    };
+    let Some(last_user_message) = messages
+        .iter_mut()
+        .rev()
+        .find(|message| message.get("role").and_then(Value::as_str) == Some("user"))
+    else {
+        return messages;
+    };
+    if let Some(content) = last_user_message
+        .get_mut("content")
+        .and_then(Value::as_array_mut)
+    {
+        content.push(json!({
+            "type": "image_url",
+            "image_url": { "url": image },
+        }));
+    }
+    messages
+}
+
+fn validate_screen_image(image: &str) -> Result<(), String> {
+    let encoded = image
+        .strip_prefix("data:image/jpeg;base64,")
+        .ok_or_else(|| "The screen capture must be a JPEG data URL.".to_string())?;
+    if encoded.is_empty()
+        || encoded.len() > MAX_SCREEN_IMAGE_BYTES
+        || encoded.len() % 4 != 0
+        || !encoded
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'+' | b'/' | b'='))
+    {
+        return Err("The screen capture is invalid or exceeds the 2 MB limit.".into());
+    }
+    Ok(())
+}
+
+fn assistant_tools(automation_folders: &[String]) -> Value {
+    let mut tools = vec![
+        json!({
+            "type": "function",
+            "function": {
+                "name": "remember_user_fact",
+                "description": "Save or update a durable user-provided fact, preference, goal, project, relationship, or personal context for future conversations. When correcting a listed memory, pass its ID. Use sparingly and never store credentials, passwords, access tokens, payment details, or security answers.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "category": {
+                            "type": "string",
+                            "enum": ["identity", "preference", "goal", "project", "relationship", "emotional", "behavior"]
+                        },
+                        "text": {
+                            "type": "string",
+                            "description": "A concise, factual statement about the user."
+                        },
+                        "id": {
+                            "type": "string",
+                            "description": "Optional ID of the existing memory to update."
+                        }
+                    },
+                    "required": ["category", "text"],
+                    "additionalProperties": false
+                }
+            }
+        }),
+        json!({
+            "type": "function",
+            "function": {
+                "name": "open_app",
+                "description": "Open an installed app by its exact or unambiguous partial name. Requires explicit user approval.",
+                "parameters": {
+                    "type": "object",
+                    "properties": { "appName": { "type": "string" } },
+                    "required": ["appName"],
+                    "additionalProperties": false
+                }
+            }
+        }),
+    ];
+    if let Some(local_tools) = (!automation_folders.is_empty()).then(automation_tools) {
+        tools.extend(local_tools.as_array().into_iter().flatten().cloned());
+    }
+    tools.push(json!({
+        "type": "function",
+        "function": {
+            "name": "open_website",
+            "description": "Open a public HTTP or HTTPS website in the system browser. Requires explicit user approval.",
+            "parameters": {
+                "type": "object",
+                "properties": { "url": { "type": "string" } },
+                "required": ["url"],
+                "additionalProperties": false
+            }
+        }
+    }));
+    tools.push(json!({
+        "type": "function",
+        "function": {
+            "name": "search_web",
+            "description": "Prepare a web search in the system browser. Requires explicit user approval.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": { "type": "string" },
+                    "engine": {
+                        "type": "string",
+                        "enum": ["google", "youtube", "github", "duckduckgo", "bing"]
+                    }
+                },
+                "required": ["query"],
+                "additionalProperties": false
+            }
+        }
+    }));
+    Value::Array(tools)
 }
 
 fn handle_response(
@@ -434,7 +822,23 @@ fn handle_response(
     automation_folders: &[String],
     completion: llm_client::ChatReply,
 ) -> Result<ChatReply, String> {
-    let response = completion.response;
+    let mut response = completion.response;
+    let message = response
+        .get("choices")
+        .and_then(Value::as_array)
+        .and_then(|choices| choices.first())
+        .and_then(|choice| choice.get("message"))
+        .ok_or_else(|| "Unexpected API response.".to_string())?;
+    if message
+        .get("tool_calls")
+        .and_then(Value::as_array)
+        .map_or(true, Vec::is_empty)
+    {
+        if let Some((tool_call, clean_content)) = compatibility_action_call(message)? {
+            response["choices"][0]["message"]["tool_calls"] = json!([tool_call]);
+            response["choices"][0]["message"]["content"] = json!(clean_content);
+        }
+    }
     let Some(message) = response
         .get("choices")
         .and_then(Value::as_array)
@@ -448,42 +852,88 @@ fn handle_response(
         return Err(refusal.to_string());
     }
     if let Some(tool_calls) = message.get("tool_calls").and_then(Value::as_array) {
-        if tool_calls.len() != 1 {
-            return Err("The assistant returned an unsupported number of local actions.".into());
+        if tool_calls.is_empty() || tool_calls.len() > usize::from(MAX_AUTOMATION_ACTIONS) {
+            return Err(format!(
+                "The assistant returned too many local actions. Coucou can safely process up to {MAX_AUTOMATION_ACTIONS} at a time."
+            ));
         }
-        if automation_folders.is_empty() {
-            return Err("No folders are authorized for local automation.".into());
+        let mut actions = VecDeque::new();
+        let mut memory_updates = Vec::new();
+        let mut results = Vec::new();
+        for (call_index, tool_call) in tool_calls.iter().enumerate() {
+            let tool_call_id = tool_call
+                .get("id")
+                .and_then(Value::as_str)
+                .filter(|id| !id.is_empty())
+                .ok_or_else(|| "The assistant returned an invalid local action.".to_string())?
+                .to_string();
+            let function = tool_call
+                .get("function")
+                .ok_or_else(|| "The assistant returned an invalid local action.".to_string())?;
+            let tool_name = function
+                .get("name")
+                .and_then(Value::as_str)
+                .ok_or_else(|| "The assistant returned an invalid tool request.".to_string())?;
+            let arguments = function
+                .get("arguments")
+                .and_then(Value::as_str)
+                .ok_or_else(|| "The assistant returned invalid action arguments.".to_string())?;
+            let arguments: Value = serde_json::from_str(arguments).map_err(|error| {
+                format!("The assistant returned invalid action arguments: {error}")
+            })?;
+            if tool_name == "remember_user_fact" {
+                let category = arguments
+                    .get("category")
+                    .and_then(Value::as_str)
+                    .ok_or_else(|| {
+                        "The assistant returned a memory without a category.".to_string()
+                    })?
+                    .to_string();
+                let fact = arguments
+                    .get("text")
+                    .and_then(Value::as_str)
+                    .ok_or_else(|| "The assistant returned a memory without text.".to_string())?
+                    .to_string();
+                let replace_id = arguments
+                    .get("id")
+                    .and_then(Value::as_str)
+                    .map(str::to_string);
+                memory_updates.push((category, fact, replace_id));
+                results.push(QueuedActionResult {
+                    call_index,
+                    tool_call_id,
+                    content: "The memory was saved.".into(),
+                });
+                continue;
+            }
+            if automation_folders.is_empty()
+                && !matches!(tool_name, "open_website" | "search_web" | "open_app")
+            {
+                return Err("No folders are authorized for local automation.".into());
+            }
+            let name = automation::supports(tool_name)
+                .then(|| tool_name.to_string())
+                .ok_or_else(|| {
+                    "The assistant requested an unsupported local action.".to_string()
+                })?;
+            let action = automation::prepare(
+                automation::AutomationAction {
+                    name,
+                    arguments,
+                    preview: None,
+                    preview_hash: None,
+                },
+                automation_folders,
+            )?;
+            actions.push_back(QueuedAction {
+                call_index,
+                tool_call_id,
+                action,
+            });
         }
-        let tool_call = &tool_calls[0];
-        let tool_call_id = tool_call
-            .get("id")
-            .and_then(Value::as_str)
-            .filter(|id| !id.is_empty())
-            .ok_or_else(|| "The assistant returned an invalid local action.".to_string())?;
-        let function = tool_call
-            .get("function")
-            .ok_or_else(|| "The assistant returned an invalid local action.".to_string())?;
-        let name = function
-            .get("name")
-            .and_then(Value::as_str)
-            .filter(|name| automation::supports(name))
-            .ok_or_else(|| "The assistant requested an unsupported local action.".to_string())?;
-        let arguments = function
-            .get("arguments")
-            .and_then(Value::as_str)
-            .ok_or_else(|| "The assistant returned invalid action arguments.".to_string())?;
-        let arguments = serde_json::from_str(arguments)
-            .map_err(|e| format!("The assistant returned invalid action arguments: {e}"))?;
-        let action = automation::prepare(
-            automation::AutomationAction {
-                name: name.to_string(),
-                arguments,
-                preview: None,
-                preview_hash: None,
-            },
-            automation_folders,
-        )?;
-        if chat.action_count(conversation_id) >= MAX_AUTOMATION_ACTIONS {
+        if usize::from(chat.action_count(conversation_id)) + actions.len()
+            > usize::from(MAX_AUTOMATION_ACTIONS)
+        {
             let text = "For safety, I stopped after five local actions. Ask me to continue if you need more.".to_string();
             chat.push(
                 conversation_id,
@@ -498,12 +948,40 @@ fn handle_response(
                 fallback_notice: completion.fallback_notice,
             });
         }
+        for (category, fact, replace_id) in memory_updates {
+            crate::memory::remember(&category, &fact, replace_id.as_deref())?;
+        }
+        if actions.is_empty() {
+            let text = response_text(message);
+            let text = if text.is_empty() {
+                "I’ll keep that in mind.".to_string()
+            } else {
+                text
+            };
+            chat.push(
+                conversation_id,
+                json!({ "role": "assistant", "content": text }),
+            );
+            return Ok(ChatReply {
+                text,
+                model: used_model,
+                action: None,
+                provider: completion.provider,
+                fallback_notice: completion.fallback_notice,
+            });
+        }
         chat.push(conversation_id, message.clone());
+        let first = actions
+            .pop_front()
+            .ok_or_else(|| "The assistant did not return a usable local action.".to_string())?;
         chat.pending_actions.lock().unwrap().insert(
             conversation_id.to_string(),
             PendingAction {
-                tool_call_id: Some(tool_call_id.to_string()),
-                action: action.clone(),
+                tool_call_id: Some(first.tool_call_id),
+                call_index: first.call_index,
+                action: first.action.clone(),
+                remaining: actions,
+                results,
             },
         );
         chat.increment_action_count(conversation_id);
@@ -515,7 +993,7 @@ fn handle_response(
                 .trim()
                 .to_string(),
             model: used_model,
-            action: Some(action),
+            action: Some(first.action),
             provider: completion.provider,
             fallback_notice: completion.fallback_notice,
         });
@@ -537,6 +1015,48 @@ fn handle_response(
         provider: completion.provider,
         fallback_notice: completion.fallback_notice,
     })
+}
+
+fn compatibility_action_call(message: &Value) -> Result<Option<(Value, String)>, String> {
+    const OPEN: &str = "<coucou_action>";
+    const CLOSE: &str = "</coucou_action>";
+    let Some(content) = message.get("content").and_then(value_text) else {
+        return Ok(None);
+    };
+    let Some(start) = content.find(OPEN) else {
+        return Ok(None);
+    };
+    let json_start = start + OPEN.len();
+    let Some(relative_end) = content[json_start..].find(CLOSE) else {
+        return Err("The model returned an incomplete local action request.".into());
+    };
+    let end = json_start + relative_end;
+    let action: Value = serde_json::from_str(content[json_start..end].trim())
+        .map_err(|error| format!("The model returned an invalid local action request: {error}"))?;
+    let name = action
+        .get("name")
+        .and_then(Value::as_str)
+        .filter(|name| *name == "remember_user_fact" || automation::supports(name))
+        .ok_or_else(|| "The model requested an unsupported local action.".to_string())?;
+    let arguments = action
+        .get("arguments")
+        .filter(|arguments| arguments.is_object())
+        .ok_or_else(|| "The model returned invalid local action arguments.".to_string())?;
+    let clean_content = format!("{}{}", &content[..start], &content[end + CLOSE.len()..])
+        .trim()
+        .to_string();
+    Ok(Some((
+        json!({
+            "id": "coucou-compatibility-action",
+            "type": "function",
+            "function": {
+                "name": name,
+                "arguments": serde_json::to_string(arguments)
+                    .map_err(|error| format!("Could not parse local action arguments: {error}"))?
+            }
+        }),
+        clean_content,
+    )))
 }
 
 fn response_text(message: &Value) -> String {
@@ -624,19 +1144,6 @@ fn append_context(
 
 fn automation_tools() -> Value {
     json!([
-        {
-            "type": "function",
-            "function": {
-                "name": "open_app",
-                "description": "Open an installed app by its exact Windows Start menu shortcut name. Requires explicit user approval.",
-                "parameters": {
-                    "type": "object",
-                    "properties": { "appName": { "type": "string" } },
-                    "required": ["appName"],
-                    "additionalProperties": false
-                }
-            }
-        },
         {
             "type": "function",
             "function": {
@@ -842,10 +1349,13 @@ fn base64(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        append_context, base64, file_block, handle_response, provider_messages, response_text,
-        Chat, ChatContext, ChatHistoryMessage, SharedContextFile, SharedConversationContext,
+        append_context, base64, file_block, handle_response, local_file_action_intent,
+        provider_messages, response_text, Chat, ChatContext, ChatHistoryMessage, SharedContextFile,
+        SharedConversationContext,
     };
+    use super::{assistant_tools, tool_support_error, validate_screen_image, with_screen_image};
     use crate::llm_client::ChatReply as LlmReply;
+    use serde_json::Value;
     use std::fs;
 
     #[test]
@@ -891,6 +1401,150 @@ mod tests {
             .unwrap()
             .contains_key("conversation"));
         std::fs::remove_dir_all(folder).unwrap();
+    }
+
+    #[test]
+    fn multiple_tool_calls_are_queued_for_separate_approvals() {
+        let chat = Chat::default();
+        let response = serde_json::json!({
+            "choices": [{
+                "message": {
+                    "role": "assistant",
+                    "content": null,
+                    "tool_calls": [
+                        {
+                            "id": "call-first",
+                            "type": "function",
+                            "function": {
+                                "name": "open_website",
+                                "arguments": "{\"url\":\"https://example.com\"}"
+                            }
+                        },
+                        {
+                            "id": "call-second",
+                            "type": "function",
+                            "function": {
+                                "name": "search_web",
+                                "arguments": "{\"query\":\"Coucou assistant\"}"
+                            }
+                        }
+                    ]
+                }
+            }]
+        });
+        let reply = handle_response(
+            &chat,
+            "multi-action-conversation",
+            &[],
+            LlmReply {
+                response,
+                provider: "ollama".into(),
+                model: "qwen2.5:7b".into(),
+                fallback_notice: None,
+            },
+        )
+        .unwrap();
+
+        assert_eq!(reply.action.as_ref().unwrap().name, "open_website");
+        let pending_actions = chat.pending_actions.lock().unwrap();
+        let pending = pending_actions.get("multi-action-conversation").unwrap();
+        assert_eq!(pending.tool_call_id.as_deref(), Some("call-first"));
+        assert_eq!(pending.remaining.len(), 1);
+        assert_eq!(pending.remaining[0].tool_call_id, "call-second");
+        assert_eq!(pending.remaining[0].action.name, "open_website");
+        assert_eq!(chat.action_count("multi-action-conversation"), 1);
+    }
+
+    #[test]
+    fn invalid_tool_call_in_batch_does_not_queue_any_action() {
+        let chat = Chat::default();
+        let response = serde_json::json!({
+            "choices": [{
+                "message": {
+                    "role": "assistant",
+                    "content": null,
+                    "tool_calls": [
+                        {
+                            "id": "call-valid",
+                            "type": "function",
+                            "function": {
+                                "name": "open_website",
+                                "arguments": "{\"url\":\"https://example.com\"}"
+                            }
+                        },
+                        {
+                            "id": "call-invalid",
+                            "type": "function",
+                            "function": {
+                                "name": "run_shell",
+                                "arguments": "{}"
+                            }
+                        }
+                    ]
+                }
+            }]
+        });
+        assert!(handle_response(
+            &chat,
+            "invalid-batch-conversation",
+            &[],
+            LlmReply {
+                response,
+                provider: "ollama".into(),
+                model: "qwen2.5:7b".into(),
+                fallback_notice: None,
+            },
+        )
+        .is_err());
+        assert!(!chat
+            .pending_actions
+            .lock()
+            .unwrap()
+            .contains_key("invalid-batch-conversation"));
+        assert_eq!(chat.action_count("invalid-batch-conversation"), 0);
+    }
+
+    #[test]
+    fn compatibility_action_is_validated_and_waits_for_approval() {
+        let chat = Chat::default();
+        let folder = std::env::temp_dir().join(format!(
+            "coucou-compatibility-action-{}",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&folder);
+        fs::create_dir_all(&folder).unwrap();
+        let path = folder.join("created.txt");
+        let response = serde_json::json!({
+            "choices": [{
+                "message": {
+                    "role": "assistant",
+                    "content": "I can create that.\n<coucou_action>{\"name\":\"create_file\",\"arguments\":{\"path\":\"created.txt\",\"content\":\"hello\"}}</coucou_action>"
+                }
+            }]
+        });
+        let folders = vec![folder.to_string_lossy().into_owned()];
+        let reply = handle_response(
+            &chat,
+            "compatibility-conversation",
+            &folders,
+            LlmReply {
+                response,
+                provider: "openrouter".into(),
+                model: "test/model".into(),
+                fallback_notice: None,
+            },
+        )
+        .unwrap();
+
+        assert_eq!(reply.action.as_ref().unwrap().name, "create_file");
+        assert_eq!(reply.text, "I can create that.");
+        assert!(!path.exists());
+        assert!(chat
+            .pending_actions
+            .lock()
+            .unwrap()
+            .contains_key("compatibility-conversation"));
+        fs::remove_dir_all(folder).unwrap();
     }
 
     #[test]
@@ -1115,10 +1769,127 @@ mod tests {
                 })
             })
             .collect();
-        let messages = provider_messages(history, &[]);
+        let messages = provider_messages(history, &[], &[]);
         assert_eq!(messages.len(), 21);
         assert_eq!(messages[0]["role"], "system");
         assert_eq!(messages[1]["content"], "5");
         assert_eq!(messages.last().unwrap()["content"], "24");
+    }
+
+    #[test]
+    fn screen_images_are_added_to_the_current_request_without_mutating_history() {
+        let history = vec![serde_json::json!({
+            "role": "user",
+            "content": [{ "type": "text", "text": "What is on my screen?" }],
+        })];
+        let request = with_screen_image(history.clone(), Some("data:image/jpeg;base64,AAAA"));
+        assert_eq!(history[0]["content"].as_array().unwrap().len(), 1);
+        assert_eq!(request[0]["content"].as_array().unwrap().len(), 2);
+        assert_eq!(request[0]["content"][1]["type"], "image_url");
+        assert!(validate_screen_image("data:image/jpeg;base64,AAAA").is_ok());
+        assert!(validate_screen_image("https://example.com/image.jpg").is_err());
+    }
+
+    #[test]
+    fn memory_and_browser_tools_are_available_without_authorized_file_folders() {
+        let tools = assistant_tools(&[]);
+        let names: Vec<&str> = tools
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|tool| tool["function"]["name"].as_str())
+            .collect();
+        assert!(names.contains(&"remember_user_fact"));
+        assert!(names.contains(&"open_app"));
+        assert!(names.contains(&"open_website"));
+        assert!(names.contains(&"search_web"));
+        assert!(!names.contains(&"read_file"));
+    }
+
+    #[test]
+    fn unsupported_tool_models_can_retry_with_action_compatibility() {
+        assert!(tool_support_error(
+            "This model does not support function calls."
+        ));
+        assert!(tool_support_error("This provider doesn't support tools."));
+        assert!(tool_support_error(
+            "No endpoints found that support tool use."
+        ));
+        assert!(!tool_support_error("The request timed out."));
+    }
+
+    #[test]
+    fn local_file_action_intent_selects_the_model_agnostic_action_path() {
+        assert!(local_file_action_intent(
+            "Please create a file named notes.txt"
+        ));
+        assert!(local_file_action_intent("Can you list this folder?"));
+        assert!(local_file_action_intent(
+            "move report.txt to C:\\Users\\me\\Docs"
+        ));
+        assert!(!local_file_action_intent(
+            "How do I create a file in this folder?"
+        ));
+        assert!(!local_file_action_intent("Explain how to edit a document"));
+        assert!(!local_file_action_intent("What files can Coucou access?"));
+    }
+
+    #[test]
+    fn compatibility_action_envelope_becomes_a_validated_tool_request() {
+        let message = serde_json::json!({
+            "role": "assistant",
+            "content": "I can do that.\n<coucou_action>{\"name\":\"open_app\",\"arguments\":{\"appName\":\"Google Chrome\"}}</coucou_action>"
+        });
+        let (call, clean_content) = super::compatibility_action_call(&message).unwrap().unwrap();
+        assert_eq!(call["function"]["name"], "open_app");
+        assert_eq!(
+            serde_json::from_str::<Value>(call["function"]["arguments"].as_str().unwrap()).unwrap()
+                ["appName"],
+            "Google Chrome"
+        );
+        assert_eq!(clean_content, "I can do that.");
+    }
+
+    #[test]
+    fn compatibility_action_envelope_rejects_unsupported_and_malformed_requests() {
+        let unsupported = serde_json::json!({
+            "content": "<coucou_action>{\"name\":\"run_shell\",\"arguments\":{}}</coucou_action>"
+        });
+        assert!(super::compatibility_action_call(&unsupported).is_err());
+        let malformed = serde_json::json!({
+            "content": "<coucou_action>{not json}</coucou_action>"
+        });
+        assert!(super::compatibility_action_call(&malformed).is_err());
+        let incomplete = serde_json::json!({
+            "content": "<coucou_action>{\"name\":\"open_app\"}"
+        });
+        assert!(super::compatibility_action_call(&incomplete).is_err());
+    }
+
+    #[test]
+    fn compatibility_prompt_removes_native_tool_history() {
+        let messages = vec![
+            serde_json::json!({"role": "system", "content": "system"}),
+            serde_json::json!({
+                "role": "assistant",
+                "content": null,
+                "tool_calls": [{"id": "call-1"}]
+            }),
+            serde_json::json!({
+                "role": "tool",
+                "tool_call_id": "call-1",
+                "content": "Created file."
+            }),
+            serde_json::json!({"role": "user", "content": "Thanks"}),
+        ];
+        let adapted = super::compatibility_messages(messages, &[]).unwrap();
+        assert_eq!(adapted.len(), 3);
+        assert!(adapted[0]["content"]
+            .as_str()
+            .unwrap()
+            .contains("<coucou_action>"));
+        assert_eq!(adapted[1]["role"], "assistant");
+        assert_eq!(adapted[1]["content"], "Coucou action result: Created file.");
+        assert_eq!(adapted[2]["content"], "Thanks");
     }
 }
