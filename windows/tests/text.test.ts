@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { sanitizeAssistantText } from "../src/core/text";
+import { sanitizeAssistantText } from "../src/core/text.ts";
 
 describe("assistant response normalization", () => {
   it("removes invisible and control characters", () => {

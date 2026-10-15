@@ -61,6 +61,10 @@ async function main() {
     setPaused(false);
     island.alert("prompt");
   });
+  await onEvent<{ id: string; name: string; prompt: string }>("workflow-run", () => {
+    setPaused(false);
+    island.alert("prompt");
+  });
   window.addEventListener("coucou-wake-word", () => {
     setPaused(false);
     State.isPinned = true;
@@ -86,6 +90,7 @@ async function main() {
   // The settings window writes preferences; apply them here without a restart.
   await onEvent<Settings>("settings-changed", (s) => {
     State.settings = { ...State.settings, ...s };
+    State.notify();
     island.applySettings();
     State.loadIntegrationTasks();
     void refreshConfigured();

@@ -15,6 +15,7 @@ import { Sound } from "../core/sound";
 import { State, type ChatMessage } from "../core/state";
 import { sanitizeAssistantText } from "../core/text";
 import * as TTS from "../core/tts";
+import { isPartialVisionModeActivation, isVisionModeActivation } from "../core/voiceCommands";
 import {
   createWakeWordListener,
   extractWakeCommand,
@@ -36,6 +37,7 @@ const WAKE_RETRY_INITIAL_MS = 2_000;
 const WAKE_RETRY_MAX_MS = 30_000;
 const WAKE_PARTIAL_TIMEOUT_MS = 3_000;
 type VoiceState = "idle" | "wake" | "listening" | "transcribing" | "speaking";
+type WorkflowRunPayload = { id: string; name: string; prompt: string };
 
 function newRequestId(): string {
   return typeof crypto.randomUUID === "function"
@@ -217,6 +219,15 @@ function actionDescription(action: AutomationAction): string {
     case "move_file": return "move a file";
     case "write_file": return "replace all contents of a file";
     case "erase_file_content": return "clear all contents of a file";
+    case "windows_list": return "inspect visible application windows";
+    case "windows_click": return "click at a screen location";
+    case "windows_type": return "type text into an application";
+    case "windows_move": return action.arguments.drag === true ? "drag the pointer" : "move the pointer";
+    case "windows_scroll": return "scroll an application";
+    case "windows_shortcut": return `press ${String(action.arguments.shortcut ?? "a keyboard shortcut")}`;
+    case "windows_switch_window": return `switch to ${String(action.arguments.title ?? "a window")}`;
+    case "windows_resize_window": return `move or resize ${String(action.arguments.title ?? "a window")}`;
+    case "powershell_command": return "run a PowerShell command";
     default: return "perform a local file action";
   }
 }
@@ -341,6 +352,8 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
   let wakeConversationHeld = false;
   let screenImage: string | null = null;
   let screenCaptureInProgress = false;
+  let queuedWorkflows: WorkflowRunPayload[] = [];
+  let workflowAutomationActive = false;
 
   const historyToggle = h("button", {
     class: "chat-action",
@@ -474,6 +487,55 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     partialWakeTimer = window.setTimeout(clearPartialWakeTranscript, WAKE_PARTIAL_TIMEOUT_MS);
   }
 
+  async function activateVisionModeFromVoice() {
+    if (wakeFeedbackTimer !== null) {
+      window.clearTimeout(wakeFeedbackTimer);
+      wakeFeedbackTimer = null;
+    }
+    stopWakeWord();
+    holdWakeConversation();
+    suppressWakeRestart = true;
+    wakeAckInProgress = true;
+    Sound.play("blip");
+    setVoiceState("listening", "Activating Vision Mode…");
+
+    let notice = "Vision Mode is active.";
+    let failed = false;
+    try {
+      try {
+        await TTS.speak("Activating Vision Mode.");
+      } catch (error) {
+        console.error("[coucou] could not speak Vision Mode activation", error);
+      }
+
+      const alreadyRunning = await Bridge.gestureMouseIsRunning();
+      if (!alreadyRunning) {
+        setVoiceState("transcribing", "Starting Vision Mode…");
+        await Bridge.gestureMouseStart();
+      }
+      notice = alreadyRunning ? "Vision Mode is already running." : "Vision Mode is active.";
+      try {
+        await TTS.speak(notice);
+      } catch (error) {
+        console.error("[coucou] could not speak Vision Mode status", error);
+      }
+    } catch (error) {
+      failed = true;
+      notice = `Could not activate Vision Mode: ${error instanceof Error ? error.message : String(error)}`;
+      console.error("[coucou] could not activate Vision Mode", error);
+      try {
+        await TTS.speak("I couldn't activate Vision Mode. Check its status in Settings.");
+      } catch (speechError) {
+        console.error("[coucou] could not speak Vision Mode error", speechError);
+      }
+    } finally {
+      wakeAckInProgress = false;
+      suppressWakeRestart = false;
+      await releaseVoiceSession();
+      setVoiceState("idle", notice, failed);
+    }
+  }
+
   function clearWakeWordRetry() {
     if (wakeWordRetryTimer !== null) {
       window.clearTimeout(wakeWordRetryTimer);
@@ -577,12 +639,20 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       ? `${partialWakeTranscript} ${transcript}`
       : transcript;
     clearPartialWakeTranscript();
+    if (isVisionModeActivation(combinedTranscript)) {
+      await activateVisionModeFromVoice();
+      return;
+    }
     const pronunciation = State.settings.wakeWordPronunciation;
     const command = extractWakeCommand(combinedTranscript, pronunciation);
     if (command === null) {
       if (isPartialWakePhrase(combinedTranscript, pronunciation)) {
         rememberPartialWakeTranscript(combinedTranscript);
       }
+      return;
+    }
+    if (command && isPartialVisionModeActivation(command)) {
+      rememberPartialWakeTranscript(combinedTranscript);
       return;
     }
 
@@ -1000,6 +1070,10 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         );
         return;
       }
+      if (wakeConversationHeld && isVisionModeActivation(transcript)) {
+        await activateVisionModeFromVoice();
+        return;
+      }
       input.value = transcript;
       setVoiceState("transcribing", "Sending your message…");
       await submit(transcript, true, wakeConversationHeld);
@@ -1034,6 +1108,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
 
   voiceButton.addEventListener("click", () => void toggleVoice());
   void onEvent<null>("voice-hotkey", () => void toggleVoice());
+  void onEvent<WorkflowRunPayload>("workflow-run", enqueueWorkflow);
 
   const el = h(
     "div",
@@ -1051,13 +1126,18 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     voiceRequest = false,
     wakeInitiated = false,
     acknowledgement?: Promise<void>,
+    workflowRun = false,
   ) {
-    const query = (queryOverride ?? input.value).trim();
+    const requestedQuery = (queryOverride ?? input.value).trim();
+    const query = workflowRun
+      ? `The user explicitly started this saved workflow and authorized its necessary actions to run automatically without per-action approvals. Complete the task using the available tools, keep actions limited to the request, and report any action that fails.\n\nWorkflow instructions:\n${requestedQuery}`
+      : requestedQuery;
     if (!query || sending || pendingAction) {
       if (voiceRequest) await releaseVoiceSession();
       if (wakeInitiated) releaseWakeConversation();
       return;
     }
+    workflowAutomationActive = workflowRun;
     const conversationId = State.activeConversationId ?? State.startConversation();
     const requestId = newRequestId();
     activeRequestId = requestId;
@@ -1132,7 +1212,13 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         }
         : undefined;
       await showReply(reply, conversationId, voiceRequest, acknowledgement, prepareStreamSpeech);
+      if (workflowRun && !reply.action) {
+        workflowAutomationActive = false;
+        voiceNotice = "Workflow completed.";
+        voiceNoticeIsError = false;
+      }
     } catch (err) {
+      if (workflowRun) workflowAutomationActive = false;
       if (streamedSpeech || pendingSpeechText) await TTS.stop();
       const lastMessage = State.chatHistory[State.chatHistory.length - 1];
       if (lastMessage?.role === "user" && lastMessage.content === query) {
@@ -1154,15 +1240,54 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       State.notify();
       onHeightChange();
       input.focus();
-      if (isOpenAction(pendingAction)) {
+      if (workflowAutomationActive && pendingAction) {
+        void autoApproveWorkflowAction();
+      } else if (isOpenAction(pendingAction)) {
         void beginActionConfirmation();
       } else if (wakeInitiated) {
         releaseWakeConversation();
       } else if (voiceState === "idle") {
         void reconcileWakeWord();
       }
+      startQueuedWorkflow();
       window.dispatchEvent(new Event("coucou-assistant-task-finished"));
     }
+  }
+
+  function enqueueWorkflow(workflow: WorkflowRunPayload) {
+    if (sending || pendingAction || queuedWorkflows.length > 0) {
+      queuedWorkflows.push(workflow);
+      voiceNotice = `Queued workflow: ${workflow.name}`;
+      voiceNoticeIsError = false;
+      State.notify();
+      return;
+    }
+    runWorkflow(workflow);
+  }
+
+  function runWorkflow(workflow: WorkflowRunPayload) {
+    input.value = workflow.prompt;
+    voiceNotice = `Running workflow: ${workflow.name}`;
+    voiceNoticeIsError = false;
+    void submit(workflow.prompt, false, false, undefined, true);
+  }
+
+  function autoApproveWorkflowAction() {
+    if (!workflowAutomationActive || sending || !pendingAction) return;
+    if (pendingAction.name === "open_app" && appChoices(pendingAction).length > 1
+      && !launchTarget(pendingAction)) {
+      voiceNotice = "Choose the matching app to continue the workflow; it will open automatically.";
+      voiceNoticeIsError = false;
+      State.notify();
+      return;
+    }
+    void answerAction(true);
+  }
+
+  function startQueuedWorkflow() {
+    if (sending || pendingAction || queuedWorkflows.length === 0) return;
+    const workflow = queuedWorkflows.shift();
+    if (workflow) runWorkflow(workflow);
   }
 
   async function showReply(
@@ -1180,7 +1305,9 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     actionConfirmationStage = "confirm";
     const safeReplyText = sanitizeAssistantText(reply.text);
     const content = safeReplyText || (reply.action
-      ? `Macha is asking to ${actionDescription(reply.action)}.`
+      ? workflowAutomationActive
+        ? `Workflow is running: Macha will ${actionDescription(reply.action)} automatically.`
+        : `Macha is asking to ${actionDescription(reply.action)}.`
       : "");
     if (content) {
       State.chatHistory.push({
@@ -1281,7 +1408,13 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         : undefined;
       const reply = await Bridge.chatAction(conversationId, approved, requestId, selectedApp);
       await showReply(reply, conversationId, voiceConfirmed || wakeConversationHeld);
+      if (workflowAutomationActive && !reply.action) {
+        workflowAutomationActive = false;
+        voiceNotice = "Workflow completed.";
+        voiceNoticeIsError = false;
+      }
     } catch (err) {
+      workflowAutomationActive = false;
       if (!cancelRequested) {
         pendingAction = null;
         pendingConversationId = null;
@@ -1296,16 +1429,27 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       cancelRequested = false;
       State.notify();
       onHeightChange();
-      if (isOpenAction(pendingAction)) {
+      if (workflowAutomationActive && pendingAction) {
+        queueMicrotask(autoApproveWorkflowAction);
+      } else if (isOpenAction(pendingAction)) {
         void beginActionConfirmation();
       } else {
         releaseWakeConversation();
       }
+      startQueuedWorkflow();
       window.dispatchEvent(new Event("coucou-assistant-task-finished"));
     }
   }
 
   function selectAppChoice(choice: AppChoice) {
+    if (workflowAutomationActive && appChoices(pendingAction).some((item) => item.id === choice.id)) {
+      selectedAppChoiceId = choice.id;
+      voiceNotice = `Selected ${choice.label}; continuing workflow automatically.`;
+      voiceNoticeIsError = false;
+      State.notify();
+      void answerAction(true);
+      return;
+    }
     if (!actionConfirmationActive || !appChoices(pendingAction).some((item) => item.id === choice.id)) return;
     selectedAppChoiceId = choice.id;
     actionConfirmationStage = "confirm";
@@ -1324,13 +1468,17 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     const destination = typeof args.destination === "string" ? args.destination : "";
     const content = typeof args.content === "string" ? args.content : "";
     const appName = typeof args.appName === "string" ? args.appName : "";
-    const destructive = action.name === "write_file" || action.name === "erase_file_content";
+    const command = typeof args.command === "string" ? args.command : "";
+    const destructive = action.name === "write_file" || action.name === "erase_file_content"
+      || action.name === "powershell_command";
     const approvalText = isOpenAction(action)
       ? "Yes, open it"
       : action.name === "write_file"
         ? "Replace contents"
         : action.name === "erase_file_content"
           ? "Clear contents"
+          : action.name === "powershell_command"
+            ? "Run PowerShell"
           : "Approve";
     const choices = appChoices(action);
     const choiceSelected = choices.some((choice) => choice.id === selectedAppChoiceId);
@@ -1352,8 +1500,14 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       h("strong", { text: isOpenAction(action) ? openActionQuestion(action) : actionDescription(action) }),
       h("span", {
         class: "hint",
-        text: action.name === "read_file"
+        text: workflowAutomationActive
+          ? appChoices(action).length > 1 && !launchTarget(action)
+            ? "Choose the exact app match to continue. No separate action approval is needed."
+            : "Workflow is running. This action is pre-authorized and will execute automatically."
+          : action.name === "read_file"
           ? "If approved, file contents are sent to the selected chat provider. Nothing happens until you approve."
+          : action.name === "powershell_command"
+            ? "This runs as your Windows user and can change files or system settings. Review the exact command below; nothing runs until you approve."
           : action.name === "open_app"
             ? choices.length > 1 && actionConfirmationStage === "choose"
               ? "Choose the exact-name app match before confirming the launch."
@@ -1362,9 +1516,21 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
                   ? 'Say "yes" to open this file or folder or "no" to cancel. The buttons also work.'
             : destructive
               ? "This changes existing file contents. A backup is made first, and nothing changes until you approve."
-          : "This action is limited to your authorized folders. Nothing happens until you approve.",
+            : action.name.startsWith("windows_")
+              ? "This will control your Windows desktop. Review the action details below; nothing happens until you approve."
+              : "This action can access files anywhere your account can access. Nothing happens until you approve.",
       }),
     );
+    if (action.name.startsWith("windows_")) {
+      card.append(h("pre", {
+        class: "automation-content",
+        text: JSON.stringify(args, null, 2),
+      }));
+    }
+    if (command) {
+      card.append(h("span", { class: "hint", text: "PowerShell command (runs with your account permissions)" }));
+      card.append(h("pre", { class: "automation-content", text: command }));
+    }
     if (appName) card.append(h("code", { class: "automation-path", text: appName }));
     if (path) card.append(h("code", { class: "automation-path", text: path }));
     if (choices.length > 1) {
@@ -1406,7 +1572,14 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     } else if (action.name === "create_file") {
       card.append(h("pre", { class: "automation-content", text: content || "(empty file)" }));
     }
-    card.append(h("div", { class: "automation-actions" }, approve, deny));
+    if (workflowAutomationActive) {
+      card.append(h("span", {
+        class: "hint",
+        text: "This workflow can access files and run PowerShell with your account permissions.",
+      }));
+    } else {
+      card.append(h("div", { class: "automation-actions" }, approve, deny));
+    }
     return card;
   }
 

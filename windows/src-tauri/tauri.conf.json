@@ -12,8 +12,8 @@
   "app": {
     "withGlobalTauri": false,
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://i.scdn.co; media-src 'self' blob:; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:5005",
-      "devCsp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://i.scdn.co; media-src 'self' blob:; connect-src 'self' ipc: http://ipc.localhost ws://localhost:1420 http://localhost:1420 http://127.0.0.1:5005"
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://i.scdn.co; media-src 'self' blob:; frame-src http://127.0.0.1:8765; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:8765 ws://127.0.0.1:8765 http://127.0.0.1:5005",
+      "devCsp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://i.scdn.co; media-src 'self' blob:; frame-src http://127.0.0.1:8765; connect-src 'self' ipc: http://ipc.localhost ws://localhost:1420 http://localhost:1420 http://127.0.0.1:8765 ws://127.0.0.1:8765 http://127.0.0.1:5005"
     },
     "windows": [
       {
@@ -50,7 +50,10 @@
     ],
     "resources": {
       "../target/release/coucou-hook.exe": "coucou-hook.exe",
-      "../../stt_server.py": "stt_server.py"
+      "../../stt_server.py": "stt_server.py",
+      "../gesture_mouse/app.py": "gesture_mouse/app.py",
+      "../gesture_mouse/requirements.txt": "gesture_mouse/requirements.txt",
+      "../gesture_mouse/LICENSE": "gesture_mouse/LICENSE"
     },
     "copyright": "© Louis Raille",
     "category": "DeveloperTool",

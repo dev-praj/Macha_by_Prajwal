@@ -111,27 +111,49 @@ memory capture is unavailable. Do not save credentials or other sensitive
 information. **Capture screen** asks
 Windows or the desktop environment which screen or window to share, captures a
 single still image, and attaches it only to the next chat message; it is not
-stored in the transcript. Chat also offers to open websites or web searches in
-the system browser, and always waits for approval before opening them.
+stored in the transcript. Chat can also open websites or run web searches in
+the system browser; ordinary chat asks for approval, while workflows run these
+actions automatically after you start them.
 
 ### Local automation
 
-In **Settings… → Local automation**, choose the folders Mochi may work in.
-Mochi can open installed apps from Windows app registrations or Start menu
-shortcuts and, within selected folders, list and read files, open files or
+In **Settings… → Local automation**, Mochi can work with files anywhere your
+current account has access, including other mounted drives. Absolute paths can
+target any location; previously selected folders remain preferred starting
+points for relative paths. Mochi can open installed apps from Windows app
+registrations or Start menu shortcuts, list and read files, open files or
 folders, create items, and move files. It can also replace or clear a file's
-contents after showing the proposed change and creating a backup. **Every action
-requires your approval**; it cannot delete files or run shell commands, and it
-cannot access paths outside the folders you selected. Removing a folder revokes
-that access.
+contents after showing the proposed change and creating a backup. On Windows,
+it can also inspect visible windows, switch or resize windows, click, type,
+drag, scroll, press keyboard shortcuts, and run PowerShell commands for a task
+you request. In ordinary chat, each GUI operation and PowerShell command is
+presented separately for your approval. When you click **Run** on a saved
+workflow, its requested actions run automatically without per-action approval;
+review the workflow instructions before starting it. PowerShell commands run
+as your current Windows user and can access or change anything that account is
+permitted to access. They are limited to a 60-second runtime. Coucou does not
+provide a separate delete-file action, though PowerShell commands can perform
+deletions.
 
-When Mochi reads a file, its contents and the authorized folder paths are sent
-to the selected chat provider (local Ollama or OpenRouter). Only authorize
-folders and request file reads you are comfortable sharing with that provider.
+When Mochi reads a file, its contents and the paths involved are sent to the
+selected chat provider (local Ollama or OpenRouter). Request file reads only
+when you are comfortable sharing that content with the configured provider.
 Models that do not support native tool calls use a compatibility prompt for
-local actions where supported. Coucou validates every proposed action, applies
-the same folder restrictions, and still requires explicit approval before
-opening an app or website or changing local files.
+local actions where supported. Coucou validates every proposed action.
+Ordinary chat actions require explicit approval; workflow actions are
+pre-authorized when the workflow is started from Settings.
+
+### Saved workflows
+
+In **Settings → Workflows**, create reusable named instructions, edit or
+duplicate them, archive and restore them, or delete them. Running a workflow sends its instructions as a chat message through the
+currently configured provider and model; it does not switch or replace the
+LLM. The workflow automatically carries out requested local file and desktop
+actions without asking for approval at each step. Review instructions before
+running: PowerShell executes with your account permissions and can make
+system-wide changes. Ambiguous app matches ask you to select the intended app,
+then continue automatically. Workflow definitions are stored locally in
+Coucou's configuration folder.
 
 No telemetry. The only network requests Coucou makes are to the services you
 configure yourself.
@@ -224,6 +246,44 @@ first and fall back to Ollama if the network or OpenRouter credits are
 unavailable. Explicit Ollama-only or OpenRouter-only settings are respected.
 The service loads the Whisper model on startup. To use a different model, edit
 `MODEL_NAME` in the root `stt_server.py` (the default is `base.en`).
+
+## Vision Mode
+
+On Windows, **Settings… → Vision Mode → Start Vision Mode** opens the
+camera preview and embeds its live dashboard in Settings. Move your wrist to
+move the cursor, pinch thumb + index to left-click and drag, thumb + middle to
+right-click, and thumb + pinky to scroll. Press **Esc**, close the preview, or
+use **Stop Vision Mode** in Settings to stop it. You can also say
+**“activate vision mode”** while Hey Macha is listening. Cursor tracking stays a few
+pixels away from screen corners to prevent accidental activation of the
+mouse-control emergency fail-safe; moving the pointer manually into a corner
+still stops Vision Mode.
+
+Hold an open palm steady for five seconds to lock the cursor in place; the
+camera preview animates a progress ring and confirms when the cursor locks.
+Show the palm again for five seconds to unlock. While locked, move the joined index and middle
+fingers to scroll up, down, left, or right. To rotate a 3D view in apps that
+support mouse-drag rotation, move the pointer over the model before locking,
+then hold the thumb and index finger together or extend them, curl the other
+three fingers, and turn your wrist clockwise or anticlockwise. The pointer
+returns to its locked position after each rotation drag.
+
+Install Python 3.13 and the gesture packages once from the repository root.
+The isolated environment is kept in Coucou's local application data, separate
+from Coucou's other Python tools, and works with both the packaged app and the
+development build:
+
+```powershell
+py -3.13 -m venv "$env:LOCALAPPDATA\Coucou\gesture_mouse\.venv"
+& "$env:LOCALAPPDATA\Coucou\gesture_mouse\.venv\Scripts\python.exe" -m pip install -r windows\gesture_mouse\requirements.txt
+```
+
+The MediaPipe hand landmark model is downloaded to Coucou's local application
+data on first start. Webcam processing runs locally; the embedded dashboard
+only listens on localhost. Allow desktop apps to access the camera in Windows
+**Privacy & security → Camera**. The included implementation is derived from
+[HandGesture-Mouse](https://github.com/murfidya/HandGesture-Mouse) and is
+MIT-licensed; see `windows/gesture_mouse/LICENSE`.
 
 ## Build it yourself
 

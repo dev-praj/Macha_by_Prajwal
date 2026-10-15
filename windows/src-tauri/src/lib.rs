@@ -3,6 +3,7 @@
 mod automation;
 mod claude;
 mod files;
+mod gesture_mouse;
 mod hooks;
 mod integrations;
 mod island;
@@ -17,6 +18,8 @@ mod settings;
 mod spotify;
 mod tray;
 mod voice;
+mod windows_automation;
+mod workflows;
 
 use std::process::Command;
 use std::sync::atomic::Ordering;
@@ -459,6 +462,31 @@ fn memory_forget(id: String) -> Result<(), String> {
     memory::forget(&id)
 }
 
+#[tauri::command]
+fn workflows_list() -> Result<Vec<workflows::Workflow>, String> {
+    workflows::list()
+}
+
+#[tauri::command]
+fn workflow_save(workflow: workflows::WorkflowDraft) -> Result<workflows::Workflow, String> {
+    workflows::save(workflow)
+}
+
+#[tauri::command]
+fn workflow_set_archived(id: String, archived: bool) -> Result<(), String> {
+    workflows::set_archived(&id, archived)
+}
+
+#[tauri::command]
+fn workflow_delete(id: String) -> Result<(), String> {
+    workflows::delete(&id)
+}
+
+#[tauri::command]
+fn workflow_run(app: AppHandle, id: String) -> Result<(), String> {
+    workflows::run(&app, &id)
+}
+
 /// Copies a dropped file into the inbox and reports its name back.
 #[tauri::command]
 fn ingest_file(path: String) -> Result<DroppedFile, String> {
@@ -626,6 +654,7 @@ pub fn run() {
         .manage(Chat::default())
         .manage(voice::SttProcess::default())
         .manage(voice::TtsProcess::default())
+        .manage(gesture_mouse::GestureMouseProcess::default())
         .invoke_handler(tauri::generate_handler![
             boot,
             save_settings,
@@ -651,12 +680,20 @@ pub fn run() {
             voice::tts_speak,
             voice::tts_stop,
             voice::tts_is_speaking,
+            gesture_mouse::gesture_mouse_start,
+            gesture_mouse::gesture_mouse_stop,
+            gesture_mouse::gesture_mouse_is_running,
             ollama_status,
             chat_reset,
             chat_delete,
             memories_list,
             memory_remember,
             memory_forget,
+            workflows_list,
+            workflow_save,
+            workflow_set_archived,
+            workflow_delete,
+            workflow_run,
             ingest_file,
             secret_present,
             secret_set,
@@ -734,6 +771,9 @@ pub fn run() {
                     log::line(format!("could not unregister global shortcuts: {error}"));
                 }
                 voice::stop_stt_server(&app.state::<voice::SttProcess>());
+                if let Err(error) = app.state::<gesture_mouse::GestureMouseProcess>().stop() {
+                    log::line(format!("could not stop Gesture Mouse: {error}"));
+                }
                 if let Err(error) = app.state::<voice::TtsProcess>().stop() {
                     log::line(format!("SAPI shutdown failed: {error}"));
                 }

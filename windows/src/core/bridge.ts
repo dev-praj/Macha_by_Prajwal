@@ -167,6 +167,13 @@ export const Bridge = {
   memoryRemember: (category: MemoryRecord["category"], text: string) =>
     callOrThrow<MemoryRecord>("memory_remember", { category, text }),
   memoryForget: (id: string) => callOrThrow<void>("memory_forget", { id }),
+  workflowsList: () => callOrThrow<SavedWorkflow[]>("workflows_list"),
+  workflowSave: (workflow: { id?: string; name: string; prompt: string }) =>
+    callOrThrow<SavedWorkflow>("workflow_save", { workflow }),
+  workflowSetArchived: (id: string, archived: boolean) =>
+    callOrThrow<void>("workflow_set_archived", { id, archived }),
+  workflowDelete: (id: string) => callOrThrow<void>("workflow_delete", { id }),
+  workflowRun: (id: string) => callOrThrow<void>("workflow_run", { id }),
   chatReset: () => call<void>("chat_reset"),
   /** Copies a dropped file into the inbox. */
   ingestFile: (path: string) => callOrThrow<DroppedFile>("ingest_file", { path }),
@@ -212,6 +219,11 @@ export const Bridge = {
   refreshSpotify: () => callOrThrow<SpotifySnapshot>("refresh_spotify"),
   spotifyDisconnect: () => callOrThrow<void>("spotify_disconnect"),
 
+  // ── Vision Mode ─────────────────────────────────────────────────────────
+  gestureMouseStart: () => callOrThrow<void>("gesture_mouse_start"),
+  gestureMouseStop: () => callOrThrow<void>("gesture_mouse_stop"),
+  gestureMouseIsRunning: () => callOrThrow<boolean>("gesture_mouse_is_running"),
+
   /** Tray → Pause. Stops the integration pollers, not just the island. */
   setPaused: (paused: boolean) => call<void>("set_paused", { paused }),
 
@@ -248,6 +260,15 @@ export interface MemoryRecord {
   id: string;
   category: "identity" | "preference" | "goal" | "project" | "relationship" | "emotional" | "behavior";
   text: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface SavedWorkflow {
+  id: string;
+  name: string;
+  prompt: string;
+  archived: boolean;
   createdAt: number;
   updatedAt: number;
 }

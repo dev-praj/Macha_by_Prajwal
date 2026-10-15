@@ -48,7 +48,16 @@ pub fn supports(name: &str) -> bool {
             | "move_file"
             | "write_file"
             | "erase_file_content"
-    )
+            | "windows_list"
+            | "windows_click"
+            | "windows_type"
+            | "windows_move"
+            | "windows_scroll"
+            | "windows_shortcut"
+            | "windows_switch_window"
+            | "windows_resize_window"
+            | "powershell_command"
+    ) && (cfg!(windows) || !name.starts_with("windows_") && name != "powershell_command")
 }
 
 pub fn select_app_target(
@@ -169,6 +178,10 @@ pub fn prepare(
     mut action: AutomationAction,
     folders: &[String],
 ) -> Result<AutomationAction, String> {
+    if action.name.starts_with("windows_") || action.name == "powershell_command" {
+        validate_windows_action(&mut action)?;
+        return Ok(action);
+    }
     if action.name == "search_web" {
         let query = string_argument(&action.arguments, "query")?;
         if query.trim().is_empty() || query.len() > 500 {
@@ -238,7 +251,7 @@ pub fn prepare(
         return Ok(action);
     }
 
-    let roots = authorized_roots(folders)?;
+    let roots = path_bases(folders)?;
     match action.name.as_str() {
         "open_path" | "list_directory" => {
             let path = action_path(&action.arguments, "path", &roots, true)?;
@@ -316,6 +329,161 @@ pub fn prepare(
     Ok(action)
 }
 
+fn validate_windows_action(action: &mut AutomationAction) -> Result<(), String> {
+    let arguments = action
+        .arguments
+        .as_object_mut()
+        .ok_or_else(|| "The Windows automation request has invalid arguments.".to_string())?;
+    match action.name.as_str() {
+        "windows_list" => {}
+        "windows_click" => {
+            validate_coordinates(arguments)?;
+            let button = required_argument_string(arguments, "button")?;
+            if !matches!(button, "left" | "right" | "middle") {
+                return Err("Mouse button must be left, right, or middle.".into());
+            }
+            let clicks = optional_integer(arguments, "clicks", 1)?;
+            if !matches!(clicks, 1 | 2) {
+                return Err("Mouse clicks must be 1 or 2.".into());
+            }
+        }
+        "windows_type" => {
+            validate_coordinates(arguments)?;
+            let text = required_argument_string(arguments, "text")?;
+            if text.is_empty() || text.chars().count() > 2_000 {
+                return Err("Text entry must contain between 1 and 2,000 characters.".into());
+            }
+            validate_optional_bool(arguments, "clear")?;
+            validate_optional_bool(arguments, "pressEnter")?;
+        }
+        "windows_move" => {
+            validate_coordinates(arguments)?;
+            validate_optional_bool(arguments, "drag")?;
+        }
+        "windows_scroll" => {
+            validate_optional_coordinates(arguments)?;
+            let axis = required_argument_string(arguments, "axis")?;
+            let direction = required_argument_string(arguments, "direction")?;
+            if !matches!(axis, "vertical" | "horizontal")
+                || !matches!(direction, "up" | "down" | "left" | "right")
+                || (axis == "vertical" && !matches!(direction, "up" | "down"))
+                || (axis == "horizontal" && !matches!(direction, "left" | "right"))
+            {
+                return Err("Scroll direction must match its vertical or horizontal axis.".into());
+            }
+            let steps = optional_integer(arguments, "steps", 1)?;
+            if !(1..=20).contains(&steps) {
+                return Err("Scroll steps must be between 1 and 20.".into());
+            }
+        }
+        "windows_shortcut" => {
+            let shortcut = required_argument_string(arguments, "shortcut")?;
+            if shortcut.is_empty() || shortcut.len() > 80 {
+                return Err("Keyboard shortcuts must contain between 1 and 80 characters.".into());
+            }
+        }
+        "windows_switch_window" => validate_window_title(arguments)?,
+        "windows_resize_window" => {
+            validate_window_title(arguments)?;
+            let x = integer_argument(arguments, "x")?;
+            let y = integer_argument(arguments, "y")?;
+            let width = integer_argument(arguments, "width")?;
+            let height = integer_argument(arguments, "height")?;
+            if x < 0
+                || y < 0
+                || !(100..=10_000).contains(&width)
+                || !(100..=10_000).contains(&height)
+            {
+                return Err("Window position and size are outside the supported range.".into());
+            }
+        }
+        "powershell_command" => {
+            let command = required_argument_string(arguments, "command")?;
+            if command.trim().is_empty() || command.len() > 10_000 {
+                return Err(
+                    "PowerShell commands must contain between 1 and 10,000 characters.".into(),
+                );
+            }
+            let timeout = optional_integer(arguments, "timeout", 10)?;
+            if !(1..=60).contains(&timeout) {
+                return Err("PowerShell timeout must be between 1 and 60 seconds.".into());
+            }
+            arguments.insert("timeout".into(), Value::from(timeout));
+        }
+        _ => return Err("Unsupported Windows automation action.".into()),
+    }
+    Ok(())
+}
+
+fn required_argument_string<'a>(
+    arguments: &'a serde_json::Map<String, Value>,
+    name: &str,
+) -> Result<&'a str, String> {
+    arguments
+        .get(name)
+        .and_then(Value::as_str)
+        .filter(|value| !value.trim().is_empty())
+        .ok_or_else(|| format!("The {name} value is missing or invalid."))
+}
+
+fn integer_argument(arguments: &serde_json::Map<String, Value>, name: &str) -> Result<i64, String> {
+    arguments
+        .get(name)
+        .and_then(Value::as_i64)
+        .ok_or_else(|| format!("The {name} value must be an integer."))
+}
+
+fn optional_integer(
+    arguments: &serde_json::Map<String, Value>,
+    name: &str,
+    default: i64,
+) -> Result<i64, String> {
+    match arguments.get(name) {
+        Some(value) => value
+            .as_i64()
+            .ok_or_else(|| format!("The {name} value must be an integer.")),
+        None => Ok(default),
+    }
+}
+
+fn validate_coordinates(arguments: &serde_json::Map<String, Value>) -> Result<(), String> {
+    let x = integer_argument(arguments, "x")?;
+    let y = integer_argument(arguments, "y")?;
+    if !(0..=10_000).contains(&x) || !(0..=10_000).contains(&y) {
+        return Err("Screen coordinates are outside the supported range.".into());
+    }
+    Ok(())
+}
+
+fn validate_optional_coordinates(arguments: &serde_json::Map<String, Value>) -> Result<(), String> {
+    match (arguments.get("x"), arguments.get("y")) {
+        (None, None) => Ok(()),
+        (Some(_), Some(_)) => validate_coordinates(arguments),
+        _ => Err("Provide both x and y coordinates, or omit both.".into()),
+    }
+}
+
+fn validate_optional_bool(
+    arguments: &serde_json::Map<String, Value>,
+    name: &str,
+) -> Result<(), String> {
+    if arguments
+        .get(name)
+        .is_some_and(|value| value.as_bool().is_none())
+    {
+        return Err(format!("The {name} value must be true or false."));
+    }
+    Ok(())
+}
+
+fn validate_window_title(arguments: &serde_json::Map<String, Value>) -> Result<(), String> {
+    let title = required_argument_string(arguments, "title")?;
+    if title.chars().count() > 256 {
+        return Err("Window titles must not exceed 256 characters.".into());
+    }
+    Ok(())
+}
+
 fn validate_website_url(value: &str) -> Result<(), String> {
     let parsed = url::Url::parse(value)
         .map_err(|_| "Enter a valid HTTP or HTTPS website URL.".to_string())?;
@@ -332,6 +500,9 @@ fn validate_website_url(value: &str) -> Result<(), String> {
 }
 
 pub fn execute(action: &AutomationAction, folders: &[String]) -> Result<String, String> {
+    if action.name.starts_with("windows_") || action.name == "powershell_command" {
+        return crate::windows_automation::execute(&action.name, &action.arguments);
+    }
     if action.name == "open_website" {
         let url = string_argument(&action.arguments, "url")?;
         validate_website_url(url)?;
@@ -365,7 +536,7 @@ pub fn execute(action: &AutomationAction, folders: &[String]) -> Result<String, 
         return Ok(format!("Opened {label}."));
     }
 
-    let roots = authorized_roots(folders)?;
+    let roots = path_bases(folders)?;
     match action.name.as_str() {
         "list_directory" => {
             let path = action_path(&action.arguments, "path", &roots, true)?;
@@ -537,23 +708,27 @@ pub fn execute(action: &AutomationAction, folders: &[String]) -> Result<String, 
     }
 }
 
-fn authorized_roots(folders: &[String]) -> Result<Vec<PathBuf>, String> {
+fn path_bases(folders: &[String]) -> Result<Vec<PathBuf>, String> {
     let mut roots = Vec::new();
     for folder in folders {
-        let path = fs::canonicalize(folder)
-            .map_err(|e| format!("Authorized folder is unavailable: {e}"))?;
-        if !path.is_dir() {
-            return Err(format!(
-                "Authorized path is not a folder: {}",
-                path.display()
-            ));
-        }
-        if !roots.contains(&path) {
-            roots.push(path);
+        match fs::canonicalize(folder) {
+            Ok(path) if path.is_dir() && !roots.contains(&path) => roots.push(path),
+            Ok(_) => {}
+            Err(error) => crate::log::line(format!(
+                "Ignoring unavailable relative automation path base {folder}: {error}"
+            )),
         }
     }
-    if roots.is_empty() {
-        return Err("Choose at least one authorized folder in Settings first.".into());
+    let home = std::env::var_os(if cfg!(windows) { "USERPROFILE" } else { "HOME" })
+        .map(PathBuf::from)
+        .ok_or_else(|| "Could not determine the current user's home folder.".to_string())?;
+    let home = fs::canonicalize(&home)
+        .map_err(|error| format!("User home folder is unavailable: {error}"))?;
+    if !home.is_dir() {
+        return Err("The current user's home path is not a folder.".into());
+    }
+    if !roots.contains(&home) {
+        roots.push(home);
     }
     Ok(roots)
 }
@@ -615,7 +790,7 @@ fn action_path(
         } else {
             let parent = candidate
                 .parent()
-                .ok_or_else(|| "A new item must be inside an authorized folder.".to_string())?;
+                .ok_or_else(|| "A new item must have an existing parent folder.".to_string())?;
             let canonical_parent = match fs::canonicalize(parent) {
                 Ok(path) => path,
                 Err(error) => {
@@ -628,16 +803,12 @@ fn action_path(
                 .ok_or_else(|| "A new item must have a file or folder name.".to_string())?;
             canonical_parent.join(name)
         };
-        if roots.iter().any(|root| resolved.starts_with(root)) {
-            return Ok(resolved);
-        }
+        return Ok(resolved);
     }
     if let Some(error) = last_error {
-        return Err(format!(
-            "Path is unavailable or outside authorized folders: {error}"
-        ));
+        return Err(format!("Path is unavailable: {error}"));
     }
-    Err("That path is outside the folders authorized in Settings.".into())
+    Err("Could not resolve that path.".into())
 }
 
 fn required_string<'a>(arguments: &'a Value, key: &str) -> Result<&'a str, String> {
@@ -1194,6 +1365,56 @@ mod tests {
     }
 
     #[test]
+    fn windows_actions_are_validated_before_entering_the_approval_queue() {
+        let click = prepare(
+            action(
+                "windows_click",
+                json!({ "x": 120, "y": 240, "button": "left", "clicks": 2 }),
+            ),
+            &[],
+        )
+        .unwrap();
+        assert_eq!(click.arguments["button"], "left");
+
+        assert!(prepare(
+            action(
+                "windows_click",
+                json!({ "x": -1, "y": 240, "button": "left" }),
+            ),
+            &[],
+        )
+        .is_err());
+        assert!(prepare(
+            action(
+                "windows_scroll",
+                json!({ "axis": "vertical", "direction": "right", "steps": 1 }),
+            ),
+            &[],
+        )
+        .is_err());
+
+        let powershell = prepare(
+            action("powershell_command", json!({ "command": "Get-Date" })),
+            &[],
+        )
+        .unwrap();
+        assert_eq!(powershell.arguments["timeout"], 10);
+        assert!(prepare(
+            action("powershell_command", json!({ "command": "  " })),
+            &[],
+        )
+        .is_err());
+        assert!(prepare(
+            action(
+                "powershell_command",
+                json!({ "command": "Get-Date", "timeout": 61 }),
+            ),
+            &[],
+        )
+        .is_err());
+    }
+
+    #[test]
     fn explicit_open_requests_are_routed_as_local_actions() {
         assert_eq!(
             super::explicit_open_app("open WhatsApp"),
@@ -1308,7 +1529,7 @@ mod tests {
     }
 
     #[test]
-    fn create_file_refuses_overwrite_and_paths_outside_roots() {
+    fn absolute_paths_work_without_selected_folders_and_traversal_is_rejected() {
         let root = test_root();
         let folder = root.join("allowed");
         fs::create_dir(&folder).unwrap();
@@ -1324,7 +1545,20 @@ mod tests {
         assert!(execute(&create, &folders).is_err());
 
         let outside_read = action("read_file", json!({"path": outside.to_string_lossy()}));
-        assert!(execute(&outside_read, &folders).is_err());
+        assert_eq!(execute(&outside_read, &[]).unwrap(), "secret");
+
+        let outside_create = action(
+            "create_file",
+            json!({
+                "path": root.join("outside-created.txt").to_string_lossy(),
+                "content": "created outside selected folder"
+            }),
+        );
+        assert!(execute(&outside_create, &[]).is_ok());
+        assert_eq!(
+            fs::read_to_string(root.join("outside-created.txt")).unwrap(),
+            "created outside selected folder"
+        );
 
         let traversal = action("create_directory", json!({"path": "../outside"}));
         assert!(execute(&traversal, &folders).is_err());
@@ -1332,7 +1566,7 @@ mod tests {
     }
 
     #[test]
-    fn files_can_be_listed_read_and_moved_only_inside_authorized_roots() {
+    fn selected_folders_remain_preferred_bases_for_relative_paths() {
         let root = test_root();
         let folder = root.join("allowed");
         fs::create_dir(&folder).unwrap();
@@ -1345,7 +1579,7 @@ mod tests {
             second_folder.to_string_lossy().into_owned(),
         ];
 
-        let roots = super::authorized_roots(&folders).unwrap();
+        let roots = super::path_bases(&folders).unwrap();
         let selected_root =
             super::action_path(&json!({"path": "allowed"}), "path", &roots, true).unwrap();
         assert_eq!(selected_root, fs::canonicalize(&folder).unwrap());

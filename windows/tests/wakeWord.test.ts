@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { extractWakeCommand, isPartialWakePhrase, isWakeLeadOnly } from "../src/core/wakeWord";
+import { extractWakeCommand, isPartialWakePhrase, isWakeLeadOnly } from "../src/core/wakeWord.ts";
 
 describe("wake-word response timing", () => {
   it("treats the exact wake phrase as an immediate signal", () => {

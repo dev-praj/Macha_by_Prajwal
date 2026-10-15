@@ -214,6 +214,15 @@ select:focus {
   border-color: rgba(255, 255, 255, 0.28);
 }
 
+.gesture-dashboard {
+  width: 100%;
+  height: min(860px, 75vh);
+  min-height: 520px;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  background: #08080c;
+}
+
 /* The popup is drawn by the OS: give it an explicit pair of colours rather than
    inheriting white on white. */
 select option {
@@ -296,8 +305,84 @@ select option {
   font-family: var(--mono);
 }
 
+.workflow-editor,
+.workflow-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.workflow-editor {
+  padding: 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.workflow-editor[hidden] {
+  display: none;
+}
+
+.workflow-editor h3,
+.workflow-group-title {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.workflow-editor input,
+.workflow-editor textarea {
+  width: 100%;
+}
+
+.workflow-editor textarea {
+  resize: vertical;
+  min-height: 96px;
+  font: 400 12.5px/1.5 var(--font);
+}
+
+.workflow-group-title:not(:first-child) {
+  margin-top: 6px;
+}
+
+.workflow-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.workflow-card-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.workflow-prompt-preview {
+  color: var(--dim);
+  font-size: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 4.5em;
+  overflow: hidden;
+}
+
+.workflow-actions {
+  justify-content: flex-end;
+}
+
 @media (max-width: 580px) {
   .openrouter-account-key {
     flex-wrap: wrap;
+  }
+  .workflow-card {
+    flex-direction: column;
+  }
+  .workflow-actions {
+    justify-content: flex-start;
   }
 }

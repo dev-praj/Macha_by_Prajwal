@@ -15,7 +15,6 @@ use crate::{automation, llm_client};
 
 /// Text and code files are inlined; anything larger is skipped, as on macOS.
 const MAX_INLINE_TEXT: u64 = 200_000;
-const MAX_AUTOMATION_ACTIONS: u8 = 5;
 const MAX_SCREEN_IMAGE_BYTES: usize = 2_000_000;
 
 pub const DEFAULT_MODEL: &str = "openrouter/free";
@@ -23,20 +22,20 @@ pub const DEFAULT_MODEL: &str = "openrouter/free";
 const SYSTEM_PROMPT: &str = "You are Macha, a personal AI assistant living at the top of the user's screen. \
 You have web search access and can help with absolutely anything — research, coding, finding places, recommendations, tasks, questions. \
 When the user explicitly asks to open an installed app, folder, or file, use the local action tools instead of merely explaining how. \
-For file edits, write_file replaces all existing contents and erase_file_content clears them; state that clearly and wait for the user's approval. \
+For file edits, write_file replaces all existing contents and erase_file_content clears them; state that clearly. Ordinary chat actions require user approval, but actions in a saved workflow the user explicitly started are pre-authorized and should run automatically. \
 Respond in the user's language. Be thorough and complete — use as much detail as the task requires. \
 Use fenced code blocks for code, commands, configuration, and other copyable snippets; add a language tag when known. \
 Keep surrounding prose plain and readable. \
 Use the existing configured model and provider; do not claim to use another model. \
 Use persistent memory sparingly for durable facts, preferences, goals, and projects; update a listed memory by its ID when it changes, and never save credentials or secrets. \
-Use open_website or search_web only when useful; Coucou always asks the user before opening a link or search.";
+On Windows, you may propose visible-window inspection, mouse and keyboard input, window switching/resizing, and PowerShell commands for the user's requested task. Ordinary chat actions require explicit approval; actions in a saved workflow the user explicitly started are pre-authorized and should run automatically. PowerShell runs with the user's account permissions, so keep the exact command visible. \
+Use open_website or search_web only when useful; these require approval in ordinary chat, while actions in a saved workflow explicitly started by the user are pre-authorized.";
 
 #[derive(Default)]
 pub struct Chat {
     /// Full multi-turn history in OpenRouter Chat Completions message format.
     conversations: Mutex<HashMap<String, Vec<Value>>>,
     pending_actions: Mutex<HashMap<String, PendingAction>>,
-    action_counts: Mutex<HashMap<String, u8>>,
     requests: Mutex<HashMap<String, watch::Sender<bool>>>,
 }
 
@@ -86,7 +85,6 @@ impl Chat {
     pub fn reset(&self) {
         self.conversations.lock().unwrap().clear();
         self.pending_actions.lock().unwrap().clear();
-        self.action_counts.lock().unwrap().clear();
         for request in self.requests.lock().unwrap().values() {
             let _ = request.send(true);
         }
@@ -96,7 +94,6 @@ impl Chat {
     pub fn delete(&self, conversation_id: &str) {
         self.conversations.lock().unwrap().remove(conversation_id);
         self.pending_actions.lock().unwrap().remove(conversation_id);
-        self.action_counts.lock().unwrap().remove(conversation_id);
     }
 
     fn seed_history(
@@ -178,24 +175,6 @@ impl Chat {
         self.pending_actions.lock().unwrap().remove(conversation_id)
     }
 
-    fn action_count(&self, conversation_id: &str) -> u8 {
-        self.action_counts
-            .lock()
-            .unwrap()
-            .get(conversation_id)
-            .copied()
-            .unwrap_or_default()
-    }
-
-    fn increment_action_count(&self, conversation_id: &str) {
-        let mut counts = self.action_counts.lock().unwrap();
-        *counts.entry(conversation_id.to_string()).or_default() += 1;
-    }
-
-    fn reset_action_count(&self, conversation_id: &str) {
-        self.action_counts.lock().unwrap().remove(conversation_id);
-    }
-
     pub fn begin_request(&self, request_id: &str) -> Result<watch::Receiver<bool>, String> {
         if request_id.is_empty() || request_id.len() > 100 {
             return Err("Invalid chat request ID.".into());
@@ -274,8 +253,6 @@ pub async fn send(
         context.as_ref(),
         &shared_context,
     )?;
-    chat.reset_action_count(&conversation_id);
-
     if let Some(app_name) = automation::explicit_open_app(&query) {
         let action = automation::AutomationAction {
             name: "open_app".into(),
@@ -318,14 +295,14 @@ pub async fn send(
         ),
         screen_image,
     );
-    let compatibility_mode = !automation_folders.is_empty() && local_file_action_intent(&query);
-    let tools = Some(assistant_tools(automation_folders));
+    let compatibility_mode = local_file_action_intent(&query);
+    let tools = Some(assistant_tools());
     let completion_result = if compatibility_mode {
         crate::log::line(
             "local file action detected; using provider-independent action-envelope compatibility mode",
         );
         llm_client::chat(
-            compatibility_messages(request_messages.clone(), automation_folders)?,
+            compatibility_messages(request_messages.clone())?,
             None,
             provider_mode,
             ollama_model,
@@ -361,7 +338,26 @@ pub async fn send(
                 "configured model does not support function calls; retrying with an action-envelope compatibility prompt",
             );
             llm_client::chat(
-                compatibility_messages(request_messages, automation_folders)?,
+                compatibility_messages(request_messages.clone())?,
+                None,
+                provider_mode,
+                ollama_model,
+                model,
+                cancel,
+            )
+            .await
+        }
+        result => result,
+    };
+    let completion = match completion {
+        Ok(completion)
+            if !compatibility_mode && has_empty_action_response(&completion.response) =>
+        {
+            crate::log::line(
+                "configured model returned an empty tool batch; retrying with an action-envelope compatibility prompt",
+            );
+            llm_client::chat(
+                compatibility_messages(request_messages)?,
                 None,
                 provider_mode,
                 ollama_model,
@@ -408,6 +404,22 @@ fn tool_support_error(error: &str) -> bool {
         .any(|marker| message.contains(marker))
 }
 
+fn has_empty_action_response(response: &Value) -> bool {
+    let Some(message) = response
+        .get("choices")
+        .and_then(Value::as_array)
+        .and_then(|choices| choices.first())
+        .and_then(|choice| choice.get("message"))
+    else {
+        return false;
+    };
+    message
+        .get("tool_calls")
+        .and_then(Value::as_array)
+        .is_some_and(Vec::is_empty)
+        && response_text(message).is_empty()
+}
+
 fn local_file_action_intent(query: &str) -> bool {
     let mut query = query.trim().to_ascii_lowercase();
     if ["how ", "what ", "why ", "explain ", "tell me how "]
@@ -451,7 +463,7 @@ fn local_file_action_intent(query: &str) -> bool {
             "directory",
             "document",
             "text file",
-            "authorized folder",
+            "computer",
             "workspace",
             "://",
             ":\\",
@@ -461,11 +473,8 @@ fn local_file_action_intent(query: &str) -> bool {
         .any(|subject| query.contains(subject))
 }
 
-fn compatibility_messages(
-    mut messages: Vec<Value>,
-    automation_folders: &[String],
-) -> Result<Vec<Value>, String> {
-    let schema = serde_json::to_string(&assistant_tools(automation_folders)).map_err(|error| {
+fn compatibility_messages(mut messages: Vec<Value>) -> Result<Vec<Value>, String> {
+    let schema = serde_json::to_string(&assistant_tools()).map_err(|error| {
         format!("Could not prepare the model action compatibility prompt: {error}")
     })?;
     let system = messages
@@ -608,7 +617,6 @@ pub async fn resolve_action(
             provider: "local".into(),
             fallback_notice: None,
         };
-        chat.increment_action_count(conversation_id);
         chat.pending_actions.lock().unwrap().insert(
             conversation_id.to_string(),
             PendingAction {
@@ -639,7 +647,7 @@ pub async fn resolve_action(
     );
     let completion = match llm_client::chat(
         messages.clone(),
-        Some(assistant_tools(automation_folders)),
+        Some(assistant_tools()),
         provider_mode,
         ollama_model,
         model,
@@ -652,7 +660,7 @@ pub async fn resolve_action(
                 "configured model does not support function calls; retrying action follow-up with compatibility prompt",
             );
             llm_client::chat(
-                compatibility_messages(messages, automation_folders)?,
+                compatibility_messages(messages)?,
                 None,
                 provider_mode,
                 ollama_model,
@@ -675,15 +683,26 @@ fn provider_messages(
     if history.len() > MAX_HISTORY_MESSAGES {
         history.drain(..history.len() - MAX_HISTORY_MESSAGES);
     }
-    let automation_context = if automation_folders.is_empty() {
-        "\nNo local folders are authorized for file actions. Do not claim to inspect or change local files."
-            .to_string()
+    let relative_path_context = if automation_folders.is_empty() {
+        "Relative paths are based at the user's home folder.".to_string()
     } else {
         format!(
-            "\nThe user authorized local file actions only inside these folders: {}. \
-Never attempt deletion, command execution, or actions outside those folders. \
-Local actions require explicit user approval; request one action at a time.",
+            "For relative paths, try these preferred starting folders first: {}. \
+If a relative path is not found there, use the user's home folder.",
             automation_folders.join(", ")
+        )
+    };
+    let automation_context = if cfg!(windows) {
+        format!(
+            "\nThe user enabled local file access across the computer. Use absolute paths to access any location the current user can access, including other mounted drives. \
+{relative_path_context} Never attempt deletion. Windows GUI and PowerShell actions are available for the user's requested task. Ordinary chat actions require explicit approval; actions in a saved workflow explicitly started by the user are pre-authorized and must run automatically, one action at a time. \
+PowerShell runs with the user's account permissions and can change the system; do not hide or obfuscate the command."
+        )
+    } else {
+        format!(
+            "\nThe user enabled local file access across the computer. Use absolute paths to access any location the current user can access, including other mounted drives. \
+{relative_path_context} Never attempt deletion or command execution. \
+Ordinary chat actions require explicit user approval. Actions in a saved workflow explicitly started by the user are pre-authorized and should run automatically, one action at a time."
         )
     };
     let mut messages = vec![json!({
@@ -736,9 +755,9 @@ fn validate_screen_image(image: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn assistant_tools(automation_folders: &[String]) -> Value {
+fn assistant_tools() -> Value {
     let mut tools = vec![
-        json!({
+        serde_json::json!({
             "type": "function",
             "function": {
                 "name": "remember_user_fact",
@@ -768,7 +787,7 @@ fn assistant_tools(automation_folders: &[String]) -> Value {
             "type": "function",
             "function": {
                 "name": "open_app",
-                "description": "Open an installed app by its exact or unambiguous partial name. Requires explicit user approval.",
+                "description": "Open an installed app by its exact or unambiguous partial name. Requires explicit user approval in ordinary chat; actions in a workflow the user explicitly started are pre-authorized.",
                 "parameters": {
                     "type": "object",
                     "properties": { "appName": { "type": "string" } },
@@ -778,14 +797,12 @@ fn assistant_tools(automation_folders: &[String]) -> Value {
             }
         }),
     ];
-    if let Some(local_tools) = (!automation_folders.is_empty()).then(automation_tools) {
-        tools.extend(local_tools.as_array().into_iter().flatten().cloned());
-    }
+    tools.extend(automation_tools().as_array().into_iter().flatten().cloned());
     tools.push(json!({
         "type": "function",
         "function": {
             "name": "open_website",
-            "description": "Open a public HTTP or HTTPS website in the system browser. Requires explicit user approval.",
+            "description": "Open a public HTTP or HTTPS website in the system browser. Requires explicit user approval in ordinary chat; actions in a workflow the user explicitly started are pre-authorized.",
             "parameters": {
                 "type": "object",
                 "properties": { "url": { "type": "string" } },
@@ -798,7 +815,7 @@ fn assistant_tools(automation_folders: &[String]) -> Value {
         "type": "function",
         "function": {
             "name": "search_web",
-            "description": "Prepare a web search in the system browser. Requires explicit user approval.",
+            "description": "Prepare a web search in the system browser. Requires explicit user approval in ordinary chat; actions in a workflow the user explicitly started are pre-authorized.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -851,12 +868,11 @@ fn handle_response(
     if let Some(refusal) = message.get("refusal").and_then(Value::as_str) {
         return Err(refusal.to_string());
     }
-    if let Some(tool_calls) = message.get("tool_calls").and_then(Value::as_array) {
-        if tool_calls.is_empty() || tool_calls.len() > usize::from(MAX_AUTOMATION_ACTIONS) {
-            return Err(format!(
-                "The assistant returned too many local actions. Coucou can safely process up to {MAX_AUTOMATION_ACTIONS} at a time."
-            ));
-        }
+    if let Some(tool_calls) = message
+        .get("tool_calls")
+        .and_then(Value::as_array)
+        .filter(|tool_calls| !tool_calls.is_empty())
+    {
         let mut actions = VecDeque::new();
         let mut memory_updates = Vec::new();
         let mut results = Vec::new();
@@ -906,11 +922,6 @@ fn handle_response(
                 });
                 continue;
             }
-            if automation_folders.is_empty()
-                && !matches!(tool_name, "open_website" | "search_web" | "open_app")
-            {
-                return Err("No folders are authorized for local automation.".into());
-            }
             let name = automation::supports(tool_name)
                 .then(|| tool_name.to_string())
                 .ok_or_else(|| {
@@ -929,23 +940,6 @@ fn handle_response(
                 call_index,
                 tool_call_id,
                 action,
-            });
-        }
-        if usize::from(chat.action_count(conversation_id)) + actions.len()
-            > usize::from(MAX_AUTOMATION_ACTIONS)
-        {
-            let text = "For safety, I stopped after five local actions. Ask me to continue if you need more.".to_string();
-            chat.push(
-                conversation_id,
-                json!({ "role": "assistant", "content": text }),
-            );
-            chat.reset_action_count(conversation_id);
-            return Ok(ChatReply {
-                text,
-                model: used_model,
-                action: None,
-                provider: completion.provider,
-                fallback_notice: completion.fallback_notice,
             });
         }
         for (category, fact, replace_id) in memory_updates {
@@ -984,7 +978,6 @@ fn handle_response(
                 results,
             },
         );
-        chat.increment_action_count(conversation_id);
         return Ok(ChatReply {
             text: message
                 .get("content")
@@ -1007,7 +1000,6 @@ fn handle_response(
         conversation_id,
         json!({ "role": "assistant", "content": text }),
     );
-    chat.reset_action_count(conversation_id);
     Ok(ChatReply {
         text,
         model: used_model,
@@ -1143,15 +1135,15 @@ fn append_context(
 }
 
 fn automation_tools() -> Value {
-    json!([
+    let mut tools = json!([
         {
             "type": "function",
             "function": {
                 "name": "list_directory",
-                "description": "List names and types in a directory inside an authorized folder.",
+                "description": "List names and types in any directory the current user can access. Requires explicit user approval in ordinary chat; actions in a workflow the user explicitly started are pre-authorized.",
                 "parameters": {
                     "type": "object",
-                    "properties": { "path": { "type": "string", "description": "Absolute authorized path or path relative to an authorized folder." } },
+                    "properties": { "path": { "type": "string", "description": "Absolute path anywhere on the computer, or a path relative to a preferred folder or the user's home folder." } },
                     "required": ["path"],
                     "additionalProperties": false
                 }
@@ -1161,7 +1153,7 @@ fn automation_tools() -> Value {
             "type": "function",
             "function": {
                 "name": "read_file",
-                "description": "Read a small UTF-8 text file inside an authorized folder. The contents are sent to the configured AI provider.",
+                "description": "Read a small UTF-8 text file anywhere the current user can access. The contents are sent to the configured AI provider. Requires approval in ordinary chat; workflow actions are pre-authorized when the user starts the workflow.",
                 "parameters": {
                     "type": "object",
                     "properties": { "path": { "type": "string" } },
@@ -1174,7 +1166,7 @@ fn automation_tools() -> Value {
             "type": "function",
             "function": {
                 "name": "open_path",
-                "description": "Open a folder or file from an authorized folder in the system file manager.",
+                "description": "Open any file or folder the current user can access in the system file manager. Requires explicit user approval in ordinary chat; actions in a workflow the user explicitly started are pre-authorized.",
                 "parameters": {
                     "type": "object",
                     "properties": { "path": { "type": "string" } },
@@ -1187,7 +1179,7 @@ fn automation_tools() -> Value {
             "type": "function",
             "function": {
                 "name": "create_directory",
-                "description": "Create one new folder inside an authorized folder. Does not create parents or overwrite.",
+                "description": "Create one new folder anywhere the current user can write. Does not create parents or overwrite. Requires approval in ordinary chat; workflow actions are pre-authorized when the user starts the workflow.",
                 "parameters": {
                     "type": "object",
                     "properties": { "path": { "type": "string" } },
@@ -1200,7 +1192,7 @@ fn automation_tools() -> Value {
             "type": "function",
             "function": {
                 "name": "create_file",
-                "description": "Create a new UTF-8 text file inside an authorized folder. Fails if the file already exists.",
+                "description": "Create a new UTF-8 text file anywhere the current user can write. Fails if the file already exists. Requires approval in ordinary chat; workflow actions are pre-authorized when the user starts the workflow.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -1216,7 +1208,7 @@ fn automation_tools() -> Value {
             "type": "function",
             "function": {
                 "name": "write_file",
-                "description": "Replace all contents of an existing UTF-8 text file inside an authorized folder. Show the proposed contents and get explicit user approval first. A backup is created.",
+                "description": "Replace all contents of an existing UTF-8 text file anywhere the current user can write. A backup is created. Requires approval in ordinary chat; actions in a workflow the user explicitly started are pre-authorized.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -1232,7 +1224,7 @@ fn automation_tools() -> Value {
             "type": "function",
             "function": {
                 "name": "erase_file_content",
-                "description": "Clear all contents of an existing file inside an authorized folder. Show the current contents and get explicit user approval first. A backup is created.",
+                "description": "Clear all contents of an existing file anywhere the current user can write. A backup is created. Requires approval in ordinary chat; actions in a workflow the user explicitly started are pre-authorized.",
                 "parameters": {
                     "type": "object",
                     "properties": { "path": { "type": "string" } },
@@ -1245,7 +1237,7 @@ fn automation_tools() -> Value {
             "type": "function",
             "function": {
                 "name": "move_file",
-                "description": "Move a file to a new path on the same filesystem inside an authorized folder. Does not overwrite existing files.",
+                "description": "Move a file to a new path on the same filesystem anywhere the current user can access. Does not overwrite existing files. Requires approval in ordinary chat; workflow actions are pre-authorized when the user starts the workflow.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -1257,7 +1249,160 @@ fn automation_tools() -> Value {
                 }
             }
         }
-    ])
+    ]);
+    #[cfg(windows)]
+    if let Some(tools) = tools.as_array_mut() {
+        tools.extend(windows_automation_tools());
+    }
+    tools
+}
+
+#[cfg(windows)]
+fn windows_automation_tools() -> Vec<Value> {
+    vec![
+        json!({
+            "type": "function",
+            "function": {
+                "name": "windows_list",
+                "description": "List visible application windows and identify the active one. Read-only; requires approval in ordinary chat. Workflow actions are pre-authorized when the user starts the workflow.",
+                "parameters": { "type": "object", "properties": {}, "additionalProperties": false }
+            }
+        }),
+        json!({
+            "type": "function",
+            "function": {
+                "name": "windows_click",
+                "description": "Click once or twice at pixel coordinates from the user's screen snapshot. Requires approval in ordinary chat; actions in a user-started workflow are pre-authorized.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "x": { "type": "integer", "minimum": 0 },
+                        "y": { "type": "integer", "minimum": 0 },
+                        "button": { "type": "string", "enum": ["left", "right", "middle"] },
+                        "clicks": { "type": "integer", "enum": [1, 2] }
+                    },
+                    "required": ["x", "y", "button"],
+                    "additionalProperties": false
+                }
+            }
+        }),
+        json!({
+            "type": "function",
+            "function": {
+                "name": "windows_type",
+                "description": "Click an input at the supplied screen coordinates and type text, optionally selecting existing contents first or pressing Enter. Requires approval in ordinary chat; actions in a user-started workflow are pre-authorized.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "x": { "type": "integer", "minimum": 0 },
+                        "y": { "type": "integer", "minimum": 0 },
+                        "text": { "type": "string", "maxLength": 2000 },
+                        "clear": { "type": "boolean" },
+                        "pressEnter": { "type": "boolean" }
+                    },
+                    "required": ["x", "y", "text"],
+                    "additionalProperties": false
+                }
+            }
+        }),
+        json!({
+            "type": "function",
+            "function": {
+                "name": "windows_move",
+                "description": "Move the pointer to screen coordinates or drag from its current position. Requires approval in ordinary chat; actions in a user-started workflow are pre-authorized.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "x": { "type": "integer", "minimum": 0 },
+                        "y": { "type": "integer", "minimum": 0 },
+                        "drag": { "type": "boolean" }
+                    },
+                    "required": ["x", "y"],
+                    "additionalProperties": false
+                }
+            }
+        }),
+        json!({
+            "type": "function",
+            "function": {
+                "name": "windows_scroll",
+                "description": "Scroll at the pointer or at supplied screen coordinates. Requires approval in ordinary chat; actions in a user-started workflow are pre-authorized.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "x": { "type": "integer", "minimum": 0 },
+                        "y": { "type": "integer", "minimum": 0 },
+                        "axis": { "type": "string", "enum": ["vertical", "horizontal"] },
+                        "direction": { "type": "string", "enum": ["up", "down", "left", "right"] },
+                        "steps": { "type": "integer", "minimum": 1, "maximum": 20 }
+                    },
+                    "required": ["axis", "direction"],
+                    "additionalProperties": false
+                }
+            }
+        }),
+        json!({
+            "type": "function",
+            "function": {
+                "name": "windows_shortcut",
+                "description": "Press a keyboard shortcut such as ctrl+c, alt+tab, enter, or escape. Requires approval in ordinary chat; actions in a user-started workflow are pre-authorized.",
+                "parameters": {
+                    "type": "object",
+                    "properties": { "shortcut": { "type": "string", "maxLength": 80 } },
+                    "required": ["shortcut"],
+                    "additionalProperties": false
+                }
+            }
+        }),
+        json!({
+            "type": "function",
+            "function": {
+                "name": "windows_switch_window",
+                "description": "Restore and activate the unique visible window whose title contains the requested text. Requires approval in ordinary chat; actions in a user-started workflow are pre-authorized.",
+                "parameters": {
+                    "type": "object",
+                    "properties": { "title": { "type": "string", "maxLength": 256 } },
+                    "required": ["title"],
+                    "additionalProperties": false
+                }
+            }
+        }),
+        json!({
+            "type": "function",
+            "function": {
+                "name": "windows_resize_window",
+                "description": "Move and resize a uniquely matched visible window within the primary display. Requires approval in ordinary chat; actions in a user-started workflow are pre-authorized.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "title": { "type": "string", "maxLength": 256 },
+                        "x": { "type": "integer", "minimum": 0 },
+                        "y": { "type": "integer", "minimum": 0 },
+                        "width": { "type": "integer", "minimum": 100, "maximum": 10000 },
+                        "height": { "type": "integer", "minimum": 100, "maximum": 10000 }
+                    },
+                    "required": ["title", "x", "y", "width", "height"],
+                    "additionalProperties": false
+                }
+            }
+        }),
+        json!({
+            "type": "function",
+            "function": {
+                "name": "powershell_command",
+                "description": "Run a PowerShell command as the current Windows user. It can access files and make system changes. Ordinary chat requires explicit approval; the user pre-authorizes actions by starting a saved workflow. Maximum runtime is 60 seconds.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "command": { "type": "string", "maxLength": 10000 },
+                        "timeout": { "type": "integer", "minimum": 1, "maximum": 60 }
+                    },
+                    "required": ["command"],
+                    "additionalProperties": false
+                }
+            }
+        }),
+    ]
 }
 
 /// PDF → document block, image → image block, text/code → inline text.
@@ -1404,6 +1549,51 @@ mod tests {
     }
 
     #[test]
+    fn empty_tool_call_array_does_not_hide_a_normal_assistant_reply() {
+        let chat = Chat::default();
+        let response = serde_json::json!({
+            "choices": [{
+                "message": {
+                    "role": "assistant",
+                    "content": "Hello, how can I help?",
+                    "tool_calls": []
+                }
+            }]
+        });
+        assert!(!super::has_empty_action_response(&response));
+
+        let reply = handle_response(
+            &chat,
+            "empty-tool-calls-with-text",
+            &[],
+            LlmReply {
+                response,
+                provider: "openrouter".into(),
+                model: "test/model".into(),
+                fallback_notice: None,
+            },
+        )
+        .unwrap();
+
+        assert_eq!(reply.text, "Hello, how can I help?");
+        assert!(reply.action.is_none());
+    }
+
+    #[test]
+    fn empty_tool_call_array_without_text_is_detected_for_compatibility_retry() {
+        let response = serde_json::json!({
+            "choices": [{
+                "message": {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": []
+                }
+            }]
+        });
+        assert!(super::has_empty_action_response(&response));
+    }
+
+    #[test]
     fn multiple_tool_calls_are_queued_for_separate_approvals() {
         let chat = Chat::default();
         let response = serde_json::json!({
@@ -1452,7 +1642,52 @@ mod tests {
         assert_eq!(pending.remaining.len(), 1);
         assert_eq!(pending.remaining[0].tool_call_id, "call-second");
         assert_eq!(pending.remaining[0].action.name, "open_website");
-        assert_eq!(chat.action_count("multi-action-conversation"), 1);
+    }
+
+    #[test]
+    fn batches_over_five_actions_are_queued_one_at_a_time() {
+        let chat = Chat::default();
+        let tool_calls: Vec<Value> = (0..6)
+            .map(|index| {
+                serde_json::json!({
+                    "id": format!("call-{index}"),
+                    "type": "function",
+                    "function": {
+                        "name": "open_website",
+                        "arguments": format!("{{\"url\":\"https://example.com/{index}\"}}")
+                    }
+                })
+            })
+            .collect();
+        let response = serde_json::json!({
+            "choices": [{
+                "message": {
+                    "role": "assistant",
+                    "content": null,
+                    "tool_calls": tool_calls
+                }
+            }]
+        });
+
+        let reply = handle_response(
+            &chat,
+            "large-action-batch",
+            &[],
+            LlmReply {
+                response,
+                provider: "openrouter".into(),
+                model: "test/model".into(),
+                fallback_notice: None,
+            },
+        )
+        .unwrap();
+
+        assert_eq!(reply.action.as_ref().unwrap().name, "open_website");
+        let pending_actions = chat.pending_actions.lock().unwrap();
+        let pending = pending_actions.get("large-action-batch").unwrap();
+        assert_eq!(pending.tool_call_id.as_deref(), Some("call-0"));
+        assert_eq!(pending.remaining.len(), 5);
+        assert_eq!(pending.remaining[0].tool_call_id, "call-1");
     }
 
     #[test]
@@ -1501,7 +1736,6 @@ mod tests {
             .lock()
             .unwrap()
             .contains_key("invalid-batch-conversation"));
-        assert_eq!(chat.action_count("invalid-batch-conversation"), 0);
     }
 
     #[test]
@@ -1545,6 +1779,51 @@ mod tests {
             .unwrap()
             .contains_key("compatibility-conversation"));
         fs::remove_dir_all(folder).unwrap();
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn powershell_command_is_queued_without_running_until_approved() {
+        let chat = Chat::default();
+        let response = serde_json::json!({
+            "choices": [{
+                "message": {
+                    "role": "assistant",
+                    "content": null,
+                    "tool_calls": [{
+                        "id": "powershell-call",
+                        "type": "function",
+                        "function": {
+                            "name": "powershell_command",
+                            "arguments": "{\"command\":\"Get-Date\"}"
+                        }
+                    }]
+                }
+            }]
+        });
+        let reply = handle_response(
+            &chat,
+            "powershell-approval",
+            &[],
+            LlmReply {
+                response,
+                provider: "ollama".into(),
+                model: "qwen2.5:7b".into(),
+                fallback_notice: None,
+            },
+        )
+        .unwrap();
+
+        assert_eq!(reply.action.as_ref().unwrap().name, "powershell_command");
+        assert_eq!(
+            reply.action.as_ref().unwrap().arguments["command"],
+            "Get-Date"
+        );
+        assert!(chat
+            .pending_actions
+            .lock()
+            .unwrap()
+            .contains_key("powershell-approval"));
     }
 
     #[test]
@@ -1791,8 +2070,8 @@ mod tests {
     }
 
     #[test]
-    fn memory_and_browser_tools_are_available_without_authorized_file_folders() {
-        let tools = assistant_tools(&[]);
+    fn all_local_tools_are_available_without_selected_folders() {
+        let tools = assistant_tools();
         let names: Vec<&str> = tools
             .as_array()
             .unwrap()
@@ -1803,7 +2082,38 @@ mod tests {
         assert!(names.contains(&"open_app"));
         assert!(names.contains(&"open_website"));
         assert!(names.contains(&"search_web"));
-        assert!(!names.contains(&"read_file"));
+        assert!(names.contains(&"read_file"));
+        assert!(names.contains(&"list_directory"));
+        assert!(names.contains(&"write_file"));
+        for name in [
+            "windows_list",
+            "windows_click",
+            "windows_type",
+            "windows_move",
+            "windows_scroll",
+            "windows_shortcut",
+            "windows_switch_window",
+            "windows_resize_window",
+            "powershell_command",
+        ] {
+            assert_eq!(
+                names.contains(&name),
+                cfg!(windows),
+                "unexpected tool {name}"
+            );
+        }
+        if cfg!(windows) {
+            let powershell = tools
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|tool| tool["function"]["name"] == "powershell_command")
+                .unwrap();
+            assert!(powershell["function"]["description"]
+                .as_str()
+                .unwrap()
+                .contains("explicit approval"));
+        }
     }
 
     #[test]
@@ -1882,7 +2192,7 @@ mod tests {
             }),
             serde_json::json!({"role": "user", "content": "Thanks"}),
         ];
-        let adapted = super::compatibility_messages(messages, &[]).unwrap();
+        let adapted = super::compatibility_messages(messages).unwrap();
         assert_eq!(adapted.len(), 3);
         assert!(adapted[0]["content"]
             .as_str()

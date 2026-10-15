@@ -10,6 +10,7 @@ import {
   type MemoryRecord,
   type OllamaStatus,
   type OpenRouterAccount,
+  type SavedWorkflow,
 } from "../core/bridge";
 import { DEFAULT_SETTINGS, type Settings } from "../core/state";
 import { State } from "../core/state";
@@ -34,6 +35,7 @@ function toggle(on: boolean, onChange: (v: boolean) => void): HTMLElement {
   el.addEventListener("click", () => {
     const next = !el.classList.contains("on");
     el.classList.toggle("on", next);
+    el.setAttribute("aria-pressed", String(next));
     onChange(next);
   });
   return el;
@@ -653,6 +655,106 @@ function integrationsSection(present: Record<string, boolean>): HTMLElement {
   return h("section", {}, h("h2", {}, h("span", { text: "Integrations" })), note, list);
 }
 
+// ── Vision Mode ───────────────────────────────────────────────────────────────
+
+function gestureMouseSection(): HTMLElement {
+  let running = false;
+  let busy = false;
+  let stopRequested = false;
+  const status = h("div", { class: "hint", text: "Checking Vision Mode…" });
+  const feedback = h("div", { class: "hint" });
+  const start = h("button", { text: "Start Vision Mode" });
+  const stop = h("button", { text: "Stop Vision Mode" });
+  const dashboard = h("iframe", {
+    class: "gesture-dashboard",
+    title: "Vision Mode live dashboard",
+    loading: "lazy",
+    referrerpolicy: "no-referrer",
+    style: "display:none",
+  }) as HTMLIFrameElement;
+
+  function showDashboard(on: boolean) {
+    dashboard.style.display = on ? "block" : "none";
+    if (on && dashboard.src !== "http://127.0.0.1:8765/") {
+      dashboard.src = "http://127.0.0.1:8765/";
+    } else if (!on && dashboard.hasAttribute("src")) {
+      dashboard.removeAttribute("src");
+    }
+  }
+
+  function update() {
+    start.disabled = busy || running;
+    stop.disabled = busy || !running;
+    showDashboard(running);
+    status.textContent = running
+      ? "Vision Mode is running. Close the camera preview or stop it here."
+      : "Vision Mode is stopped.";
+  }
+
+  async function refresh() {
+    try {
+      const wasRunning = running;
+      running = await Bridge.gestureMouseIsRunning();
+      if (wasRunning && !running && !stopRequested) {
+        feedback.textContent = "Vision Mode exited unexpectedly. Check Coucou's log for details.";
+      }
+      if (!running) stopRequested = false;
+      update();
+    } catch (error) {
+      status.textContent = `Could not check Vision Mode: ${String(error).replace(/^Error:\s*/, "")}`;
+    }
+  }
+
+  start.addEventListener("click", async () => {
+    busy = true;
+    stopRequested = false;
+    clear(feedback);
+    update();
+    try {
+      await Bridge.gestureMouseStart();
+      feedback.textContent = "Starting camera preview and embedded dashboard…";
+    } catch (error) {
+      feedback.textContent = `Could not start Vision Mode: ${String(error).replace(/^Error:\s*/, "")}`;
+    } finally {
+      busy = false;
+      await refresh();
+    }
+  });
+
+  stop.addEventListener("click", async () => {
+    busy = true;
+    stopRequested = true;
+    clear(feedback);
+    update();
+    try {
+      await Bridge.gestureMouseStop();
+      feedback.textContent = "Vision Mode stopped.";
+    } catch (error) {
+      stopRequested = false;
+      feedback.textContent = `Could not stop Vision Mode: ${String(error).replace(/^Error:\s*/, "")}`;
+    } finally {
+      busy = false;
+      await refresh();
+    }
+  });
+
+  void refresh();
+  window.setInterval(() => void refresh(), 1500);
+  return h(
+    "section",
+    {},
+    h("h2", {}, h("span", { text: "Vision Mode" })),
+    h("div", {
+      class: "hint",
+      text: "Control the Windows cursor with your webcam: move your wrist to move, pinch thumb + index to click and hold, thumb + middle to right-click, and thumb + pinky to scroll. Hold an open palm steady for five seconds to lock or unlock the cursor; the camera preview shows a progress ring and confirms when it is done. To rotate a 3D view that supports mouse dragging, place the pointer over the model before locking, then hold thumb and index together or extend them, curl the other fingers, and turn your wrist clockwise or anticlockwise. While locked, move joined index and middle fingers to scroll in any direction. Start Vision Mode to open the camera preview and live dashboard here. You can also say “activate vision mode” while Hey Macha is listening.",
+    }),
+    status,
+    h("div", { class: "row" }, start, stop),
+    feedback,
+    dashboard,
+  );
+}
+
 // ── General section ───────────────────────────────────────────────────────────
 
 function generalSection(): HTMLElement {
@@ -703,6 +805,34 @@ function generalSection(): HTMLElement {
     class: "hint",
     text: `Saved phrase: “${settings.wakeWordPronunciation}”.`,
   });
+  const voiceActivationStatus = h("span", {
+    class: "hint",
+    "aria-live": "polite",
+    text: settings.wakeWordEnabled ? "Hey Macha is enabled." : "Hey Macha is disabled.",
+  });
+  const voiceActivationToggle = toggle(settings.wakeWordEnabled, (enabled) => {
+    const previous = settings.wakeWordEnabled;
+    settings.wakeWordEnabled = enabled;
+    voiceActivationToggle.disabled = true;
+    voiceActivationStatus.textContent = enabled
+      ? "Enabling Hey Macha…"
+      : "Disabling Hey Macha…";
+    void Bridge.saveSettingsStrict(settings).then(() => {
+      State.settings = { ...State.settings, ...settings };
+      voiceActivationStatus.textContent = enabled ? "Hey Macha is enabled." : "Hey Macha is disabled.";
+    }).catch((error: unknown) => {
+      settings.wakeWordEnabled = previous;
+      voiceActivationToggle.classList.toggle("on", previous);
+      voiceActivationToggle.setAttribute("aria-pressed", String(previous));
+      voiceActivationStatus.textContent = `Could not save the voice activation setting: ${
+        error instanceof Error ? error.message : String(error)
+      }`;
+      console.error("[coucou] could not save Hey Macha voice activation", error);
+    }).finally(() => {
+      voiceActivationToggle.disabled = false;
+    });
+  }) as HTMLButtonElement;
+  voiceActivationToggle.setAttribute("aria-label", "Hey Macha voice activation");
   const calibrateWakePhrase = h("button", { text: "Record “Hey Macha”" });
   calibrateWakePhrase.addEventListener("click", async () => {
     calibrateWakePhrase.disabled = true;
@@ -825,12 +955,13 @@ function generalSection(): HTMLElement {
       speakMode,
     ),
     h("div", { class: "row" },
-      h("label", { text: 'Wake phrase "Hey Macha"' }),
-      toggle(settings.wakeWordEnabled, (enabled) => {
-        settings.wakeWordEnabled = enabled;
-        void save();
+      h("label", { text: "Voice activation" }),
+      voiceActivationToggle,
+      voiceActivationStatus,
+      h("span", {
+        class: "hint",
+        text: "Wake-word audio is sent only to your local Whisper service. The Voice button remains available when this is off.",
       }),
-      h("span", { class: "hint", text: "Listen locally for Hey Macha; speech audio is sent only to your local Whisper service." }),
     ),
     h("div", { class: "row" },
       h("label", { text: "Your pronunciation" }),
@@ -864,79 +995,235 @@ function generalSection(): HTMLElement {
 }
 
 function automationSection(): HTMLElement {
-  const list = h("div", { style: "display:flex;flex-direction:column;gap:8px" });
-  const feedback = h("div", {});
-
-  function drawFolders() {
-    clear(list);
-    if (settings.automationFolders.length === 0) {
-      list.append(h("div", {
-        class: "hint",
-        text: "No folders are authorized. Macha cannot inspect or change local files until you add one.",
-      }));
-      return;
-    }
-    for (const folder of settings.automationFolders) {
-      const remove = h("button", {
-        class: "danger",
-        text: "Remove",
-        "aria-label": `Remove ${folder}`,
-        onclick: async () => {
-          const previous = [...settings.automationFolders];
-          settings.automationFolders = settings.automationFolders.filter((path) => path !== folder);
-          try {
-            await Bridge.saveSettingsStrict(settings);
-            drawFolders();
-          } catch (err) {
-            settings.automationFolders = previous;
-            feedback.replaceChildren(h("div", {
-              class: "notice err",
-              text: `Could not save authorized folders: ${String(err)}`,
-            }));
-          }
-        },
-      });
-      list.append(h("div", { class: "row" },
-        h("span", { class: "path", style: "flex:1 1 300px", text: folder }),
-        remove,
-      ));
-    }
-  }
-
-  const add = h("button", {
-    class: "primary",
-    text: "Choose folder…",
-    onclick: async () => {
-      const previous = [...settings.automationFolders];
-      try {
-        const folder = await Bridge.pickAutomationFolder();
-        if (!folder || settings.automationFolders.includes(folder)) return;
-        settings.automationFolders.push(folder);
-        await Bridge.saveSettingsStrict(settings);
-        feedback.replaceChildren();
-        drawFolders();
-      } catch (err) {
-        settings.automationFolders = previous;
-        feedback.replaceChildren(h("div", {
-          class: "notice err",
-          text: `Could not authorize folder: ${String(err)}`,
-        }));
-      }
-    },
-  });
-
-  drawFolders();
   return h(
     "section",
     {},
     h("h2", {}, h("span", { text: "Local automation" })),
     h("div", {
       class: "hint",
-      text: "Macha can open installed apps, open websites in your system browser, and work with files only inside these folders. Each action needs your approval. File edits show a preview and create a backup first. Deleting files and running commands are not available. Files you ask Macha to read are sent to the selected chat provider.",
+      text: "Macha can access files anywhere on this computer that your account can access. Use an absolute path to specify a location; previously selected folders are still preferred for relative paths. Every action needs your approval. File edits show a preview and create a backup first. Deleting files and running commands are not available. Files you ask Macha to read are sent to the selected chat provider.",
     }),
-    list,
-    h("div", { class: "row" }, add),
+  );
+}
+
+function workflowsSection(): HTMLElement {
+  const list = h("div", { class: "workflow-list" });
+  const feedback = h("div", {});
+  const editorTitle = h("h3", { text: "Create a workflow" });
+  const name = h("input", {
+    type: "text",
+    maxlength: "100",
+    placeholder: "Workflow name",
+    "aria-label": "Workflow name",
+  }) as HTMLInputElement;
+  const prompt = h("textarea", {
+    maxlength: "10000",
+    rows: "4",
+    placeholder: "Describe the task Macha should perform when you run this workflow.",
+    "aria-label": "Workflow instructions",
+  }) as HTMLTextAreaElement;
+  const saveButton = h("button", { class: "primary", text: "Save workflow" });
+  const cancelButton = h("button", { text: "Cancel" });
+  const editor = h("div", { class: "workflow-editor" },
+    editorTitle,
+    name,
+    prompt,
+    h("div", { class: "row" }, saveButton, cancelButton),
+  );
+  editor.hidden = true;
+  let workflows: SavedWorkflow[] = [];
+  let editingId: string | undefined;
+
+  function showEditor(workflow?: SavedWorkflow) {
+    editingId = workflow?.id;
+    editor.hidden = false;
+    editorTitle.textContent = workflow ? "Edit workflow" : "Create a workflow";
+    name.value = workflow?.name ?? "";
+    prompt.value = workflow?.prompt ?? "";
+    saveButton.textContent = workflow ? "Save changes" : "Save workflow";
+    clear(feedback);
+    if (!workflow) name.focus();
+  }
+
+  function closeEditor() {
+    editingId = undefined;
+    name.value = "";
+    prompt.value = "";
+    editor.hidden = true;
+  }
+
+  function renderList() {
+    clear(list);
+    const active = workflows.filter((workflow) => !workflow.archived);
+    const archived = workflows.filter((workflow) => workflow.archived);
+    if (active.length === 0 && archived.length === 0) {
+      list.append(h("div", { class: "hint", text: "No saved workflows yet." }));
+    }
+
+    const renderGroup = (title: string, records: SavedWorkflow[], isArchived: boolean) => {
+      if (records.length === 0) return;
+      list.append(h("h3", { class: "workflow-group-title", text: title }));
+      for (const workflow of records) {
+        const run = h("button", {
+          class: "primary",
+          text: "Run automatically",
+          disabled: isArchived,
+          title: isArchived ? "Unarchive this workflow before running it." : "Run this workflow automatically with your current LLM. Its requested actions will not ask for separate approvals.",
+          onclick: async () => {
+            run.disabled = true;
+            try {
+              await Bridge.workflowRun(workflow.id);
+              feedback.replaceChildren(h("div", {
+                class: "notice ok",
+                text: `“${workflow.name}” was started with your current LLM. Its requested desktop and file actions run automatically without separate approvals. PowerShell commands use your Windows account permissions.`,
+              }));
+            } catch (error) {
+              feedback.replaceChildren(h("div", {
+                class: "notice err",
+                text: `Could not run workflow: ${String(error).replace(/^Error:\s*/, "")}`,
+              }));
+            } finally {
+              run.disabled = isArchived;
+            }
+          },
+        });
+        const edit = h("button", {
+          text: "Edit",
+          onclick: () => showEditor(workflow),
+        });
+        const duplicate = h("button", {
+          text: "Duplicate",
+          onclick: async () => {
+            duplicate.disabled = true;
+            try {
+              const copy = await Bridge.workflowSave({
+                name: `${workflow.name} copy`.slice(0, 100),
+                prompt: workflow.prompt,
+              });
+              workflows.push(copy);
+              clear(feedback);
+              renderList();
+            } catch (error) {
+              feedback.replaceChildren(h("div", {
+                class: "notice err",
+                text: `Could not duplicate workflow: ${String(error).replace(/^Error:\s*/, "")}`,
+              }));
+            } finally {
+              duplicate.disabled = false;
+            }
+          },
+        });
+        const archive = h("button", {
+          text: isArchived ? "Restore" : "Archive",
+          onclick: async () => {
+            archive.disabled = true;
+            try {
+              await Bridge.workflowSetArchived(workflow.id, !isArchived);
+              await reload();
+            } catch (error) {
+              archive.disabled = false;
+              feedback.replaceChildren(h("div", {
+                class: "notice err",
+                text: `Could not ${isArchived ? "restore" : "archive"} workflow: ${String(error).replace(/^Error:\s*/, "")}`,
+              }));
+            }
+          },
+        });
+        const remove = h("button", {
+          class: "danger",
+          text: "Delete",
+          onclick: async () => {
+            if (!window.confirm(`Delete “${workflow.name}” permanently?`)) return;
+            remove.disabled = true;
+            try {
+              await Bridge.workflowDelete(workflow.id);
+              workflows = workflows.filter((entry) => entry.id !== workflow.id);
+              clear(feedback);
+              renderList();
+            } catch (error) {
+              remove.disabled = false;
+              feedback.replaceChildren(h("div", {
+                class: "notice err",
+                text: `Could not delete workflow: ${String(error).replace(/^Error:\s*/, "")}`,
+              }));
+            }
+          },
+        });
+        const updatedAt = new Date(workflow.updatedAt * 1000).toLocaleDateString();
+        list.append(h("article", { class: "workflow-card" },
+          h("div", { class: "workflow-card-copy" },
+            h("strong", { text: workflow.name }),
+            h("span", { class: "hint", text: `Updated ${updatedAt}` }),
+            h("p", { class: "workflow-prompt-preview", text: workflow.prompt }),
+          ),
+          h("div", { class: "row workflow-actions" }, run, edit, duplicate, archive, remove),
+        ));
+      }
+    };
+
+    renderGroup("Active", active, false);
+    renderGroup("Archived", archived, true);
+  }
+
+  async function reload() {
+    try {
+      workflows = await Bridge.workflowsList();
+      renderList();
+    } catch (error) {
+      list.replaceChildren(h("div", {
+        class: "notice err",
+        text: `Could not load workflows: ${String(error).replace(/^Error:\s*/, "")}`,
+      }));
+    }
+  }
+
+  saveButton.addEventListener("click", async () => {
+    saveButton.disabled = true;
+    clear(feedback);
+    try {
+      const saved = await Bridge.workflowSave({
+        ...(editingId ? { id: editingId } : {}),
+        name: name.value,
+        prompt: prompt.value,
+      });
+      workflows = editingId
+        ? workflows.map((workflow) => workflow.id === saved.id ? saved : workflow)
+        : [...workflows, saved];
+      closeEditor();
+      feedback.replaceChildren(h("div", {
+        class: "notice ok",
+        text: "Workflow saved on this device.",
+      }));
+      renderList();
+    } catch (error) {
+      feedback.replaceChildren(h("div", {
+        class: "notice err",
+        text: `Could not save workflow: ${String(error).replace(/^Error:\s*/, "")}`,
+      }));
+    } finally {
+      saveButton.disabled = false;
+    }
+  });
+  cancelButton.addEventListener("click", closeEditor);
+
+  const create = h("button", {
+    class: "primary",
+    text: "New workflow",
+    onclick: () => showEditor(),
+  });
+  void reload();
+  return h(
+    "section",
+    {},
+    h("h2", {}, h("span", { text: "Workflows" })),
+    h("div", {
+      class: "hint",
+      text: "Save reusable instructions for Macha. Running a workflow sends them through your existing chat model and automatically performs requested file, app, desktop, and PowerShell actions without separate approvals. Review each workflow before starting it. Workflows are stored locally on this device.",
+    }),
+    h("div", { class: "row" }, create),
+    editor,
     feedback,
+    list,
   );
 }
 
@@ -1096,7 +1383,9 @@ async function main() {
     claudeSection(status),
     apiSection(openRouterAccounts, ollamaStatus, openRouterError),
     memorySection(),
+    workflowsSection(),
     automationSection(),
+    gestureMouseSection(),
     integrationsSection(present),
     generalSection(),
     h("div", {
