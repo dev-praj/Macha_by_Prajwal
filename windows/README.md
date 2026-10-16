@@ -238,7 +238,7 @@ python -m venv .venv
 Coucou starts the transcription service when it launches. The wake listener
 waits for the local model to finish loading and retries automatically if startup
 takes longer than expected. If automatic startup is unavailable, run
-`start_stt.bat` from the repository root. Press
+`python .\stt_server.py` from the repository root. Press
 **Ctrl+Alt+Space** or the **Voice** button beside the chat input to start
 recording; press it again to stop and send the recognized text through chat.
 In automatic provider mode, voice requests try the configured OpenRouter model
@@ -304,8 +304,7 @@ to work on the island's looks. It also serves `dev/upload-preview.html`, which
 replays the whole file-drop choreography on a loop — the one part of the UI that
 otherwise needs a real drag from Explorer to see. Neither page ships in the app.
 
-`npm run pack` leaves two files in `windows/release/`, the same names the release
-workflow publishes:
+`npm run pack` leaves two files in `windows/release/`:
 
 ```
 Coucou-Windows-X.Y.Z-setup.exe    the versioned installer
@@ -316,9 +315,8 @@ Installing is optional — `target/release/coucou.exe` runs on its own. There is
 window in the taskbar and no console: the island at the top of the screen and the
 Mochi in the notification area are the whole app, and Quit lives in its menu.
 
-The 28 sounds are the macOS app's own files; they are never duplicated in this
-folder. The path is declared once, in `SOUNDS_DIR` at the top of
-`vite.config.ts` — when they move to `shared/sounds/`, change that one line.
+The sound files live in `assets/sounds/` and are copied into the app during the
+frontend build.
 
 The app icon and the tray icon are drawn in code, like Mochi itself:
 
@@ -346,48 +344,6 @@ windows/
 `%LOCALAPPDATA%\Coucou\coucou.log` — hook events, permission decisions, poller
 problems. It stays on your machine.
 
-## What's different from the Mac version
-
-- No notch, so the island lives at the top centre of the screen and retracts into
-  the top edge instead of hiding in a notch.
-- Permission approval works from **any** terminal; the Mac build only listens to
-  VS Code sessions.
-- Not in this version: sending a file by email, dragging Mochi onto a window to
-  attach it as context, and jumping to a specific terminal window — "Open
-  terminal" opens the working folder in VS Code when `code` is on your `PATH`.
-- Cal.com shows the next bookings as a list rather than the Mac's calendar.
-
-## Linux
-
-The same app builds for Linux: everything that differs lives in
-`src-tauri/src/platform/`, and the relay's transport in `hook/src/unix.rs`.
-
-```bash
-sudo apt install build-essential pkg-config \
-  libwebkit2gtk-4.1-dev libgtk-layer-shell-dev libayatana-appindicator3-dev \
-  librsvg2-dev libssl-dev libdbus-1-dev patchelf \
-  gstreamer1.0-plugins-base gstreamer1.0-plugins-good
-npm install
-npm run tauri dev      # live-reloading development build
-npm run pack           # AppImage, .deb and .rpm in windows/release/
-```
-
-What changes on Linux:
-
-- **The island** is a gtk-layer-shell overlay anchored to the top edge, over any
-  top panel, on compositors that support it: COSMIC, KDE Plasma, Hyprland, Sway
-  and other wlroots compositors. GNOME has no layer-shell, so there the island
-  is a regular window. `COUCOU_LAYER_SHELL=0` forces that mode anywhere.
-- **Click-through** is the window's input region, kept equal to the island
-  shape, so the compositor sends every other click to what is underneath.
-- **Mochi's eyes** follow the pointer only while it is over the island: Wayland
-  gives no app the cursor position anywhere else.
-- **Claude Code hooks** go through `~/.local/share/coucou/bin/coucou-hook` and a
-  Unix socket at `$XDG_RUNTIME_DIR/coucou.sock`. Both ends check that the other
-  runs as the same user.
-- **Keys** live in the Secret Service (GNOME Keyring, KWallet).
-- **Files**: preferences in `~/.config/coucou/`, the log at
-  `~/.local/share/coucou/coucou.log`.
 - What the Windows build leaves out, this one does too: sending a file by
   email, dragging Mochi onto a window, and jumping to a specific terminal
   window — "Open terminal" opens the folder in VS Code.

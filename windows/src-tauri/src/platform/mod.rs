@@ -1,7 +1,4 @@
-// Everything that differs between operating systems, behind one set of names.
-//
-// The rest of the app calls `platform::…` and never touches Win32 or a Linux
-// API directly. Each OS file exposes the same functions; the compiler picks one.
+// Windows-specific operations shared by the rest of the app.
 
 use std::path::PathBuf;
 
@@ -9,11 +6,6 @@ use std::path::PathBuf;
 mod windows;
 #[cfg(windows)]
 pub use self::windows::*;
-
-#[cfg(target_os = "linux")]
-mod linux;
-#[cfg(target_os = "linux")]
-pub use self::linux::*;
 
 /// Wall-clock time in the user's time zone, for log lines and backup names.
 pub struct LocalTime {

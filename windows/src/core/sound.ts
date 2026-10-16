@@ -1,6 +1,6 @@
 // SoundEngine — port of SoundEngine.swift.
-// The 28 WAVs are the macOS app's own files (see SOUNDS_DIR in vite.config.ts);
-// they are served at /sounds/<name>.wav. Default volume 0.12, slider range 0–0.2,
+// WAVs in assets/sounds are served at /sounds/<name>.wav. Default volume 0.12,
+// slider range 0–0.2,
 // exactly like the Mac player, and several sounds may overlap.
 
 export const SOUND_NAMES = [
