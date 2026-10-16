@@ -30,6 +30,12 @@ Use the existing configured model and provider; do not claim to use another mode
 Use persistent memory sparingly for durable facts, preferences, goals, and projects; update a listed memory by its ID when it changes, and never save credentials or secrets. \
 On Windows, you may propose visible-window inspection, mouse and keyboard input, window switching/resizing, and PowerShell commands for the user's requested task. Ordinary chat actions require explicit approval; actions in a saved workflow the user explicitly started are pre-authorized and should run automatically. PowerShell runs with the user's account permissions, so keep the exact command visible. \
 Use open_website or search_web only when useful; these require approval in ordinary chat, while actions in a saved workflow explicitly started by the user are pre-authorized.";
+const WORKFLOW_SYSTEM_PROMPT: &str = "\nFor a user-started saved workflow, take ONE action at a time. After each action you will receive a new screenshot. Look at it carefully before deciding anything. \
+Never assume an action worked. Confirm it from the screenshot. \
+If a Chrome profile chooser is visible, click only the profile named \"1\". If it isn't visible, tell me, don't pick another. \
+Never end your turn without either a next action or an explicit COMPLETE / STOPPED_FOR_USER / FAILED(step) signal. \
+If the screen doesn't match what you expect, wait and re-check before acting. \
+Use only open_app, windows_click, windows_type, windows_shortcut, or windows_scroll for workflow actions. To wait without acting, reply exactly WAIT or WAIT(milliseconds).";
 
 #[derive(Default)]
 pub struct Chat {
@@ -45,6 +51,7 @@ struct PendingAction {
     action: automation::AutomationAction,
     remaining: VecDeque<QueuedAction>,
     results: Vec<QueuedActionResult>,
+    workflow_step: bool,
 }
 
 struct QueuedAction {
@@ -242,6 +249,7 @@ pub async fn send(
     ollama_model: &str,
     screen_image: Option<&str>,
     voice_deltas: Option<&tokio::sync::mpsc::UnboundedSender<String>>,
+    workflow_phase: Option<&str>,
     cancel: &mut watch::Receiver<bool>,
 ) -> Result<ChatReply, String> {
     if let Some(image) = screen_image {
@@ -292,11 +300,16 @@ pub async fn send(
             chat.snapshot(&conversation_id),
             automation_folders,
             &memories,
+            workflow_phase.is_some(),
         ),
         screen_image,
     );
-    let compatibility_mode = local_file_action_intent(&query);
-    let tools = Some(assistant_tools());
+    let compatibility_mode = workflow_phase.is_none() && local_file_action_intent(&query);
+    let tools = match workflow_phase {
+        Some("action") => Some(workflow_action_tools()),
+        Some("plan" | "verify") => None,
+        _ => Some(assistant_tools()),
+    };
     let completion_result = if compatibility_mode {
         crate::log::line(
             "local file action detected; using provider-independent action-envelope compatibility mode",
@@ -337,21 +350,27 @@ pub async fn send(
             crate::log::line(
                 "configured model does not support function calls; retrying with an action-envelope compatibility prompt",
             );
-            llm_client::chat(
-                compatibility_messages(request_messages.clone())?,
-                None,
-                provider_mode,
-                ollama_model,
-                model,
-                cancel,
-            )
-            .await
+            if workflow_phase == Some("action") {
+                llm_client::chat(
+                    compatibility_messages(request_messages.clone())?,
+                    None,
+                    provider_mode,
+                    ollama_model,
+                    model,
+                    cancel,
+                )
+                .await
+            } else {
+                Err(error)
+            }
         }
         result => result,
     };
     let completion = match completion {
         Ok(completion)
-            if !compatibility_mode && has_empty_action_response(&completion.response) =>
+            if workflow_phase.is_none()
+                && !compatibility_mode
+                && has_empty_action_response(&completion.response) =>
         {
             crate::log::line(
                 "configured model returned an empty tool batch; retrying with an action-envelope compatibility prompt",
@@ -376,7 +395,14 @@ pub async fn send(
         }
     };
 
-    match handle_response(chat, &conversation_id, automation_folders, completion) {
+    match handle_response_mode(
+        chat,
+        &conversation_id,
+        automation_folders,
+        completion,
+        workflow_phase == Some("action"),
+        workflow_phase == Some("action"),
+    ) {
         Ok(reply) => Ok(reply),
         Err(error) => {
             chat.pop(&conversation_id);
@@ -542,6 +568,7 @@ fn propose_local_action(
             action: action.clone(),
             remaining: VecDeque::new(),
             results: Vec::new(),
+            workflow_step: false,
         },
     );
     Ok(ChatReply {
@@ -562,6 +589,7 @@ pub async fn resolve_action(
     automation_folders: &[String],
     provider_mode: &str,
     ollama_model: &str,
+    workflow_step: bool,
     cancel: &mut watch::Receiver<bool>,
 ) -> Result<ChatReply, String> {
     if approved {
@@ -625,12 +653,13 @@ pub async fn resolve_action(
                 action: next.action,
                 remaining: pending.remaining,
                 results,
+                workflow_step: pending.workflow_step,
             },
         );
         return Ok(reply);
     }
     results.sort_by_key(|result| result.call_index);
-    for result in results {
+    for result in &results {
         chat.push(
             conversation_id,
             json!({
@@ -640,10 +669,29 @@ pub async fn resolve_action(
             }),
         );
     }
+    if pending.workflow_step || workflow_step {
+        let action_result = results
+            .last()
+            .map(|result| result.content.as_str())
+            .unwrap_or("No action result was returned.");
+        let text = format!("Action result: {action_result}");
+        chat.push(
+            conversation_id,
+            json!({ "role": "assistant", "content": text }),
+        );
+        return Ok(ChatReply {
+            text,
+            model: "Local automation".into(),
+            action: None,
+            provider: "local".into(),
+            fallback_notice: None,
+        });
+    }
     let messages = provider_messages(
         chat.snapshot(conversation_id),
         automation_folders,
         &memories,
+        false,
     );
     let completion = match llm_client::chat(
         messages.clone(),
@@ -678,6 +726,7 @@ fn provider_messages(
     mut history: Vec<Value>,
     automation_folders: &[String],
     memories: &[crate::memory::Memory],
+    workflow: bool,
 ) -> Vec<Value> {
     const MAX_HISTORY_MESSAGES: usize = 20;
     if history.len() > MAX_HISTORY_MESSAGES {
@@ -710,7 +759,7 @@ Ordinary chat actions require explicit user approval. Actions in a saved workflo
         "content": format!(
             "{SYSTEM_PROMPT}{automation_context}{}",
             crate::memory::system_context(memories),
-        ),
+        ) + if workflow { WORKFLOW_SYSTEM_PROMPT } else { "" },
     })];
     messages.extend(history);
     messages
@@ -833,11 +882,49 @@ fn assistant_tools() -> Value {
     Value::Array(tools)
 }
 
+fn workflow_action_tools() -> Value {
+    let mut tools = assistant_tools();
+    if let Some(tools) = tools.as_array_mut() {
+        tools.retain(|tool| {
+            tool.get("function")
+                .and_then(|function| function.get("name"))
+                .and_then(Value::as_str)
+                .is_some_and(is_workflow_action)
+        });
+    }
+    tools
+}
+
+fn is_workflow_action(name: &str) -> bool {
+    matches!(
+        name,
+        "open_app" | "windows_click" | "windows_type" | "windows_shortcut" | "windows_scroll"
+    )
+}
+
 fn handle_response(
     chat: &Chat,
     conversation_id: &str,
     automation_folders: &[String],
     completion: llm_client::ChatReply,
+) -> Result<ChatReply, String> {
+    handle_response_mode(
+        chat,
+        conversation_id,
+        automation_folders,
+        completion,
+        true,
+        false,
+    )
+}
+
+fn handle_response_mode(
+    chat: &Chat,
+    conversation_id: &str,
+    automation_folders: &[String],
+    completion: llm_client::ChatReply,
+    allow_actions: bool,
+    workflow_step: bool,
 ) -> Result<ChatReply, String> {
     let mut response = completion.response;
     let message = response
@@ -846,10 +933,11 @@ fn handle_response(
         .and_then(|choices| choices.first())
         .and_then(|choice| choice.get("message"))
         .ok_or_else(|| "Unexpected API response.".to_string())?;
-    if message
-        .get("tool_calls")
-        .and_then(Value::as_array)
-        .map_or(true, Vec::is_empty)
+    if allow_actions
+        && message
+            .get("tool_calls")
+            .and_then(Value::as_array)
+            .map_or(true, Vec::is_empty)
     {
         if let Some((tool_call, clean_content)) = compatibility_action_call(message)? {
             response["choices"][0]["message"]["tool_calls"] = json!([tool_call]);
@@ -868,15 +956,39 @@ fn handle_response(
     if let Some(refusal) = message.get("refusal").and_then(Value::as_str) {
         return Err(refusal.to_string());
     }
+    if !allow_actions
+        && message
+            .get("tool_calls")
+            .and_then(Value::as_array)
+            .is_some_and(|tool_calls| !tool_calls.is_empty())
+    {
+        let text = "Unclear: workflow planning and verification phases must return text, not an action.";
+        chat.push(
+            conversation_id,
+            json!({ "role": "assistant", "content": text }),
+        );
+        return Ok(ChatReply {
+            text: text.into(),
+            model: used_model,
+            action: None,
+            provider: completion.provider,
+            fallback_notice: completion.fallback_notice,
+        });
+    }
     if let Some(tool_calls) = message
         .get("tool_calls")
         .and_then(Value::as_array)
-        .filter(|tool_calls| !tool_calls.is_empty())
+        .filter(|tool_calls| allow_actions && !tool_calls.is_empty())
     {
         let mut actions = VecDeque::new();
         let mut memory_updates = Vec::new();
         let mut results = Vec::new();
-        for (call_index, tool_call) in tool_calls.iter().enumerate() {
+        let calls_to_process = if workflow_step {
+            tool_calls.iter().take(1).collect::<Vec<_>>()
+        } else {
+            tool_calls.iter().collect::<Vec<_>>()
+        };
+        for (call_index, tool_call) in calls_to_process.iter().enumerate() {
             let tool_call_id = tool_call
                 .get("id")
                 .and_then(Value::as_str)
@@ -890,6 +1002,11 @@ fn handle_response(
                 .get("name")
                 .and_then(Value::as_str)
                 .ok_or_else(|| "The assistant returned an invalid tool request.".to_string())?;
+            if workflow_step && !is_workflow_action(tool_name) {
+                return Err(
+                    "Saved workflows may only run one visible desktop action at a time.".into(),
+                );
+            }
             let arguments = function
                 .get("arguments")
                 .and_then(Value::as_str)
@@ -964,7 +1081,11 @@ fn handle_response(
                 fallback_notice: completion.fallback_notice,
             });
         }
-        chat.push(conversation_id, message.clone());
+        let mut assistant_message = message.clone();
+        if workflow_step {
+            assistant_message["tool_calls"] = json!([tool_calls[0]]);
+        }
+        chat.push(conversation_id, assistant_message);
         let first = actions
             .pop_front()
             .ok_or_else(|| "The assistant did not return a usable local action.".to_string())?;
@@ -976,6 +1097,7 @@ fn handle_response(
                 action: first.action.clone(),
                 remaining: actions,
                 results,
+                workflow_step,
             },
         );
         return Ok(ChatReply {
@@ -1494,9 +1616,9 @@ fn base64(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        append_context, base64, file_block, handle_response, local_file_action_intent,
-        provider_messages, response_text, Chat, ChatContext, ChatHistoryMessage, SharedContextFile,
-        SharedConversationContext,
+        append_context, base64, file_block, handle_response, handle_response_mode,
+        local_file_action_intent, provider_messages, response_text, Chat, ChatContext,
+        ChatHistoryMessage, SharedContextFile, SharedConversationContext,
     };
     use super::{assistant_tools, tool_support_error, validate_screen_image, with_screen_image};
     use crate::llm_client::ChatReply as LlmReply;
@@ -1688,6 +1810,106 @@ mod tests {
         assert_eq!(pending.tool_call_id.as_deref(), Some("call-0"));
         assert_eq!(pending.remaining.len(), 5);
         assert_eq!(pending.remaining[0].tool_call_id, "call-1");
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn workflow_response_keeps_only_the_first_action() {
+        let chat = Chat::default();
+        let response = serde_json::json!({
+            "choices": [{
+                "message": {
+                    "role": "assistant",
+                    "content": null,
+                    "tool_calls": [
+                        {
+                            "id": "workflow-first",
+                            "type": "function",
+                            "function": {
+                                "name": "windows_click",
+                                "arguments": "{\"x\":120,\"y\":240,\"button\":\"left\"}"
+                            }
+                        },
+                        {
+                            "id": "workflow-discarded",
+                            "type": "function",
+                            "function": {
+                                "name": "windows_shortcut",
+                                "arguments": "{\"shortcut\":\"enter\"}"
+                            }
+                        }
+                    ]
+                }
+            }]
+        });
+        let reply = handle_response_mode(
+            &chat,
+            "workflow-single-action",
+            &[],
+            LlmReply {
+                response,
+                provider: "ollama".into(),
+                model: "qwen2.5:7b".into(),
+                fallback_notice: None,
+            },
+            true,
+            true,
+        )
+        .unwrap();
+
+        assert_eq!(reply.action.as_ref().unwrap().name, "windows_click");
+        let pending_actions = chat.pending_actions.lock().unwrap();
+        let pending = pending_actions.get("workflow-single-action").unwrap();
+        assert!(pending.remaining.is_empty());
+        assert!(pending.workflow_step);
+        let history = chat.snapshot("workflow-single-action");
+        let assistant = history
+            .iter()
+            .find(|message| message.get("role").and_then(Value::as_str) == Some("assistant"))
+            .unwrap();
+        assert_eq!(assistant["tool_calls"].as_array().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn workflow_plan_and_verification_responses_cannot_queue_actions() {
+        let chat = Chat::default();
+        let response = serde_json::json!({
+            "choices": [{
+                "message": {
+                    "role": "assistant",
+                    "content": null,
+                    "tool_calls": [{
+                        "id": "not-allowed",
+                        "type": "function",
+                        "function": {
+                            "name": "open_website",
+                            "arguments": "{\"url\":\"https://example.com\"}"
+                        }
+                    }]
+                }
+            }]
+        });
+        let reply = handle_response_mode(
+            &chat,
+            "workflow-read-only-phase",
+            &[],
+            LlmReply {
+                response,
+                provider: "ollama".into(),
+                model: "qwen2.5:7b".into(),
+                fallback_notice: None,
+            },
+            false,
+            false,
+        )
+        .unwrap();
+        assert!(reply.action.is_none());
+        assert!(reply.text.contains("must return text"));
+        assert!(!chat
+            .pending_actions
+            .lock()
+            .unwrap()
+            .contains_key("workflow-read-only-phase"));
     }
 
     #[test]
@@ -2048,7 +2270,7 @@ mod tests {
                 })
             })
             .collect();
-        let messages = provider_messages(history, &[], &[]);
+        let messages = provider_messages(history, &[], &[], false);
         assert_eq!(messages.len(), 21);
         assert_eq!(messages[0]["role"], "system");
         assert_eq!(messages[1]["content"], "5");
@@ -2114,6 +2336,26 @@ mod tests {
                 .unwrap()
                 .contains("explicit approval"));
         }
+    }
+
+    #[test]
+    fn workflow_tools_are_limited_to_single_visible_actions() {
+        let tools = super::workflow_action_tools();
+        let names: Vec<&str> = tools
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|tool| {
+                tool.get("function")
+                    .and_then(|function| function.get("name"))
+                    .and_then(Value::as_str)
+            })
+            .collect();
+        assert!(names.contains(&"open_app"));
+        assert!(names.iter().all(|name| super::is_workflow_action(name)));
+        assert!(!names.contains(&"search_web"));
+        assert!(!names.contains(&"powershell_command"));
+        assert!(!names.contains(&"remember_user_fact"));
     }
 
     #[test]

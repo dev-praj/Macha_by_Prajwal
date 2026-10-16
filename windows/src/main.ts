@@ -70,6 +70,7 @@ async function main() {
     setPaused(false);
     State.isPinned = true;
     island.alert("prompt");
+    island.reactToWakePhrase();
     void Bridge.setWakeConversationActive(true).catch((error: unknown) => {
       console.error("[coucou] could not keep the wake conversation visible", error);
     });

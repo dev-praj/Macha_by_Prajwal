@@ -318,6 +318,7 @@ async fn chat_send(
     local_only: Option<bool>,
     voice_request: Option<bool>,
     screen_image: Option<String>,
+    workflow_phase: Option<String>,
     context: Option<ChatContext>,
     shared_context: Vec<SharedConversationContext>,
 ) -> Result<ChatReply, String> {
@@ -385,6 +386,7 @@ async fn chat_send(
         &ollama_model,
         screen_image.as_deref(),
         voice_deltas.as_ref(),
+        workflow_phase.as_deref(),
         &mut cancel,
     )
     .await;
@@ -400,6 +402,7 @@ async fn chat_action(
     approved: bool,
     selected_app_id: Option<String>,
     request_id: String,
+    workflow_step: Option<bool>,
 ) -> Result<ChatReply, String> {
     let mut cancel = chat.begin_request(&request_id)?;
     let (model, automation_folders, provider_mode, ollama_model) = {
@@ -420,6 +423,7 @@ async fn chat_action(
         &automation_folders,
         &provider_mode,
         &ollama_model,
+        workflow_step.unwrap_or(false),
         &mut cancel,
     )
     .await;

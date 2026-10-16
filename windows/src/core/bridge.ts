@@ -123,6 +123,7 @@ export const Bridge = {
     localOnly = false,
     voiceRequest = false,
     screenImage: string | null = null,
+    workflowPhase?: "plan" | "action" | "verify",
   ) => callOrThrow<ChatReply>("chat_send", {
     conversationId,
     history,
@@ -133,17 +134,20 @@ export const Bridge = {
     localOnly,
     voiceRequest,
     screenImage,
+    workflowPhase,
   }),
   chatAction: (
     conversationId: string,
     approved: boolean,
     requestId: string,
     selectedAppId?: string,
+    workflowStep = false,
   ) => callOrThrow<ChatReply>("chat_action", {
     conversationId,
     approved,
     requestId,
     selectedAppId,
+    workflowStep,
   }),
   chatCancel: (requestId: string) =>
     callOrThrow<void>("chat_cancel", { requestId }),

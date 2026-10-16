@@ -36,8 +36,20 @@ const VOICE_MAX_RECORDING_MS = 30_000;
 const WAKE_RETRY_INITIAL_MS = 2_000;
 const WAKE_RETRY_MAX_MS = 30_000;
 const WAKE_PARTIAL_TIMEOUT_MS = 3_000;
+const WORKFLOW_MAX_ITERATIONS = 60;
+const WORKFLOW_MAX_RETRIES = 2;
+const WORKFLOW_SETTLE_MS = Math.max(0, Number(import.meta.env.VITE_WORKFLOW_SETTLE_MS) || 1_500);
+const WORKFLOW_LAUNCH_SETTLE_MS = Math.max(
+  WORKFLOW_SETTLE_MS,
+  Number(import.meta.env.VITE_WORKFLOW_LAUNCH_SETTLE_MS) || 5_000,
+);
 type VoiceState = "idle" | "wake" | "listening" | "transcribing" | "speaking";
 type WorkflowRunPayload = { id: string; name: string; prompt: string };
+type WorkflowStep = { name: string; successCriteria: string };
+type WorkflowSignal =
+  | { kind: "complete" }
+  | { kind: "stopped"; reason: string }
+  | { kind: "failed"; reason: string };
 
 function newRequestId(): string {
   return typeof crypto.randomUUID === "function"
@@ -166,11 +178,11 @@ function contextChip(label: string): HTMLElement {
   return chip;
 }
 
-async function captureScreenSnapshot(): Promise<string> {
-  if (!navigator.mediaDevices?.getDisplayMedia) {
+async function captureScreenSnapshot(existingStream?: MediaStream): Promise<string> {
+  if (!existingStream && !navigator.mediaDevices?.getDisplayMedia) {
     throw new Error("Screen sharing is unavailable in this window.");
   }
-  const stream = await navigator.mediaDevices.getDisplayMedia({
+  const stream = existingStream ?? await navigator.mediaDevices.getDisplayMedia({
     video: { width: { max: 1280 }, height: { max: 800 } },
     audio: false,
   });
@@ -202,7 +214,7 @@ async function captureScreenSnapshot(): Promise<string> {
     }
     return image;
   } finally {
-    stream.getTracks().forEach((track) => track.stop());
+    if (!existingStream) stream.getTracks().forEach((track) => track.stop());
   }
 }
 
@@ -1155,18 +1167,14 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     voiceRequest = false,
     wakeInitiated = false,
     acknowledgement?: Promise<void>,
-    workflowRun = false,
   ) {
     const requestedQuery = (queryOverride ?? input.value).trim();
-    const query = workflowRun
-      ? `The user explicitly started this saved workflow and authorized its necessary actions to run automatically without per-action approvals. Complete the task using the available tools, keep actions limited to the request, and report any action that fails.\n\nWorkflow instructions:\n${requestedQuery}`
-      : requestedQuery;
-    if (!query || sending || pendingAction) {
+    const query = requestedQuery;
+    if (!query || sending || pendingAction || workflowAutomationActive) {
       if (voiceRequest) await releaseVoiceSession();
       if (wakeInitiated) releaseWakeConversation();
       return;
     }
-    workflowAutomationActive = workflowRun;
     const conversationId = State.activeConversationId ?? State.startConversation();
     const requestId = newRequestId();
     activeRequestId = requestId;
@@ -1241,13 +1249,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         }
         : undefined;
       await showReply(reply, conversationId, voiceRequest, acknowledgement, prepareStreamSpeech);
-      if (workflowRun && !reply.action) {
-        workflowAutomationActive = false;
-        voiceNotice = "Workflow completed.";
-        voiceNoticeIsError = false;
-      }
     } catch (err) {
-      if (workflowRun) workflowAutomationActive = false;
       if (streamedSpeech || pendingSpeechText) await TTS.stop();
       const lastMessage = State.chatHistory[State.chatHistory.length - 1];
       if (lastMessage?.role === "user" && lastMessage.content === query) {
@@ -1269,9 +1271,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       State.notify();
       onHeightChange();
       input.focus();
-      if (workflowAutomationActive && pendingAction) {
-        void autoApproveWorkflowAction();
-      } else if (isOpenAction(pendingAction)) {
+      if (isOpenAction(pendingAction)) {
         void beginActionConfirmation();
       } else if (wakeInitiated) {
         releaseWakeConversation();
@@ -1284,7 +1284,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
   }
 
   function enqueueWorkflow(workflow: WorkflowRunPayload) {
-    if (sending || pendingAction || queuedWorkflows.length > 0) {
+    if (sending || pendingAction || workflowAutomationActive || queuedWorkflows.length > 0) {
       queuedWorkflows.push(workflow);
       voiceNotice = `Queued workflow: ${workflow.name}`;
       voiceNoticeIsError = false;
@@ -1294,23 +1294,348 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     runWorkflow(workflow);
   }
 
-  function runWorkflow(workflow: WorkflowRunPayload) {
+  async function runWorkflow(workflow: WorkflowRunPayload) {
+    if (sending || pendingAction || workflowAutomationActive) {
+      queuedWorkflows.push(workflow);
+      return;
+    }
+    let stream: MediaStream | undefined;
+    let iteration = 0;
+    let currentStep = 0;
+    const completedSteps: string[] = [];
+    let lastScreenshotName = "not-captured";
+    let lastActionName = "none";
+    let lastVerification = "not-started";
+    let conversationId: string | null = null;
+    workflowAutomationActive = true;
     input.value = workflow.prompt;
     voiceNotice = `Running workflow: ${workflow.name}`;
     voiceNoticeIsError = false;
-    void submit(workflow.prompt, false, false, undefined, true);
-  }
+    stopWakeWord();
+    State.notify();
+    try {
+      if (!navigator.mediaDevices?.getDisplayMedia) {
+        throw new Error("Screen sharing is unavailable in this window.");
+      }
+      stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { width: { max: 1280 }, height: { max: 800 } },
+        audio: false,
+      });
+      const track = stream.getVideoTracks()[0];
+      if (!track || track.readyState !== "live") {
+        throw new Error("Screen sharing did not provide an active display.");
+      }
 
-  function autoApproveWorkflowAction() {
-    if (!workflowAutomationActive || sending || !pendingAction) return;
-    if (pendingAction.name === "open_app" && appChoices(pendingAction).length > 1
-      && !launchTarget(pendingAction)) {
-      voiceNotice = "Choose the matching app to continue the workflow; it will open automatically.";
+      conversationId = State.activeConversationId ?? State.startConversation();
+      State.chatHistory.push({
+        id: nextId++,
+        role: "user",
+        content: workflow.prompt,
+      });
+      State.saveActiveConversation();
+      const history = State.chatHistory.map((message) => ({ ...message }));
+      State.notify();
+      onHeightChange();
+
+      const capture = async (purpose: string) => {
+        if (track.readyState !== "live") {
+          throw new Error("Screen sharing ended during the workflow.");
+        }
+        lastScreenshotName = `workflow-${workflow.id}-${purpose}-${Date.now()}.jpg`;
+        return captureScreenSnapshot(stream);
+      };
+      const request = async (
+        query: string,
+        phase: "plan" | "action" | "verify",
+        screenshot: string,
+      ) => {
+        State.stateOverride = "thinking";
+        State.notify();
+        onHeightChange();
+        const reply = await Bridge.chatSend(
+          conversationId!,
+          history,
+          query,
+          null,
+          State.sharedConversationContext(conversationId!),
+          newRequestId(),
+          false,
+          false,
+          screenshot,
+          phase,
+        );
+        State.stateOverride = null;
+        State.notify();
+        return reply;
+      };
+      const logIteration = (phase: string, step: number) => {
+        console.info("[workflow] iteration", {
+          iteration,
+          step,
+          phase,
+          action: lastActionName,
+          screenshot: `in-memory:${lastScreenshotName}`,
+          verification: lastVerification,
+        });
+      };
+      const parseSignal = (text: string): WorkflowSignal | null => {
+        const match = text.trim().match(
+          /^(COMPLETE|STOPPED_FOR_USER|FAILED(?:\s*\(([^)\r\n]*)\))?)(?:\s*[:\-\r\n]\s*([\s\S]*))?$/i,
+        );
+        if (!match) return null;
+        const kind = match[1].toUpperCase();
+        const reason = [match[2], match[3]].filter(Boolean).join(": ").trim();
+        if (kind === "COMPLETE") return { kind: "complete" };
+        if (kind === "STOPPED_FOR_USER") {
+          return { kind: "stopped", reason: reason || "The workflow stop condition was reached." };
+        }
+        return { kind: "failed", reason: reason || "The model reported a workflow failure." };
+      };
+      const parsePlan = (text: string): WorkflowStep[] => {
+        const jsonText = text.trim()
+          .replace(/^```(?:json)?\s*/i, "")
+          .replace(/\s*```$/, "");
+        const parsed = JSON.parse(jsonText) as { steps?: unknown };
+        if (!Array.isArray(parsed.steps) || parsed.steps.length === 0
+          || parsed.steps.length > WORKFLOW_MAX_ITERATIONS) {
+          throw new Error("The model returned an empty or oversized workflow plan.");
+        }
+        return parsed.steps.map((step, index) => {
+          if (!step || typeof step !== "object") {
+            throw new Error(`Workflow checkpoint ${index + 1} is invalid.`);
+          }
+          const candidate = step as { name?: unknown; successCriteria?: unknown };
+          if (typeof candidate.name !== "string" || !candidate.name.trim()
+            || typeof candidate.successCriteria !== "string"
+            || !candidate.successCriteria.trim()) {
+            throw new Error(`Workflow checkpoint ${index + 1} is missing its name or success criteria.`);
+          }
+          return { name: candidate.name.trim(), successCriteria: candidate.successCriteria.trim() };
+        });
+      };
+      const baseContext = `Saved workflow instructions (verbatim; do not rewrite or omit them):\n<workflow>\n${workflow.prompt}\n</workflow>\n`;
+
+      let steps: WorkflowStep[] | undefined;
+      for (let attempt = 0; attempt <= WORKFLOW_MAX_RETRIES && !steps; attempt += 1) {
+        const screenshot = await capture(`plan-${attempt + 1}`);
+        const reply = await request(
+          `${baseContext}\nInspect the screenshot first. If the workflow's stop condition is already visible, return STOPPED_FOR_USER: reason. Otherwise turn the workflow into ordered, observable checkpoints. Return only JSON in this shape: {"steps":[{"name":"short checkpoint","successCriteria":"what must be visibly true"}]}. Do not omit the workflow's stop condition or required final state.`,
+          "plan",
+          screenshot,
+        );
+        lastActionName = "plan";
+        lastVerification = "checkpoint plan parsed";
+        logIteration("plan", 0);
+        const signal = parseSignal(reply.text);
+        if (signal?.kind === "stopped") {
+          throw new Error(`STOPPED_FOR_USER: ${signal.reason}`);
+        }
+        if (signal?.kind === "failed") throw new Error(`FAILED(plan): ${signal.reason}`);
+        try {
+          steps = parsePlan(reply.text);
+        } catch (error) {
+          lastVerification = `unclear plan: ${String(error)}`;
+        }
+      }
+      if (!steps) throw new Error("FAILED(plan): the model did not return a valid checkpoint list.");
+
+      while (currentStep < steps.length) {
+        let stepVerified = false;
+        for (let attempt = 0; attempt <= WORKFLOW_MAX_RETRIES && !stepVerified; attempt += 1) {
+          if (iteration >= WORKFLOW_MAX_ITERATIONS) {
+            throw new Error("FAILED(iteration limit): workflow exceeded its safety cap.");
+          }
+          iteration += 1;
+          const step = steps[currentStep];
+          const screenshot = await capture(`step-${currentStep + 1}-attempt-${attempt + 1}`);
+          const reply = await request(
+            `${baseContext}\nCurrent checkpoint ${currentStep + 1} of ${steps.length}: ${step.name}\nSuccess criteria: ${step.successCriteria}\nCompleted checkpoints: ${completedSteps.length ? completedSteps.join(" | ") : "none"}\nAttempt: ${attempt + 1} of ${WORKFLOW_MAX_RETRIES + 1}.\nLook at this fresh screenshot. Return exactly one next tool action, WAIT or WAIT(milliseconds), or an explicit COMPLETE / STOPPED_FOR_USER / FAILED(step) signal. Never return a batch of actions.`,
+            "action",
+            screenshot,
+          );
+          const waitMatch = !reply.action && reply.text.trim().match(/^WAIT(?:\s*\((\d{1,5})\))?$/i);
+          const requestedWaitMs = waitMatch
+            ? Math.min(30_000, Math.max(WORKFLOW_SETTLE_MS, Number(waitMatch[1]) || WORKFLOW_SETTLE_MS))
+            : null;
+          lastActionName = reply.action?.name ?? (waitMatch ? "wait" : "none");
+          lastVerification = reply.action || waitMatch
+            ? "awaiting action"
+            : "unclear: no action or terminal signal";
+          logIteration("action", currentStep + 1);
+          const signal = parseSignal(reply.text);
+          if (signal?.kind === "stopped") throw new Error(`STOPPED_FOR_USER: ${signal.reason}`);
+          if (signal?.kind === "failed") throw new Error(`FAILED(${step.name}): ${signal.reason}`);
+          if (signal?.kind === "complete") {
+            if (currentStep !== steps.length - 1) {
+              lastVerification = "unclear: premature COMPLETE signal";
+              continue;
+            }
+            lastActionName = "final state verification";
+            const finalImage = await capture(`final-check-${currentStep + 1}`);
+            const finalReply = await request(
+              `${baseContext}\nCurrent checkpoint: ${currentStep + 1} of ${steps.length}: ${step.name}\nSuccess criteria: ${step.successCriteria}\nVerify the final state from this screenshot. COMPLETE is allowed only if a message is visibly shown as sent in the WhatsApp chat whose confirmed header is exactly "Prajwal Jio 1". Otherwise reply NOT_VERIFIED with the visible reason. If a workflow stop condition is present, reply STOPPED_FOR_USER: reason.`,
+              "verify",
+              finalImage,
+            );
+            const finalSignal = parseSignal(finalReply.text);
+            if (finalSignal?.kind === "complete") {
+              lastVerification = "final state verified";
+              logIteration("final verification", currentStep + 1);
+              console.info("[workflow] exit", {
+                step: currentStep + 1,
+                action: lastActionName,
+                screenshot: `in-memory:${lastScreenshotName}`,
+                verification: lastVerification,
+                reason: "COMPLETE",
+              });
+              State.chatHistory.push({
+                id: nextId++,
+                role: "assistant",
+                content: finalReply.text.replace(/^COMPLETE\s*[:\-]?\s*/i, "").trim()
+                  || "Workflow completed; the message is visibly sent in the Prajwal Jio 1 chat.",
+              });
+              State.saveActiveConversation();
+              State.notify();
+              voiceNotice = "Workflow completed.";
+              voiceNoticeIsError = false;
+              return;
+            }
+            if (finalSignal?.kind === "stopped") {
+              throw new Error(`STOPPED_FOR_USER: ${finalSignal.reason}`);
+            }
+            if (finalSignal?.kind === "failed") {
+              throw new Error(`FAILED(${step.name}): ${finalSignal.reason}`);
+            }
+            lastVerification = `final state not verified: ${finalReply.text || "unclear response"}`;
+            continue;
+          }
+          if (!reply.action && requestedWaitMs === null) continue;
+          if (reply.action?.name === "open_app") {
+            const target = launchTarget(reply.action);
+            const choices = appChoices(reply.action);
+            if (!target && choices.length > 1) {
+              throw new Error(`FAILED(${step.name}): app launch target is ambiguous; no app was selected.`);
+            }
+          }
+          if (reply.action) {
+            await showReply(reply, conversationId);
+            sending = true;
+            State.stateOverride = "thinking";
+            State.notify();
+            onHeightChange();
+            try {
+              const selectedAppId = reply.action.name === "open_app"
+                ? launchTarget(reply.action)?.id
+                : undefined;
+              const actionReply = await Bridge.chatAction(
+                conversationId,
+                true,
+                newRequestId(),
+                selectedAppId,
+                true,
+              );
+              await showReply(actionReply, conversationId);
+            } catch (error) {
+              pendingAction = null;
+              pendingConversationId = null;
+              throw error;
+            } finally {
+              sending = false;
+              State.stateOverride = null;
+              State.notify();
+              onHeightChange();
+            }
+          }
+          const settleMs = requestedWaitMs ?? (reply.action?.name === "open_app"
+            || reply.action?.name === "open_website"
+            ? WORKFLOW_LAUNCH_SETTLE_MS
+            : WORKFLOW_SETTLE_MS);
+          await new Promise<void>((resolve) => window.setTimeout(resolve, settleMs));
+          const verificationImage = await capture(`verify-${currentStep + 1}-attempt-${attempt + 1}`);
+          const verificationReply = await request(
+            `${baseContext}\nVerify the result of this single action using the new screenshot.\nCurrent checkpoint: ${step.name}\nSuccess criteria: ${step.successCriteria}\nAction attempted: ${lastActionName}\nCompleted checkpoints: ${completedSteps.length ? completedSteps.join(" | ") : "none"}\nReply exactly VERIFIED: short evidence if all criteria are visibly satisfied; otherwise NOT_VERIFIED: what is missing. If the workflow's own stop condition is visible, reply STOPPED_FOR_USER: reason. Do not perform an action in this verification phase.`,
+            "verify",
+            verificationImage,
+          );
+          const verificationSignal = parseSignal(verificationReply.text);
+          if (verificationSignal?.kind === "stopped") {
+            throw new Error(`STOPPED_FOR_USER: ${verificationSignal.reason}`);
+          }
+          if (verificationSignal?.kind === "failed") {
+            throw new Error(`FAILED(${step.name}): ${verificationSignal.reason}`);
+          }
+          stepVerified = /^VERIFIED(?:\s*[:\-]\s*[\s\S]*)?$/i.test(verificationReply.text.trim());
+          lastVerification = stepVerified
+            ? `verified: ${verificationReply.text.trim()}`
+            : `not verified: ${verificationReply.text.trim() || "unclear response"}`;
+          logIteration("verify", currentStep + 1);
+        }
+        if (!stepVerified) {
+          throw new Error(`FAILED(${steps[currentStep].name}): verification failed after ${WORKFLOW_MAX_RETRIES + 1} attempts. ${lastVerification}`);
+        }
+        completedSteps.push(steps[currentStep].name);
+        currentStep += 1;
+      }
+      lastActionName = "final state verification";
+      const finalImage = await capture("final-state");
+      const finalReply = await request(
+        `${baseContext}\nCurrent checkpoint: ${currentStep + 1} of ${steps.length} (final-state check).\nAll checkpoints were verified: ${completedSteps.join(" | ")}.\nCheck the fresh screenshot. Return exactly COMPLETE: followed by the concise final report only if a message is visibly shown as sent in the WhatsApp chat whose confirmed header is exactly "Prajwal Jio 1". Otherwise return NOT_VERIFIED: with the visible reason. If the workflow's stop condition is visible, return STOPPED_FOR_USER: reason.`,
+        "verify",
+        finalImage,
+      );
+      const finalSignal = parseSignal(finalReply.text);
+      if (finalSignal?.kind === "stopped") {
+        throw new Error(`STOPPED_FOR_USER: ${finalSignal.reason}`);
+      }
+      if (finalSignal?.kind !== "complete") {
+        throw new Error(`FAILED(final state): ${finalReply.text || "the model did not explicitly verify completion."}`);
+      }
+      lastVerification = "final state verified";
+      logIteration("final verification", currentStep);
+      console.info("[workflow] exit", {
+        step: currentStep,
+        action: lastActionName,
+        screenshot: `in-memory:${lastScreenshotName}`,
+        verification: lastVerification,
+        reason: "COMPLETE",
+      });
+      State.chatHistory.push({
+        id: nextId++,
+        role: "assistant",
+        content: finalReply.text.replace(/^COMPLETE\s*[:\-]?\s*/i, "").trim()
+          || "Workflow completed; the message is visibly sent in the Prajwal Jio 1 chat.",
+      });
+      State.saveActiveConversation();
+      voiceNotice = "Workflow completed.";
       voiceNoticeIsError = false;
       State.notify();
-      return;
+    } catch (error) {
+      const message = String(error).replace(/^Error:\s*/, "");
+      const reason = message.startsWith("STOPPED_FOR_USER:")
+        ? message
+        : message.startsWith("FAILED")
+          ? message
+          : `FAILED(step ${currentStep + 1}): ${message}`;
+      lastVerification = reason;
+      console.error("[workflow] exit", {
+        step: currentStep + 1,
+        action: lastActionName,
+        screenshot: `in-memory:${lastScreenshotName}`,
+        verification: lastVerification,
+        reason,
+      });
+      voiceNotice = reason;
+      voiceNoticeIsError = !reason.startsWith("STOPPED_FOR_USER:");
+      State.notify();
+    } finally {
+      stream?.getTracks().forEach((track) => track.stop());
+      workflowAutomationActive = false;
+      sending = false;
+      State.stateOverride = null;
+      State.notify();
+      onHeightChange();
+      startQueuedWorkflow();
     }
-    void answerAction(true);
   }
 
   function startQueuedWorkflow() {
@@ -1437,13 +1762,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         : undefined;
       const reply = await Bridge.chatAction(conversationId, approved, requestId, selectedApp);
       await showReply(reply, conversationId, voiceConfirmed || wakeConversationHeld);
-      if (workflowAutomationActive && !reply.action) {
-        workflowAutomationActive = false;
-        voiceNotice = "Workflow completed.";
-        voiceNoticeIsError = false;
-      }
     } catch (err) {
-      workflowAutomationActive = false;
       if (!cancelRequested) {
         pendingAction = null;
         pendingConversationId = null;
@@ -1458,9 +1777,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       cancelRequested = false;
       State.notify();
       onHeightChange();
-      if (workflowAutomationActive && pendingAction) {
-        queueMicrotask(autoApproveWorkflowAction);
-      } else if (isOpenAction(pendingAction)) {
+      if (isOpenAction(pendingAction)) {
         void beginActionConfirmation();
       } else {
         releaseWakeConversation();

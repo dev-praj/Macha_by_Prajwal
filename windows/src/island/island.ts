@@ -344,6 +344,11 @@ export class Island {
     this.expand(view);
   }
 
+  reactToWakePhrase() {
+    this.engine.triggerEmote("happy");
+    this.engine.squash();
+  }
+
   showMessageNotification() {
     if (State.isPinned) return;
     const info = State.integrations.integration_messages;
