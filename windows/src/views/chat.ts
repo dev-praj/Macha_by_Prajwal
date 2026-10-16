@@ -334,6 +334,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
   let wakeWordReady = false;
   let wakeWordStarting = false;
   let wakeWordRetryTimer: number | null = null;
+  let wakeRecoveryTimer: number | null = null;
   let wakeWordRetryAttempt = 0;
   let partialWakeTranscript = "";
   let partialWakeTimer: number | null = null;
@@ -543,11 +544,13 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     }
   }
 
-  function retryWakeWordStart() {
+  function retryWakeWordStart(
+    notice = "Local speech service is still starting; retrying Hey Macha.",
+  ) {
     if (wakeWordRetryTimer !== null) return;
     const delay = Math.min(WAKE_RETRY_INITIAL_MS * 2 ** wakeWordRetryAttempt, WAKE_RETRY_MAX_MS);
     wakeWordRetryAttempt += 1;
-    setVoiceState("idle", "Local speech service is still starting; retrying Hey Macha.");
+    setVoiceState("idle", notice);
     wakeWordRetryTimer = window.setTimeout(() => {
       wakeWordRetryTimer = null;
       void reconcileWakeWord();
@@ -583,6 +586,19 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       && voiceState !== "speaking" && !TTS.isSpeaking();
   }
 
+  function recoverWakeWord(reason: string) {
+    if (!wakeWordReady || !State.settings.wakeWordEnabled || !IS_TAURI) return;
+    if (wakeRecoveryTimer !== null) window.clearTimeout(wakeRecoveryTimer);
+    wakeRecoveryTimer = window.setTimeout(() => {
+      wakeRecoveryTimer = null;
+      if (wakeWord.isActive()) wakeWord.stop();
+      clearWakeWordRetry();
+      wakeWordRetryAttempt = 0;
+      console.info(`[coucou] restarting Hey Macha listener after ${reason}`);
+      void reconcileWakeWord();
+    }, 250);
+  }
+
   async function reconcileWakeWord() {
     if (!canRunWakeWord()) {
       clearWakeWordRetry();
@@ -597,16 +613,16 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         () => {
           if (wakeFeedbackTimer !== null) window.clearTimeout(wakeFeedbackTimer);
           setVoiceState("wake", 'Listening for "Hey Macha"…');
-          Sound.play("blip");
           wakeFeedbackTimer = window.setTimeout(() => {
             wakeFeedbackTimer = null;
-            if (voiceState === "wake") setVoiceState("idle");
+            if (voiceState === "wake") setVoiceState("wake", 'Say "Hey Macha" to ask a question.');
           }, 10_000);
         },
         (text) => void onWakeUtterance(text),
         (message) => {
           console.error("[coucou] Hey Macha wake-word listener error", message);
-          setVoiceState(wakeWord.isActive() ? "wake" : "idle", message, true);
+          wakeWord.stop();
+          retryWakeWordStart(`${message} Reconnecting the microphone…`);
         },
         State.settings.wakeWordPronunciation,
         State.settings.wakeWordThreshold,
@@ -623,12 +639,15 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       }
       const name = error instanceof DOMException ? error.name : "";
       const message = name === "NotAllowedError" || name === "SecurityError"
-        ? 'Microphone permission denied. Allow microphone access to use "Hey Macha".'
+        ? 'Coucou needs microphone access to listen for "Hey Macha". Enable microphone access for Coucou in Windows Settings > Privacy & security > Microphone, then return to the app.'
         : error instanceof Error
           ? error.message
           : "Could not start the Hey Macha wake-word listener.";
       setVoiceState("idle", message, true);
       console.error("[coucou] could not start Macha wake-word listener", error);
+      if (name !== "NotAllowedError" && name !== "SecurityError" && canRunWakeWord()) {
+        retryWakeWordStart(`${message} Retrying Hey Macha…`);
+      }
     } finally {
       wakeWordStarting = false;
     }
@@ -651,6 +670,9 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       }
       return;
     }
+    console.info("[coucou] Hey Macha wake phrase matched", {
+      commandIncluded: Boolean(command),
+    });
     if (command && isPartialVisionModeActivation(command)) {
       rememberPartialWakeTranscript(combinedTranscript);
       return;
@@ -695,6 +717,13 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     wakeWordReady = true;
     void reconcileWakeWord();
   }, { once: true });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) recoverWakeWord("app foregrounded");
+  });
+  window.addEventListener("pageshow", () => recoverWakeWord("page restored"));
+  navigator.mediaDevices?.addEventListener("devicechange", () => {
+    recoverWakeWord("microphone device changed");
+  });
   State.subscribe(() => {
     const phraseChanged = lastWakePronunciation !== State.settings.wakeWordPronunciation
       || lastWakeThreshold !== State.settings.wakeWordThreshold;

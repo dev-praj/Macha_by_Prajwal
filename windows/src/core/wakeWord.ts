@@ -6,11 +6,28 @@ const STT_STARTUP_RETRY_MS = 250;
 const DEFAULT_SPEECH_THRESHOLD = 0.006;
 const PRE_ROLL_MS = 280;
 const SILENCE_MS = 220;
-const WAKE_SILENCE_MS = 250;
-const MIN_SPEECH_MS = 80;
+const WAKE_SILENCE_MS = 420;
+const WAKE_MIN_SPEECH_MS = 180;
+const WAKE_TRIGGER_FRAMES = 2;
 const MAX_SPEECH_MS = 12_000;
 const CALIBRATION_MS = 5000;
 const FILLER_WORDS = new Set(["um", "uh", "oh", "ah", "er", "okay", "ok", "so", "well"]);
+const GREETINGS = new Set(["hey", "hay", "hai", "hi"]);
+const NAMES = new Set([
+  "macha", "matcha", "masha", "machaa", "maacha", "maccha", "macho", "mocha",
+  "marcha", "mascha", "matcher", "macher", "mochi",
+]);
+const SPLIT_NAMES: readonly (readonly [string, string])[] = [
+  ["ma", "cha"],
+  ["my", "cha"],
+  ["mo", "chi"],
+];
+const PARTIAL_NAMES = new Set(["ma", "my", "mo", "mach", "mat", "mash"]);
+const WAKE_MIN_CONFIDENCE = -1.5;
+const WAKE_MAX_NO_SPEECH = 0.5;
+const WAKE_MAX_COMPRESSION = 2.4;
+const VOICE_MIN_CONFIDENCE = -1.5;
+const VOICE_MAX_NO_SPEECH = 0.6;
 
 export class SpeechServiceUnavailableError extends Error {
   constructor() {
@@ -33,95 +50,199 @@ async function waitForSttReady(isCurrentRun: () => boolean): Promise<void> {
   if (isCurrentRun()) throw new SpeechServiceUnavailableError();
 }
 
-const WAKE_WORD_VARIANTS: Record<string, readonly string[]> = {
-  hey: ["hey", "hay", "hai", "hi", "he", "ay", "a"],
-  hay: ["hey", "hay", "hai", "hi", "he", "ay", "a"],
-  hai: ["hey", "hay", "hai", "hi", "he", "ay", "a"],
-  hi: ["hey", "hay", "hai", "hi", "he", "ay", "a"],
-  he: ["hey", "hay", "hai", "hi", "he", "ay", "a"],
-  ay: ["hey", "hay", "hai", "hi", "he", "ay", "a"],
-  a: ["hey", "hay", "hai", "hi", "he", "ay", "a"],
-  macha: ["macha", "matcha", "masha", "machaa", "maccha", "macho", "mocha", "mark"],
-  matcha: ["macha", "matcha", "masha", "machaa", "maccha", "macho", "mocha", "mark"],
-  masha: ["macha", "matcha", "masha", "machaa", "maccha", "macho", "mocha", "mark"],
-  machaa: ["macha", "matcha", "masha", "machaa", "maccha", "macho", "mocha", "mark"],
-  maccha: ["macha", "matcha", "masha", "machaa", "maccha", "macho", "mocha", "mark"],
-  macho: ["macha", "matcha", "masha", "machaa", "maccha", "macho", "mocha", "mark"],
-  mocha: ["macha", "matcha", "masha", "machaa", "maccha", "macho", "mocha", "mark"],
-};
+function normalizeWakeWord(value: string): string {
+  return value.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLocaleLowerCase();
+}
 
 function wakeWords(value: string): string[] {
-  return value.toLocaleLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
+  return normalizeWakeWord(value).match(/[\p{L}\p{N}]+/gu) ?? [];
 }
 
-function configuredWakeWords(pronunciation: string): string[] {
+function configuredWakeWords(pronunciation: string): [string, string] {
   const configured = wakeWords(pronunciation);
-  return configured.length >= 2 ? configured.slice(0, 2) : ["hey", "macha"];
+  let greeting = configured[0] ?? "hey";
+  let name = configured[1] ?? "macha";
+  if (name === "ma" && configured[2] === "cha") name = "macha";
+  // Older builds stored loose mishears ("a", "mark") as the phrase itself.
+  if (!GREETINGS.has(greeting)) greeting = "hey";
+  if (name === "mark") name = "macha";
+  return [greeting, name];
 }
 
-function wakeWordMatches(actual: string, configured: string): boolean {
-  return (WAKE_WORD_VARIANTS[configured] ?? [configured]).includes(actual);
+function isGreeting(word: string, expected: string): boolean {
+  if (GREETINGS.has(expected)) return GREETINGS.has(word) || word === "a";
+  return word === expected;
 }
 
-function wakeNameEnd(
-  actual: RegExpMatchArray[],
-  start: number,
-  configuredName: string,
-): number | null {
-  if (start >= actual.length) return null;
-  if (wakeWordMatches(actual[start][0].toLocaleLowerCase(), configuredName)) return start;
-  if (configuredName === "macha" && actual[start][0].toLocaleLowerCase() === "ma"
-    && actual[start + 1]?.[0].toLocaleLowerCase() === "cha") {
+function differsByOneEdit(left: string, right: string): boolean {
+  if (Math.abs(left.length - right.length) > 1) return false;
+  let leftIndex = 0;
+  let rightIndex = 0;
+  let edits = 0;
+  while (leftIndex < left.length && rightIndex < right.length) {
+    if (left[leftIndex] === right[rightIndex]) {
+      leftIndex += 1;
+      rightIndex += 1;
+      continue;
+    }
+    edits += 1;
+    if (edits > 1) return false;
+    if (
+      left.length === right.length
+      && left[leftIndex] === right[rightIndex + 1]
+      && left[leftIndex + 1] === right[rightIndex]
+    ) {
+      leftIndex += 2;
+      rightIndex += 2;
+    } else if (left.length > right.length) {
+      leftIndex += 1;
+    } else if (right.length > left.length) {
+      rightIndex += 1;
+    } else {
+      leftIndex += 1;
+      rightIndex += 1;
+    }
+  }
+  return edits + (left.length - leftIndex) + (right.length - rightIndex) <= 1;
+}
+
+function isKnownName(word: string): boolean {
+  return NAMES.has(word) || [...NAMES].some((variant) => differsByOneEdit(word, variant));
+}
+
+function isName(word: string, expected: string): boolean {
+  if (NAMES.has(expected)) return isKnownName(word);
+  return word === expected;
+}
+
+function splitGluedWake(word: string, expectedGreeting: string, expectedName: string): boolean {
+  if (!GREETINGS.has(expectedGreeting) || !NAMES.has(expectedName)) return false;
+  for (const greeting of ["hey", "hay", "hai", "hi"]) {
+    if (!word.startsWith(greeting) || word.length <= greeting.length) continue;
+    if (isName(word.slice(greeting.length), expectedName)) return true;
+  }
+  return false;
+}
+
+function contentTokens(transcript: string): RegExpMatchArray[] {
+  const tokens = [...transcript.matchAll(/[\p{L}\p{N}]+/gu)];
+  let start = 0;
+  while (start < tokens.length && FILLER_WORDS.has(normalizeWakeWord(tokens[start][0]))) {
+    start += 1;
+  }
+  return tokens.slice(start);
+}
+
+function nameEndIndex(words: string[], start: number, expectedName: string): number | null {
+  if (start >= words.length) return null;
+  if (isName(words[start], expectedName)) return start;
+  const next = words[start + 1];
+  if (
+    NAMES.has(expectedName)
+    && next
+    && (
+      SPLIT_NAMES.some(([left, right]) => words[start] === left && next === right)
+      || isName(`${words[start]}${next}`, expectedName)
+    )
+  ) {
     return start + 1;
   }
   return null;
 }
 
-function tokenStart(tokens: RegExpMatchArray[]): number {
-  let start = 0;
-  while (start < tokens.length && FILLER_WORDS.has(tokens[start][0].toLocaleLowerCase())) {
-    start += 1;
+function isWakeGreeting(word: string, expected: string): boolean {
+  return isGreeting(word, expected);
+}
+
+export interface WakeMatch {
+  command: string;
+}
+
+export function matchWakePhrase(transcript: string, pronunciation = "Hey Macha"): WakeMatch | null {
+  const tokens = contentTokens(transcript);
+  if (!tokens.length) return null;
+  const [expectedGreeting, expectedName] = configuredWakeWords(pronunciation);
+  const words = tokens.map((token) => normalizeWakeWord(token[0]));
+  let nameEnd: number | null = null;
+  if (splitGluedWake(words[0], expectedGreeting, expectedName)) {
+    nameEnd = 0;
+  } else if (isWakeGreeting(words[0], expectedGreeting)) {
+    nameEnd = nameEndIndex(words, 1, expectedName);
+  } else {
+    nameEnd = nameEndIndex(words, 0, expectedName);
   }
-  return start;
+  if (nameEnd === null) return null;
+  const phraseEnd = tokens[nameEnd].index! + tokens[nameEnd][0].length;
+  return { command: transcript.slice(phraseEnd).replace(/^[\s\p{P}\p{S}]+/u, "").trim() };
 }
 
 export function extractWakeCommand(
   transcript: string,
   pronunciation = "Hey Macha",
 ): string | null {
-  const actual = [...transcript.matchAll(/[\p{L}\p{N}]+/gu)];
-  const expected = configuredWakeWords(pronunciation);
-  const start = tokenStart(actual);
-  let nameEnd: number | null = null;
-  if (actual[start] && wakeWordMatches(actual[start][0].toLocaleLowerCase(), expected[0])) {
-    nameEnd = wakeNameEnd(actual, start + 1, expected[1]);
-  }
-  if (nameEnd === null) nameEnd = wakeNameEnd(actual, start, expected[1]);
-  if (nameEnd === null) return null;
-  const phraseEnd = actual[nameEnd].index! + actual[nameEnd][0].length;
-  return transcript.slice(phraseEnd).replace(/^[\s,:;.!?-]+/, "").trim();
+  return matchWakePhrase(transcript, pronunciation)?.command ?? null;
 }
 
 export function isPartialWakePhrase(transcript: string, pronunciation = "Hey Macha"): boolean {
-  const actual = [...transcript.matchAll(/[\p{L}\p{N}]+/gu)];
-  const expected = configuredWakeWords(pronunciation);
-  const start = tokenStart(actual);
-  if (actual.length - start === 1) {
-    const word = actual[start][0].toLocaleLowerCase();
-    return wakeWordMatches(word, expected[0])
-      || (expected[1] === "macha" && word === "ma");
-  }
-  return actual.length - start === 2
-    && wakeWordMatches(actual[start][0].toLocaleLowerCase(), expected[0])
-    && expected[1] === "macha"
-    && actual[start + 1][0].toLocaleLowerCase() === "ma";
+  const tokens = contentTokens(transcript);
+  const words = tokens.map((token) => normalizeWakeWord(token[0]));
+  const [expectedGreeting, expectedName] = configuredWakeWords(pronunciation);
+  if (words.length === 1) return words[0] !== "a" && isGreeting(words[0], expectedGreeting);
+  return words.length === 2
+    && isGreeting(words[0], expectedGreeting)
+    && NAMES.has(expectedName)
+    && PARTIAL_NAMES.has(words[1]);
 }
 
 export function isWakeLeadOnly(transcript: string, pronunciation = "Hey Macha"): boolean {
-  const actual = [...transcript.matchAll(/[\p{L}\p{N}]+/gu)];
-  const expected = configuredWakeWords(pronunciation);
-  const start = tokenStart(actual);
-  return actual.length - start === 1 && wakeWordMatches(actual[start][0].toLocaleLowerCase(), expected[0]);
+  const words = contentTokens(transcript).map((token) => normalizeWakeWord(token[0]));
+  const [expectedGreeting] = configuredWakeWords(pronunciation);
+  return words.length === 1 && isGreeting(words[0], expectedGreeting);
+}
+
+export interface SpeechTranscript {
+  text: string;
+  confidence: number | null;
+  noSpeechProb: number | null;
+  compressionRatio: number | null;
+}
+
+export function readSpeechTranscript(result: unknown): SpeechTranscript | null {
+  if (typeof result !== "object" || result === null) return null;
+  const text = "text" in result && typeof result.text === "string" ? result.text.trim() : "";
+  const confidence = "confidence" in result && typeof result.confidence === "number"
+    ? result.confidence
+    : null;
+  const noSpeechProb = "no_speech_prob" in result && typeof result.no_speech_prob === "number"
+    ? result.no_speech_prob
+    : null;
+  const compressionRatio = "compression_ratio" in result && typeof result.compression_ratio === "number"
+    ? result.compression_ratio
+    : null;
+  return { text, confidence, noSpeechProb, compressionRatio };
+}
+
+function rejectsTranscript(
+  result: SpeechTranscript,
+  minConfidence: number,
+  maxNoSpeech: number,
+): boolean {
+  if (!result.text) return true;
+  if (result.noSpeechProb !== null && result.noSpeechProb >= maxNoSpeech) return true;
+  if (result.confidence !== null && result.confidence < minConfidence) return true;
+  if (result.compressionRatio !== null && result.compressionRatio > WAKE_MAX_COMPRESSION) return true;
+  return false;
+}
+
+/** True when a wake-word clip is real speech rather than silence or a hallucination. */
+export function isAcceptedWakeTranscript(result: SpeechTranscript): boolean {
+  return !rejectsTranscript(result, WAKE_MIN_CONFIDENCE, WAKE_MAX_NO_SPEECH);
+}
+
+/** True when a push-to-talk clip is clear enough to send. */
+export function isAcceptedVoiceTranscript(result: SpeechTranscript): boolean {
+  if (result.confidence === null) return false;
+  return !rejectsTranscript(result, VOICE_MIN_CONFIDENCE, VOICE_MAX_NO_SPEECH);
 }
 
 export interface WakeWordListener {
@@ -280,13 +401,11 @@ export async function recordWakePronunciation(): Promise<WakeWordCalibration> {
 
     const calibrationAudio = new Blob(audioChunks, { type: mimeType });
     const transcript = await transcribeWakeClip(calibrationAudio, "Hey Macha");
-    const phrase = transcript.match(
-      /\b(hey|hay|hai|hi|he|ay|a)\s+(macha|matcha|masha|ma\s+cha|machaa|maccha|macho|mocha)\b/i,
-    );
-    if (!phrase) {
+    const match = matchWakePhrase(transcript);
+    if (!match) {
       throw new Error(`Whisper heard “${transcript}”. Please try again and say “Hey Macha”.`);
     }
-    const savedPronunciation = `${phrase[1]} ${phrase[2].replace(/\s+/g, " ")}`;
+    const savedPronunciation = "Hey Macha";
     voiceLevels.sort((a, b) => a - b);
     const typicalSpeechLevel = voiceLevels[Math.floor(voiceLevels.length * 0.2)];
     const threshold = Math.round(Math.max(0.003, Math.min(0.03, typicalSpeechLevel * 0.35)) * 10000) / 10000;
@@ -315,9 +434,11 @@ export function createWakeWordListener(): WakeWordListener {
   let mutedOutput: GainNode | null = null;
   let speechFrames: Float32Array[] = [];
   let preRollFrames: Float32Array[] = [];
+  let pendingSpeech: Float32Array[] = [];
   let preRollSamples = 0;
   let speechStartedAt = 0;
   let speechSilenceMs = 0;
+  let noiseFloor = 0.0015;
   let active = false;
   let requestRunning = false;
   let generation = 0;
@@ -347,6 +468,7 @@ export function createWakeWordListener(): WakeWordListener {
     try {
       const form = new FormData();
       form.append("audio", audio, "wake-utterance.wav");
+      form.append("mode", useWakeHint ? "wake" : "voice");
       if (useWakeHint) form.append("wake_hint", pronunciation);
       const response = await fetch(STT_ENDPOINT, {
         method: "POST",
@@ -361,11 +483,12 @@ export function createWakeWordListener(): WakeWordListener {
           : `Wake-word transcription failed (HTTP ${response.status}).`;
         throw new Error(message);
       }
-      const result: unknown = await response.json();
-      if (typeof result === "object" && result !== null && "text" in result
-        && typeof result.text === "string" && result.text.trim()
-        && active && generation === run) {
-        onUtterance?.(result.text.trim());
+      const result = readSpeechTranscript(await response.json());
+      const accepted = result && (useWakeHint
+        ? isAcceptedWakeTranscript(result)
+        : isAcceptedVoiceTranscript(result));
+      if (result && accepted && active && generation === run) {
+        onUtterance?.(result.text);
       }
     } catch (error) {
       if (active && generation === run) {
@@ -388,20 +511,16 @@ export function createWakeWordListener(): WakeWordListener {
 
   function resetUtterance() {
     speechFrames = [];
+    pendingSpeech = [];
     speechSilenceMs = 0;
     speechStartedAt = 0;
     wakeActivityReported = false;
   }
 
   function enqueueUtterance(run: number, sampleRate: number, frames: Float32Array[], durationMs: number) {
-    if (!active || generation !== run || durationMs < MIN_SPEECH_MS || !frames.length) return;
+    if (!active || generation !== run || durationMs < WAKE_MIN_SPEECH_MS || !frames.length) return;
     pendingAudio.push({ audio: encodeWav(frames, sampleRate), run });
-    if (useWakeHint) {
-      while (pendingAudio.length > 3) pendingAudio.shift();
-    } else if (pendingAudio.length > 3) {
-      pendingAudio.shift();
-      onError?.("Wake-word transcription is busy; please try again.");
-    }
+    while (pendingAudio.length > 2) pendingAudio.shift();
     void transcribePendingAudio();
   }
 
@@ -421,7 +540,7 @@ export function createWakeWordListener(): WakeWordListener {
     const durationMs = performance.now() - speechStartedAt;
     const utterance = speechFrames.slice();
     resetUtterance();
-    if (durationMs < MIN_SPEECH_MS || !utterance.length) return;
+    if (durationMs < WAKE_MIN_SPEECH_MS || !utterance.length) return;
     enqueueUtterance(run, sampleRate, utterance, durationMs);
   }
 
@@ -461,11 +580,18 @@ export function createWakeWordListener(): WakeWordListener {
         throw new Error("Always-listening microphone is not available in this window.");
       }
       const run = ++generation;
+      const failCurrentRun = (message: string) => {
+        if (!active || generation !== run) return;
+        const reportError = onError;
+        stop();
+        reportError?.(message);
+      };
       onWakeActivity = onActivity;
       onUtterance = onText;
       onError = onFailure;
       pronunciation = wakePronunciation || "Hey Macha";
       useWakeHint = withWakeHint;
+      noiseFloor = 0.0015;
       threshold = Number.isFinite(speechThreshold)
         ? Math.max(0.002, Math.min(0.02, speechThreshold * 0.65))
         : DEFAULT_SPEECH_THRESHOLD;
@@ -498,37 +624,61 @@ export function createWakeWordListener(): WakeWordListener {
         processor = context.createScriptProcessor(2048, 1, 1);
         mutedOutput = context.createGain();
         mutedOutput.gain.value = 0;
+        context.addEventListener("statechange", () => {
+          if (generation !== run || !active || context?.state === "running") return;
+          console.warn(`[coucou] Hey Macha audio context ${context?.state}; reconnecting`);
+          failCurrentRun("Microphone audio was interrupted.");
+        });
+        for (const track of stream.getAudioTracks()) {
+          track.addEventListener("ended", () => {
+            console.warn("[coucou] Hey Macha microphone track ended; reconnecting");
+            failCurrentRun("The microphone disconnected.");
+          }, { once: true });
+        }
         const preRollLimit = Math.round(context.sampleRate * PRE_ROLL_MS / 1000);
+        const sampleRate = context.sampleRate;
         active = true;
         processor.onaudioprocess = (event) => {
           if (!active || generation !== run) return;
           const samples = event.inputBuffer.getChannelData(0);
           const copy = new Float32Array(samples);
-          const frameMs = copy.length * 1000 / context!.sampleRate;
+          const frameMs = copy.length * 1000 / sampleRate;
 
-          const speaking = streamRms(copy) >= threshold;
-          if (speaking) {
-            if (!speechStartedAt) {
-              speechStartedAt = performance.now();
-              speechFrames = preRollFrames;
+          const level = streamRms(copy);
+          const speechThreshold = Math.max(threshold, Math.min(0.05, noiseFloor * 3.5));
+          const speaking = level >= speechThreshold;
+          if (speaking && !speechStartedAt) {
+            pendingSpeech.push(copy);
+            if (pendingSpeech.length >= WAKE_TRIGGER_FRAMES) {
+              speechStartedAt = performance.now() - frameMs * (pendingSpeech.length - 1);
+              speechFrames = preRollFrames.concat(pendingSpeech);
               preRollFrames = [];
               preRollSamples = 0;
+              pendingSpeech = [];
+              speechSilenceMs = 0;
               if (!wakeActivityReported) {
                 wakeActivityReported = true;
+                console.info("[coucou] Hey Macha listener heard speech", {
+                  level: Number(level.toFixed(4)),
+                });
                 onWakeActivity?.();
               }
             }
+          } else if (speaking) {
             speechFrames.push(copy);
             speechSilenceMs = 0;
           } else if (speechStartedAt) {
+            pendingSpeech = [];
             speechFrames.push(copy);
             speechSilenceMs += frameMs;
             if (speechSilenceMs >= (useWakeHint ? WAKE_SILENCE_MS : SILENCE_MS)
               || performance.now() - speechStartedAt >= MAX_SPEECH_MS) {
-              if (useWakeHint) finishWakeWindow(run, context!.sampleRate);
-              else finishUtterance(run, context!.sampleRate);
+              if (useWakeHint) finishWakeWindow(run, sampleRate);
+              else finishUtterance(run, sampleRate);
             }
           } else {
+            pendingSpeech = [];
+            noiseFloor = noiseFloor * 0.96 + level * 0.04;
             preRollFrames.push(copy);
             preRollSamples += copy.length;
             while (preRollSamples > preRollLimit && preRollFrames.length) {
@@ -536,13 +686,17 @@ export function createWakeWordListener(): WakeWordListener {
             }
           }
           if (speechStartedAt && performance.now() - speechStartedAt >= MAX_SPEECH_MS) {
-            if (useWakeHint) finishWakeWindow(run, context!.sampleRate);
-            else finishUtterance(run, context!.sampleRate);
+            if (useWakeHint) finishWakeWindow(run, sampleRate);
+            else finishUtterance(run, sampleRate);
           }
         };
         source.connect(processor);
         processor.connect(mutedOutput);
         mutedOutput.connect(context.destination);
+        console.info("[coucou] Hey Macha wake listener started", {
+          sampleRate,
+          threshold: Number(threshold.toFixed(4)),
+        });
       } catch (error) {
         stop();
         throw error;

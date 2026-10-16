@@ -66,6 +66,7 @@ async function main() {
     island.alert("prompt");
   });
   window.addEventListener("coucou-wake-word", () => {
+    console.info("[coucou] Hey Macha wake action fired: expanding chat");
     setPaused(false);
     State.isPinned = true;
     island.alert("prompt");

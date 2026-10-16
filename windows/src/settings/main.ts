@@ -960,7 +960,7 @@ function generalSection(): HTMLElement {
       voiceActivationStatus,
       h("span", {
         class: "hint",
-        text: "Wake-word audio is sent only to your local Whisper service. The Voice button remains available when this is off.",
+        text: "When enabled, Coucou listens on this device and sends speech only to its local Whisper service. Allow microphone access in Windows privacy settings when prompted. The Voice button remains available when this is off.",
       }),
     ),
     h("div", { class: "row" },

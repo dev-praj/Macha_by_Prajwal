@@ -211,14 +211,14 @@ the local Whisper service. Say **“Hey Macha, [your question]”** in one go, o
 call **“Macha”** and then ask after it acknowledges you. Short pauses between
 the wake words are combined automatically. For better recognition on your
 microphone, choose **Settings… → General → Record “Hey Macha”** and repeat the
-phrase during the five-second recording. Coucou uses the local Whisper result as
-a recognition hint and tunes the microphone speech threshold; the recording is
-discarded after calibration. The microphone indicator pulses blue while the
+phrase during the five-second recording. Coucou validates the local Whisper
+transcript and tunes the microphone speech threshold; the recording is discarded
+after calibration. The microphone indicator pulses blue while the
 conversation stays open until its spoken reply finishes, then normal auto-hide
-resumes. The microphone indicator pulses blue while the wake listener is armed.
-Disable the setting to stop background microphone
-monitoring. Windows may need microphone access enabled for Coucou under
-**Privacy & security → Microphone**.
+resumes. The indicator remains blue while the wake listener is armed, and the
+listener reconnects when the app returns from sleep or the microphone changes.
+Disable the setting to stop background microphone monitoring. Allow Coucou
+under **Privacy & security → Microphone** when Windows asks for access.
 
 Opening an application, file, or folder requires a separate confirmation:
 Coucou asks aloud and waits for an English **“yes”** or **“no”** before acting.
