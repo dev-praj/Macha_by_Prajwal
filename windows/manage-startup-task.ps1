@@ -121,7 +121,7 @@ function Install-StartupTask {
     if (-not (Test-Path -LiteralPath $powerShellPath -PathType Leaf)) {
         throw "Windows PowerShell was not found at the expected path: $powerShellPath."
     }
-    if ((Get-CoucouProcesses).Count -gt 0) {
+    if ($null -ne (Get-CoucouProcess)) {
         throw "Close Coucou before installing or replacing its logon registration, then run this command again."
     }
 
@@ -167,7 +167,7 @@ function Install-StartupTask {
     $trigger = New-ScheduledTaskTrigger `
         -AtLogOn `
         -User $currentUser
-    $arguments = "-NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$runnerPath`" -StartupDelaySeconds 20"
+    $arguments = "-NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$runnerPath`" -StartupDelaySeconds 20 -MonitorProcess"
     $taskAction = New-ScheduledTaskAction `
         -Execute $powerShellPath `
         -Argument $arguments `
@@ -180,9 +180,7 @@ function Install-StartupTask {
         -StartWhenAvailable `
         -AllowStartIfOnBatteries `
         -DontStopIfGoingOnBatteries `
-        -ExecutionTimeLimit (New-TimeSpan -Minutes 15) `
-        -RestartCount 3 `
-        -RestartInterval (New-TimeSpan -Seconds 10) `
+        -ExecutionTimeLimit ([TimeSpan]::Zero) `
         -MultipleInstances IgnoreNew
 
     try {
@@ -193,9 +191,13 @@ function Install-StartupTask {
             -Trigger $trigger `
             -Settings $taskSettings `
             -Principal $principal `
-            -Description "Starts Coucou after the current user logs on and checks its local speech service." `
+            -Description "Starts Coucou at logon and supervises bounded crash restarts." `
+            -ErrorAction Stop `
             -Force | Out-Null
 
+        if ($null -eq (Get-ScheduledTask -TaskName $taskName -TaskPath $taskFolder -ErrorAction Stop)) {
+            throw "Task Scheduler did not return the task after registration."
+        }
         Set-AutostartPreference -Enabled $false
         $currentRunValue = Get-RunValue
         if ($null -ne $currentRunValue) {
@@ -215,8 +217,8 @@ function Install-StartupTask {
     }
 }
 
-function Get-CoucouProcesses {
-    @(Get-Process -Name "coucou" -ErrorAction SilentlyContinue)
+function Get-CoucouProcess {
+    Get-Process -Name "coucou" -ErrorAction SilentlyContinue | Select-Object -First 1
 }
 
 try {

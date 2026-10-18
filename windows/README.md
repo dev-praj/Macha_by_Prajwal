@@ -328,9 +328,11 @@ npm run icons          # regenerates src-tauri/icons from scripts/gen-icons.mjs
 
 The Task Scheduler task runs the release app as the current user, 20 seconds
 after logon. It launches the app's tray/island UI (no terminal window), waits
-for the local speech service at `http://127.0.0.1:5005/health`, and retries a
-failed start up to three times, 10 seconds apart. Installation disables the
-app's separate autostart registration so only the scheduled task launches it.
+for the local speech service at `http://127.0.0.1:5005/health`, and monitors the
+app so it can restart it after a crash, at most three times with 10 seconds
+between attempts.
+Installation disables the app's separate autostart registration so only the
+scheduled task launches it.
 This is a per-user task; it does not need administrator rights and does not
 start the app before sign-in.
 
