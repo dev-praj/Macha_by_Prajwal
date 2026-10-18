@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Coucou Windows — Feature Map",
+    "locale": "en",
+    "output": "docs/architecture/feature-map.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
+    },
+    "legend": {
+      "mode": "all",
+      "entries": {
+        "frontend": { "label": "UI feature" },
+        "backend": { "label": "Logic / orchestration feature" },
+        "database": { "label": "Local data feature" },
+        "cloud": { "label": "Configured remote or local service" },
+        "security": { "label": "Permission / credential feature" },
+        "messagebus": { "label": "Event / bridge feature" },
+        "external": { "label": "OS or external application" }
+      }
+    }
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "User", "tag": "Person", "pos": [40, 60], "sources": [{ "path": "windows/src/main.ts", "line": 43 }] },
+    { "id": "island", "type": "frontend", "label": "Island / Mochi", "tag": "Shell", "pos": [240, 60], "sources": [{ "path": "windows/src/island/island.ts", "line": 1 }, { "path": "windows/src/core/layout.ts", "line": 1 }] },
+    { "id": "settings", "type": "frontend", "label": "Settings window", "tag": "Shell", "pos": [440, 60], "sources": [{ "path": "windows/src/settings/main.ts", "line": 1348 }] },
+    { "id": "tray", "type": "backend", "label": "Tray / hotkeys", "sublabel": "auto-hide", "tag": "Shell", "pos": [640, 60], "sources": [{ "path": "windows/src-tauri/src/lib.rs", "line": 42 }, { "path": "windows/src-tauri/src/lib.rs", "line": 623 }] },
+    { "id": "taskpills", "type": "frontend", "label": "Task activity", "sublabel": "session pills", "tag": "Shell", "pos": [840, 60], "sources": [{ "path": "windows/src/views/views.ts", "line": 120 }, { "path": "windows/src/core/state.ts", "line": 8 }] },
+    { "id": "hookinstall", "type": "backend", "label": "Hook installer", "sublabel": "install · preview", "tag": "Claude Code", "pos": [40, 200], "sources": [{ "path": "windows/src-tauri/src/hooks.rs", "line": 266 }, { "path": "windows/src/settings/main.ts", "line": 59 }] },
+    { "id": "hookrelay", "type": "messagebus", "label": "Hook event relay", "tag": "Claude Code", "pos": [240, 200], "sources": [{ "path": "windows/src-tauri/src/pipe.rs", "line": 70 }, { "path": "windows/hook/src/main.rs", "line": 17 }] },
+    { "id": "approval", "type": "security", "label": "Permission cards", "tag": "Claude Code", "pos": [480, 200], "sources": [{ "path": "windows/src-tauri/src/pipe.rs", "line": 202 }, { "path": "windows/src/views/views.ts", "line": 292 }] },
+    { "id": "chat", "type": "frontend", "label": "Chat", "sublabel": "conversations", "tag": "Assistant", "pos": [40, 340], "sources": [{ "path": "windows/src/views/chat.ts", "line": 1 }, { "path": "windows/src/core/state.ts", "line": 58 }] },
+    { "id": "providers", "type": "cloud", "label": "Ollama / OpenRouter", "tag": "Assistant", "pos": [240, 340], "sources": [{ "path": "windows/src-tauri/src/llm_client.rs", "line": 11 }, { "path": "windows/src-tauri/src/llm_client.rs", "line": 12 }] },
+    { "id": "automation", "type": "backend", "label": "Automation", "sublabel": "local actions", "tag": "Assistant", "pos": [440, 340], "sources": [{ "path": "windows/src-tauri/src/automation.rs", "line": 37 }, { "path": "windows/src-tauri/src/automation.rs", "line": 502 }] },
+    { "id": "workflows", "type": "backend", "label": "Saved workflows", "tag": "Assistant", "pos": [640, 340], "sources": [{ "path": "windows/src-tauri/src/workflows.rs", "line": 14 }, { "path": "windows/src/views/chat.ts", "line": 1297 }] },
+    { "id": "files", "type": "backend", "label": "Drop / file context", "tag": "Assistant", "pos": [840, 340], "sources": [{ "path": "windows/src-tauri/src/files.rs", "line": 26 }, { "path": "windows/src/views/chat.ts", "line": 1 }] },
+    { "id": "voice", "type": "backend", "label": "Hey Macha", "sublabel": "wake word · push-to-talk", "tag": "Voice", "pos": [40, 480], "sources": [{ "path": "windows/src/core/wakeWord.ts", "line": 429 }, { "path": "windows/src/views/chat.ts", "line": 668 }] },
+    { "id": "stt", "type": "backend", "label": "Local Whisper STT", "tag": "Voice", "pos": [240, 480], "sources": [{ "path": "windows/src-tauri/src/voice.rs", "line": 162 }, { "path": "stt_server.py", "line": 61 }] },
+    { "id": "tts", "type": "backend", "label": "Spoken replies", "tag": "Voice", "pos": [440, 480], "sources": [{ "path": "windows/src/core/tts.ts", "line": 1 }, { "path": "windows/src-tauri/src/voice.rs", "line": 59 }] },
+    { "id": "vision", "type": "backend", "label": "Palm lock", "sublabel": "Vision Mode", "tag": "Vision", "pos": [40, 620], "sources": [{ "path": "windows/src-tauri/src/gesture_mouse.rs", "line": 64 }, { "path": "windows/gesture_mouse/app.py", "line": 278 }] },
+    { "id": "pollers", "type": "backend", "label": "Integrations", "sublabel": "Vercel · GitHub · Stripe", "tag": "Integrations", "pos": [240, 620], "sources": [{ "path": "windows/src-tauri/src/integrations.rs", "line": 64 }] },
+    { "id": "messages", "type": "external", "label": "Notifications", "sublabel": "Windows", "tag": "Integrations", "pos": [440, 620], "sources": [{ "path": "windows/src-tauri/src/messages.rs", "line": 31 }, { "path": "windows/src-tauri/src/messages.rs", "line": 108 }] },
+    { "id": "spotify", "type": "cloud", "label": "Spotify playback", "tag": "Integrations", "pos": [640, 620], "sources": [{ "path": "windows/src-tauri/src/spotify.rs", "line": 65 }, { "path": "windows/src-tauri/src/spotify.rs", "line": 229 }] },
+    { "id": "memory", "type": "database", "label": "Durable memories", "tag": "Data", "pos": [40, 760], "sources": [{ "path": "windows/src-tauri/src/memory.rs", "line": 13 }, { "path": "windows/src-tauri/src/claude.rs", "line": 281 }] },
+    { "id": "secrets", "type": "security", "label": "Credential Manager", "tag": "Data", "pos": [240, 760], "sources": [{ "path": "windows/src-tauri/src/secrets.rs", "line": 17 }, { "path": "windows/src-tauri/src/secrets.rs", "line": 202 }] },
+    { "id": "localstores", "type": "database", "label": "Local stores", "sublabel": "JSON · localStorage · inbox", "tag": "Data", "pos": [440, 760], "sources": [{ "path": "windows/src-tauri/src/settings.rs", "line": 104 }, { "path": "windows/src/core/state.ts", "line": 58 }, { "path": "windows/src-tauri/src/files.rs", "line": 17 }] }
+  ],
+  "connections": [
+    { "from": "user", "to": "island", "label": "use UI" },
+    { "from": "user", "to": "settings", "label": "configure" },
+    { "from": "tray", "to": "island", "label": "show / hide / pause" },
+    { "from": "hookinstall", "to": "hookrelay", "label": "register hook commands" },
+    { "from": "hookrelay", "to": "taskpills", "label": "session events" },
+    { "from": "hookrelay", "to": "approval", "label": "approve", "labelDx": 20 },
+    { "from": "chat", "to": "providers", "label": "ask / stream reply" },
+    { "from": "providers", "to": "automation", "label": "tool request" },
+    { "from": "automation", "to": "chat", "label": "result / follow-up" },
+    { "from": "workflows", "to": "chat", "label": "single action + verify" },
+    { "from": "files", "to": "chat", "label": "file context" },
+    { "from": "voice", "to": "stt", "label": "local audio transcription" },
+    { "from": "voice", "to": "chat", "label": "recognized command" },
+    { "from": "chat", "to": "tts", "label": "optional spoken response", "variant": "dashed" },
+    { "from": "settings", "to": "vision", "label": "start / stop" },
+    { "from": "settings", "to": "pollers", "label": "enable / configure" },
+    { "from": "settings", "to": "messages", "label": "request Windows access" },
+    { "from": "settings", "to": "spotify", "label": "connect / disconnect" },
+    { "from": "chat", "to": "memory", "label": "read / optionally remember" },
+    { "from": "settings", "to": "secrets", "label": "store credentials" },
+    { "from": "settings", "to": "localstores", "label": "save preferences / workflows" },
+    { "from": "chat", "to": "localstores", "label": "persist conversations" }
+  ],
+  "cards": [
+    { "dot": "slate", "title": "Feature grouping", "items": ["Tags group related features; arrows show observed dependencies and data/control paths.", "Resend, n8n polling, ElevenLabs, and separate mail/search/result views are not active features in the inspected startup path."] }
+  ]
+}

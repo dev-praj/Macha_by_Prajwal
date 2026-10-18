@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.architecture.json",
+    "sha256": "9379c3fcd98e4fdb75aa9ca90c486427fac079b38ae3eccd409dc6bf40e1eee7",
+    "bytes": 7128
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.html",
+    "sha256": "99edf8b9dfb6b49d59d2f158747492794ab58178663e586c33e537cc3a7ebe3c",
+    "bytes": 846102
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.review-3\\system-overview.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.review-3\\system-overview.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.review-3\\system-overview.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 7065,
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "resolvedCrossovers": 3,
+      "routesOverSuggestedBends": 1,
+      "routesOverSuggestedStretch": 1
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [
+        {
+          "left": {
+            "id": "rust-credentials",
+            "from": "rust",
+            "to": "credentials",
+            "label": "get / set secret",
+            "collectionIndex": 6,
+            "artifactIndex": 7
+          },
+          "right": {
+            "id": "rust-python",
+            "from": "rust",
+            "to": "local_python",
+            "label": "start / stop process",
+            "collectionIndex": 7,
+            "artifactIndex": 8
+          },
+          "point": [
+            675,
+            246
+          ],
+          "sharedNode": "rust"
+        },
+        {
+          "left": {
+            "id": "python-windows",
+            "from": "local_python",
+            "to": "windows_os",
+            "label": "camera / cursor / local services",
+            "collectionIndex": 8,
+            "artifactIndex": 9
+          },
+          "right": {
+            "id": "rust-openrouter",
+            "from": "rust",
+            "to": "openrouter",
+            "label": "configured chat request",
+            "collectionIndex": 13,
+            "artifactIndex": 14
+          },
+          "point": [
+            883,
+            293
+          ]
+        },
+        {
+          "left": {
+            "id": "rust-windows",
+            "from": "rust",
+            "to": "windows_os",
+            "label": "Tauri / Windows APIs",
+            "collectionIndex": 9,
+            "artifactIndex": 10
+          },
+          "right": {
+            "id": "rust-openrouter",
+            "from": "rust",
+            "to": "openrouter",
+            "label": "configured chat request",
+            "collectionIndex": 13,
+            "artifactIndex": 14
+          },
+          "point": [
+            725.2222222222222,
+            354
+          ],
+          "sharedNode": "rust"
+        }
+      ],
+      "detours": [
+        {
+          "relationship": {
+            "id": "rust-openrouter",
+            "from": "rust",
+            "to": "openrouter",
+            "label": "configured chat request",
+            "collectionIndex": 13,
+            "artifactIndex": 14
+          },
+          "bends": 4,
+          "stretch": 1.403
+        }
+      ],
+      "truncated": false
+    },
+    "hints": [
+      "rust has 7 relationships facing its right side, which fits 3 ports: make that side at least 116px, or move some of those neighbours so they face another side of rust.",
+      "rust → credentials and rust → local_python cross next to rust: move node credentials or local_python so the two reach rust from different sides (for example one level with it, one directly above or below it).",
+      "local_python → windows_os crosses rust → openrouter: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "rust → windows_os and rust → openrouter cross next to rust: move node windows_os or openrouter so the two reach rust from different sides (for example one level with it, one directly above or below it).",
+      "rust → openrouter needs 4 bends: move node rust or openrouter so they share a row or column with matching centers, or sit diagonally with a clear corner."
+    ],
+    "repair": "Trace these relationships at the desktop viewport. For Architecture, use references/architecture-layout-repair.md: reflow a blocked main path or tangled connected scene, and repair an isolated defect locally only when the surrounding composition is accepted. Preserve all semantic content and user-fixed geometry. Rerun finalize once after the edit."
+  }
+}

@@ -1,0 +1,293 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "sequence",
+  "quality": "showcase",
+  "startedAt": "2026-10-17T05:26:39.773Z",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-vision-mode.sequence.json",
+    "sha256": "a4ccd74af63be1f04ed93688b9f5c5c23df563ab2fcf4ea0ae05cfbe6284a4d1",
+    "bytes": 4015
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-vision-mode.html"
+  },
+  "stages": {
+    "validate": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": null,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "sequence",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-vision-mode.sequence.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-vision-mode.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "deliver",
+        "receiptId": "55c33d64-0508-4026-b2ef-909ce2acee34",
+        "stage": "render",
+        "type": "sequence",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-vision-mode.sequence.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-vision-mode.html",
+        "error": "Sequence layout validation failed:\n- Label \"Tauri process manager\" (~143px) is wider than component \"tauri\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"find Python · spawn · stop\" needs ~110px at the 7px minimum that stays readable on this 1085px canvas, but participant \"tauri\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Vision Mode Python\" (~122px) is wider than component \"python\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"OpenCV · MediaPipe · gesture logic\" needs ~143px at the 7px minimum that stays readable on this 1085px canvas, but participant \"python\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"127.0.0.1:8765 · WebSocket /ws\" needs ~126px at the 7px minimum that stays readable on this 1085px canvas, but participant \"dashboard\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+        "diagnostics": [
+          {
+            "code": "sequence/participant-label-overflow",
+            "severity": "error",
+            "message": "Label \"Tauri process manager\" (~143px) is wider than component \"tauri\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "tauri",
+              "path": "/participants/2/label"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 113,
+              "text": "Tauri process manager",
+              "requiredWidth": 142.79999999999998,
+              "availableWidth": 119
+            },
+            "supportedFixes": [
+              "shorten the participant label while preserving its role"
+            ]
+          },
+          {
+            "code": "sequence/participant-sublabel-overflow",
+            "severity": "error",
+            "message": "Sublabel \"find Python · spawn · stop\" needs ~110px at the 7px minimum that stays readable on this 1085px canvas, but participant \"tauri\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "tauri",
+              "path": "/participants/2/sublabel"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 113,
+              "text": "find Python · spawn · stop",
+              "requiredWidth": 109.2,
+              "availableWidth": 105,
+              "minimumFontPx": 7
+            },
+            "supportedFixes": [
+              "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+            ]
+          },
+          {
+            "code": "sequence/participant-label-overflow",
+            "severity": "error",
+            "message": "Label \"Vision Mode Python\" (~122px) is wider than component \"python\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "python",
+              "path": "/participants/3/label"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 113,
+              "text": "Vision Mode Python",
+              "requiredWidth": 122.39999999999999,
+              "availableWidth": 119
+            },
+            "supportedFixes": [
+              "shorten the participant label while preserving its role"
+            ]
+          },
+          {
+            "code": "sequence/participant-sublabel-overflow",
+            "severity": "error",
+            "message": "Sublabel \"OpenCV · MediaPipe · gesture logic\" needs ~143px at the 7px minimum that stays readable on this 1085px canvas, but participant \"python\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "python",
+              "path": "/participants/3/sublabel"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 113,
+              "text": "OpenCV · MediaPipe · gesture logic",
+              "requiredWidth": 142.79999999999998,
+              "availableWidth": 105,
+              "minimumFontPx": 7
+            },
+            "supportedFixes": [
+              "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+            ]
+          },
+          {
+            "code": "sequence/participant-sublabel-overflow",
+            "severity": "error",
+            "message": "Sublabel \"127.0.0.1:8765 · WebSocket /ws\" needs ~126px at the 7px minimum that stays readable on this 1085px canvas, but participant \"dashboard\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "dashboard",
+              "path": "/participants/6/sublabel"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 113,
+              "text": "127.0.0.1:8765 · WebSocket /ws",
+              "requiredWidth": 126,
+              "availableWidth": 105,
+              "minimumFontPx": 7
+            },
+            "supportedFixes": [
+              "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+            ]
+          }
+        ],
+        "provenance": "absent",
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      },
+      "execution": "embedded-in-deliver"
+    },
+    "deliver": {
+      "status": "not-run",
+      "execution": "blocked-by-validate"
+    }
+  },
+  "diagnostics": [
+    {
+      "code": "sequence/participant-label-overflow",
+      "severity": "error",
+      "message": "Label \"Tauri process manager\" (~143px) is wider than component \"tauri\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "tauri",
+        "path": "/participants/2/label"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "Tauri process manager",
+        "requiredWidth": 142.79999999999998,
+        "availableWidth": 119
+      },
+      "supportedFixes": [
+        "shorten the participant label while preserving its role"
+      ]
+    },
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"find Python · spawn · stop\" needs ~110px at the 7px minimum that stays readable on this 1085px canvas, but participant \"tauri\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "tauri",
+        "path": "/participants/2/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "find Python · spawn · stop",
+        "requiredWidth": 109.2,
+        "availableWidth": 105,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    },
+    {
+      "code": "sequence/participant-label-overflow",
+      "severity": "error",
+      "message": "Label \"Vision Mode Python\" (~122px) is wider than component \"python\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "python",
+        "path": "/participants/3/label"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "Vision Mode Python",
+        "requiredWidth": 122.39999999999999,
+        "availableWidth": 119
+      },
+      "supportedFixes": [
+        "shorten the participant label while preserving its role"
+      ]
+    },
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"OpenCV · MediaPipe · gesture logic\" needs ~143px at the 7px minimum that stays readable on this 1085px canvas, but participant \"python\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "python",
+        "path": "/participants/3/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "OpenCV · MediaPipe · gesture logic",
+        "requiredWidth": 142.79999999999998,
+        "availableWidth": 105,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    },
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"127.0.0.1:8765 · WebSocket /ws\" needs ~126px at the 7px minimum that stays readable on this 1085px canvas, but participant \"dashboard\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "dashboard",
+        "path": "/participants/6/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "127.0.0.1:8765 · WebSocket /ws",
+        "requiredWidth": 126,
+        "availableWidth": 105,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-vision-mode.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-vision-mode.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "validate",
+  "finishedAt": "2026-10-17T05:26:40.944Z",
+  "durationMs": 1170,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

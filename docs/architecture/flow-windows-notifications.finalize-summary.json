@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "sequence",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-windows-notifications.sequence.json",
+    "sha256": "730ff424dc8fc51dc7c70b54d3aac981367c4a58435a0a3e321606c2fce138fa",
+    "bytes": 3732
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-windows-notifications.html"
+  },
+  "gates": {
+    "validate": "fail",
+    "deliver": "not-run",
+    "check": "not-run",
+    "browser-check": "not-run"
+  },
+  "failedStage": "validate",
+  "diagnostics": [
+    {
+      "code": "sequence/self-message-unsupported",
+      "severity": "error",
+      "message": "Message \"queue item and show notification card\" is a self-message on participant \"island\"; this Sequence renderer supports only messages between distinct participants. Participant spacing cannot repair it. Preserve the internal step's meaning and order in a supported representation such as a note on a real message or a card; do not invent a participant.",
+      "subject": {
+        "diagramType": "sequence",
+        "message": "queue item and show notification card",
+        "collection": "messages",
+        "index": 7,
+        "path": "/messages/7",
+        "from": "island",
+        "to": "island",
+        "fromPath": "/messages/7/from",
+        "toPath": "/messages/7/to"
+      },
+      "evidence": {
+        "participant": "island",
+        "participantPath": "/participants/4",
+        "y": 475,
+        "supportedMessageGeometry": "horizontal-between-distinct-participants"
+      }
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 1,
+    "shown": 1,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-windows-notifications.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-windows-notifications.finalize-summary.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 1141,
+  "nextAction": {
+    "action": "edit-in-place",
+    "candidate": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-windows-notifications.sequence.json",
+    "constraint": "Preserve unaffected semantics and geometry; apply each diagnostic's supportedFixes, or the fix its message names, and do not replace the whole candidate.",
+    "then": "finalize-once"
+  }
+}

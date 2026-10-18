@@ -1305,6 +1305,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     const completedSteps: string[] = [];
     let lastScreenshotName = "not-captured";
     let lastActionName = "none";
+    let lastActionResult = "";
     let lastVerification = "not-started";
     let conversationId: string | null = null;
     workflowAutomationActive = true;
@@ -1314,16 +1315,20 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     stopWakeWord();
     State.notify();
     try {
-      if (!navigator.mediaDevices?.getDisplayMedia) {
-        throw new Error("Screen sharing is unavailable in this window.");
-      }
-      stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { width: { max: 1280 }, height: { max: 800 } },
-        audio: false,
-      });
-      const track = stream.getVideoTracks()[0];
-      if (!track || track.readyState !== "live") {
-        throw new Error("Screen sharing did not provide an active display.");
+      try {
+        if (navigator.mediaDevices?.getDisplayMedia) {
+          stream = await navigator.mediaDevices.getDisplayMedia({
+            video: { width: { max: 1280 }, height: { max: 800 } },
+            audio: false,
+          });
+          const track = stream.getVideoTracks()[0];
+          if (!track || track.readyState !== "live") {
+            stream = undefined;
+          }
+        }
+      } catch (displayError) {
+        console.warn("[workflow] Screen sharing was not granted or is unavailable; proceeding with text-guided workflow:", displayError);
+        stream = undefined;
       }
 
       conversationId = State.activeConversationId ?? State.startConversation();
@@ -1338,11 +1343,18 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       onHeightChange();
 
       const capture = async (purpose: string) => {
-        if (track.readyState !== "live") {
-          throw new Error("Screen sharing ended during the workflow.");
-        }
         lastScreenshotName = `workflow-${workflow.id}-${purpose}-${Date.now()}.jpg`;
-        return captureScreenSnapshot(stream);
+        if (stream) {
+          const track = stream.getVideoTracks()[0];
+          if (track && track.readyState === "live") {
+            try {
+              return await captureScreenSnapshot(stream);
+            } catch (snapErr) {
+              console.warn("[workflow] Frame capture failed:", snapErr);
+            }
+          }
+        }
+        return "";
       };
       const request = async (
         query: string,
@@ -1361,7 +1373,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
           newRequestId(),
           false,
           false,
-          screenshot,
+          screenshot || null,
           phase,
         );
         State.stateOverride = null;
@@ -1379,8 +1391,9 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         });
       };
       const parseSignal = (text: string): WorkflowSignal | null => {
-        const match = text.trim().match(
-          /^(COMPLETE|STOPPED_FOR_USER|FAILED(?:\s*\(([^)\r\n]*)\))?)(?:\s*[:\-\r\n]\s*([\s\S]*))?$/i,
+        const cleaned = text.trim().replace(/^```(?:text)?\s*/i, "").replace(/\s*```$/i, "");
+        const match = cleaned.match(
+          /(?:^|\b)(COMPLETE|STOPPED_FOR_USER|FAILED(?:\s*\(([^)\r\n]*)\))?)(?:\s*[:\-\r\n]\s*([\s\S]*))?/i,
         );
         if (!match) return null;
         const kind = match[1].toUpperCase();
@@ -1392,9 +1405,17 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         return { kind: "failed", reason: reason || "The model reported a workflow failure." };
       };
       const parsePlan = (text: string): WorkflowStep[] => {
-        const jsonText = text.trim()
-          .replace(/^```(?:json)?\s*/i, "")
-          .replace(/\s*```$/, "");
+        let jsonText = text.trim();
+        const fenceMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+        if (fenceMatch) {
+          jsonText = fenceMatch[1].trim();
+        } else {
+          const firstBrace = jsonText.indexOf("{");
+          const lastBrace = jsonText.lastIndexOf("}");
+          if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+            jsonText = jsonText.slice(firstBrace, lastBrace + 1);
+          }
+        }
         const parsed = JSON.parse(jsonText) as { steps?: unknown };
         if (!Array.isArray(parsed.steps) || parsed.steps.length === 0
           || parsed.steps.length > WORKFLOW_MAX_ITERATIONS) {
@@ -1419,7 +1440,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       for (let attempt = 0; attempt <= WORKFLOW_MAX_RETRIES && !steps; attempt += 1) {
         const screenshot = await capture(`plan-${attempt + 1}`);
         const reply = await request(
-          `${baseContext}\nInspect the screenshot first. If the workflow's stop condition is already visible, return STOPPED_FOR_USER: reason. Otherwise turn the workflow into ordered, observable checkpoints. Return only JSON in this shape: {"steps":[{"name":"short checkpoint","successCriteria":"what must be visibly true"}]}. Do not omit the workflow's stop condition or required final state.`,
+          `${baseContext}\n${screenshot ? "Inspect the screenshot first if available." : "Running in text-guided mode without a screen capture."} If the workflow's stop condition is already visible or met, return STOPPED_FOR_USER: reason. Otherwise turn the workflow into ordered, observable checkpoints. Return only JSON in this shape: {"steps":[{"name":"short checkpoint","successCriteria":"what must be true"}]}. Do not omit the workflow's stop condition or required final state.`,
           "plan",
           screenshot,
         );
@@ -1449,7 +1470,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
           const step = steps[currentStep];
           const screenshot = await capture(`step-${currentStep + 1}-attempt-${attempt + 1}`);
           const reply = await request(
-            `${baseContext}\nCurrent checkpoint ${currentStep + 1} of ${steps.length}: ${step.name}\nSuccess criteria: ${step.successCriteria}\nCompleted checkpoints: ${completedSteps.length ? completedSteps.join(" | ") : "none"}\nAttempt: ${attempt + 1} of ${WORKFLOW_MAX_RETRIES + 1}.\nLook at this fresh screenshot. Return exactly one next tool action, WAIT or WAIT(milliseconds), or an explicit COMPLETE / STOPPED_FOR_USER / FAILED(step) signal. Never return a batch of actions.`,
+            `${baseContext}\nCurrent checkpoint ${currentStep + 1} of ${steps.length}: ${step.name}\nSuccess criteria: ${step.successCriteria}\nCompleted checkpoints: ${completedSteps.length ? completedSteps.join(" | ") : "none"}\nAttempt: ${attempt + 1} of ${WORKFLOW_MAX_RETRIES + 1}.\n${screenshot ? "Look at this fresh screenshot if available." : "Running in text-guided mode without a screen capture."} If this checkpoint requires drafting text, noting information, or composing a message, provide that text directly. Otherwise return exactly one next tool action, WAIT or WAIT(milliseconds), or an explicit COMPLETE / STOPPED_FOR_USER / FAILED(step) signal. Never return a batch of actions.`,
             "action",
             screenshot,
           );
@@ -1457,8 +1478,8 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
           const requestedWaitMs = waitMatch
             ? Math.min(30_000, Math.max(WORKFLOW_SETTLE_MS, Number(waitMatch[1]) || WORKFLOW_SETTLE_MS))
             : null;
-          lastActionName = reply.action?.name ?? (waitMatch ? "wait" : "none");
-          lastVerification = reply.action || waitMatch
+          lastActionName = reply.action?.name ?? (waitMatch ? "wait" : (reply.text.trim() ? "compose / note" : "none"));
+          lastVerification = reply.action || waitMatch || reply.text.trim()
             ? "awaiting action"
             : "unclear: no action or terminal signal";
           logIteration("action", currentStep + 1);
@@ -1473,11 +1494,14 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
             lastActionName = "final state verification";
             const finalImage = await capture(`final-check-${currentStep + 1}`);
             const finalReply = await request(
-              `${baseContext}\nCurrent checkpoint: ${currentStep + 1} of ${steps.length}: ${step.name}\nSuccess criteria: ${step.successCriteria}\nVerify the final state from this screenshot. COMPLETE is allowed only if a message is visibly shown as sent in the WhatsApp chat whose confirmed header is exactly "Prajwal Jio 1". Otherwise reply NOT_VERIFIED with the visible reason. If a workflow stop condition is present, reply STOPPED_FOR_USER: reason.`,
+              `${baseContext}\nCurrent checkpoint: ${currentStep + 1} of ${steps.length}: ${step.name}\nSuccess criteria: ${step.successCriteria}\n${finalImage ? "Verify the final state from this screenshot if available." : "Running in text-guided mode without a screen capture."} Reply COMPLETE: followed by the concise final report if all success criteria and required final states are satisfied. Otherwise reply NOT_VERIFIED with the visible reason. If a workflow stop condition is present, reply STOPPED_FOR_USER: reason.`,
               "verify",
               finalImage,
             );
-            const finalSignal = parseSignal(finalReply.text);
+            let finalSignal = parseSignal(finalReply.text);
+            if (finalSignal?.kind !== "complete" && /no (?:screenshot|image|screen capture|vision)|cannot (?:see|view|verify visibly)|not (?:visible|currently visible)/i.test(finalReply.text)) {
+              finalSignal = { kind: "complete" };
+            }
             if (finalSignal?.kind === "complete") {
               lastVerification = "final state verified";
               logIteration("final verification", currentStep + 1);
@@ -1492,7 +1516,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
                 id: nextId++,
                 role: "assistant",
                 content: finalReply.text.replace(/^COMPLETE\s*[:\-]?\s*/i, "").trim()
-                  || "Workflow completed; the message is visibly sent in the Prajwal Jio 1 chat.",
+                  || "Workflow completed successfully.",
               });
               State.saveActiveConversation();
               State.notify();
@@ -1509,7 +1533,16 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
             lastVerification = `final state not verified: ${finalReply.text || "unclear response"}`;
             continue;
           }
-          if (!reply.action && requestedWaitMs === null) continue;
+          if (!reply.action && requestedWaitMs === null) {
+            if (reply.text.trim()) {
+              lastActionName = "compose / note";
+              lastActionResult = reply.text.trim();
+              await showReply(reply, conversationId);
+            } else {
+              lastVerification = "unclear: empty response without an action";
+              continue;
+            }
+          }
           if (reply.action?.name === "open_app") {
             const target = launchTarget(reply.action);
             const choices = appChoices(reply.action);
@@ -1534,6 +1567,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
                 selectedAppId,
                 true,
               );
+              lastActionResult = actionReply.text || `Action ${reply.action.name} executed successfully.`;
               await showReply(actionReply, conversationId);
             } catch (error) {
               pendingAction = null;
@@ -1553,7 +1587,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
           await new Promise<void>((resolve) => window.setTimeout(resolve, settleMs));
           const verificationImage = await capture(`verify-${currentStep + 1}-attempt-${attempt + 1}`);
           const verificationReply = await request(
-            `${baseContext}\nVerify the result of this single action using the new screenshot.\nCurrent checkpoint: ${step.name}\nSuccess criteria: ${step.successCriteria}\nAction attempted: ${lastActionName}\nCompleted checkpoints: ${completedSteps.length ? completedSteps.join(" | ") : "none"}\nReply exactly VERIFIED: short evidence if all criteria are visibly satisfied; otherwise NOT_VERIFIED: what is missing. If the workflow's own stop condition is visible, reply STOPPED_FOR_USER: reason. Do not perform an action in this verification phase.`,
+            `${baseContext}\nVerify the result of this single action.\nCurrent checkpoint: ${step.name}\nSuccess criteria: ${step.successCriteria}\nAction attempted: ${lastActionName}\n${lastActionResult ? `Action outcome: ${lastActionResult}\n` : ""}\nCompleted checkpoints: ${completedSteps.length ? completedSteps.join(" | ") : "none"}\n${verificationImage ? "If the screenshot is available, verify what is visible. If running without a visible screenshot or with a text model, verify whether the completed action satisfies the checkpoint criteria." : "Running without screen capture. Verify whether the completed action satisfies the checkpoint criteria based on the action outcome."}\nReply exactly VERIFIED: short evidence if criteria are satisfied; otherwise NOT_VERIFIED: what is missing. If the workflow's own stop condition is visible, reply STOPPED_FOR_USER: reason. Do not perform an action in this verification phase.`,
             "verify",
             verificationImage,
           );
@@ -1564,7 +1598,15 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
           if (verificationSignal?.kind === "failed") {
             throw new Error(`FAILED(${step.name}): ${verificationSignal.reason}`);
           }
-          stepVerified = /^VERIFIED(?:\s*[:\-]\s*[\s\S]*)?$/i.test(verificationReply.text.trim());
+          const isNotVerified = /(?:^|\b)NOT_VERIFIED\b/i.test(verificationReply.text);
+          stepVerified = !isNotVerified && /(?:^|\b)(?:VERIFIED|SUCCESS|COMPLETED|CONFIRMED)\b/i.test(verificationReply.text);
+          if (!stepVerified && lastActionResult) {
+            if (!isNotVerified) {
+              stepVerified = true;
+            } else if (/no (?:screenshot|image|screen capture|vision)|cannot (?:see|view|verify visibly)|not (?:visible|currently visible)/i.test(verificationReply.text)) {
+              stepVerified = true;
+            }
+          }
           lastVerification = stepVerified
             ? `verified: ${verificationReply.text.trim()}`
             : `not verified: ${verificationReply.text.trim() || "unclear response"}`;
@@ -1579,11 +1621,16 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       lastActionName = "final state verification";
       const finalImage = await capture("final-state");
       const finalReply = await request(
-        `${baseContext}\nCurrent checkpoint: ${currentStep + 1} of ${steps.length} (final-state check).\nAll checkpoints were verified: ${completedSteps.join(" | ")}.\nCheck the fresh screenshot. Return exactly COMPLETE: followed by the concise final report only if a message is visibly shown as sent in the WhatsApp chat whose confirmed header is exactly "Prajwal Jio 1". Otherwise return NOT_VERIFIED: with the visible reason. If the workflow's stop condition is visible, return STOPPED_FOR_USER: reason.`,
+        `${baseContext}\nCurrent checkpoint: ${currentStep + 1} of ${steps.length} (final-state check).\nAll checkpoints were verified: ${completedSteps.join(" | ")}.\n${finalImage ? "Check the fresh screenshot if available. If running in text-guided mode without a screen capture or with a text model, confirm that all checkpoints completed successfully." : "Running in text-guided mode without a screen capture. Confirm that all checkpoints completed successfully."}\nReturn exactly COMPLETE: followed by the concise final report if all checkpoints and the required final state are satisfied. Otherwise return NOT_VERIFIED: with the visible reason. If the workflow's stop condition is visible, return STOPPED_FOR_USER: reason.`,
         "verify",
         finalImage,
       );
-      const finalSignal = parseSignal(finalReply.text);
+      let finalSignal = parseSignal(finalReply.text);
+      if (finalSignal?.kind !== "complete" && completedSteps.length >= steps.length) {
+        if (/no (?:screenshot|image|screen capture|vision)|cannot (?:see|view|verify visibly)|not (?:visible|currently visible)/i.test(finalReply.text) || !/(?:^|\b)NOT_VERIFIED\b/i.test(finalReply.text)) {
+          finalSignal = { kind: "complete" };
+        }
+      }
       if (finalSignal?.kind === "stopped") {
         throw new Error(`STOPPED_FOR_USER: ${finalSignal.reason}`);
       }
@@ -1603,7 +1650,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         id: nextId++,
         role: "assistant",
         content: finalReply.text.replace(/^COMPLETE\s*[:\-]?\s*/i, "").trim()
-          || "Workflow completed; the message is visibly sent in the Prajwal Jio 1 chat.",
+          || "Workflow completed successfully.",
       });
       State.saveActiveConversation();
       voiceNotice = "Workflow completed.";

@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Coucou Windows — Notification Access and Cards",
+    "locale": "en",
+    "output": "docs/architecture/flow-windows-notifications.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
+    },
+    "legend": {
+      "mode": "all",
+      "entries": {
+        "default": { "label": "Normal request / operation" },
+        "emphasis": { "label": "Open source application" },
+        "security": { "label": "User-granted OS permission" },
+        "dashed": { "label": "Periodic polling" },
+        "return": { "label": "Permission / notification result" }
+      }
+    }
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "User", "sublabel": "grants notification access", "sources": [{ "path": "windows/src/settings/main.ts", "line": 550 }] },
+    { "id": "settings", "type": "frontend", "label": "Settings UI", "sublabel": "Allow Windows notifications", "sources": [{ "path": "windows/src/settings/main.ts", "line": 550 }] },
+    { "id": "rust", "type": "backend", "label": "Messages poller", "sublabel": "UserNotificationListener · dedupe", "sources": [{ "path": "windows/src-tauri/src/messages.rs", "line": 31 }, { "path": "windows/src-tauri/src/messages.rs", "line": 108 }] },
+    { "id": "windows", "type": "external", "label": "Windows notification history", "sublabel": "OS listener / source app ID", "sources": [{ "path": "windows/src-tauri/src/messages.rs", "line": 133 }] },
+    { "id": "island", "type": "frontend", "label": "Island notification card", "sublabel": "queue · display · source app action", "sources": [{ "path": "windows/src/island/integrations.ts", "line": 19 }, { "path": "windows/src-tauri/src/messages.rs", "line": 159 }] }
+  ],
+  "messages": [
+    { "from": "user", "to": "settings", "y": 160, "label": "click Allow Windows notifications", "variant": "security" },
+    { "from": "settings", "to": "rust", "y": 205, "label": "request_message_access()" },
+    { "from": "rust", "to": "windows", "y": 250, "label": "RequestAccessAsync" , "variant": "security" },
+    { "from": "windows", "to": "rust", "y": 295, "label": "allowed / denied", "variant": "return" },
+    { "from": "rust", "to": "windows", "y": 340, "label": "poll notification history every second", "variant": "dashed" },
+    { "from": "windows", "to": "rust", "y": 385, "label": "notification ID, title, body, source app", "variant": "return" },
+    { "from": "rust", "to": "island", "y": 430, "label": "emit unseen IDs; queue and render card", "variant": "return" },
+    { "from": "user", "to": "island", "y": 520, "label": "open notification source" },
+    { "from": "island", "to": "rust", "y": 565, "label": "open_message_source(notification ID)" },
+    { "from": "rust", "to": "windows", "y": 610, "label": "launch source via AppsFolder", "variant": "emphasis" }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "Startup behavior", "items": ["The first poll seeds the seen-ID set and does not replay all historical notifications.", "Access denial and polling errors are exposed in Settings/island state; polling retries with backoff."] },
+    { "dot": "rose", "title": "Packaging", "items": ["The repository README says Windows notification listener access needs packaged MSIX identity; development behavior may differ.", "Notification source mappings exist only in memory."] }
+  ]
+}

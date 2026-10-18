@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "sequence",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-spotify.sequence.json",
+    "sha256": "5df17629ab99cb6fd857c062299c9b9be3c4b2fbe4f0d91d914e340f5e39f191",
+    "bytes": 4121
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-spotify.html",
+    "sha256": "b254d0717eae917a0bb7f8511630d113f96b24f4de9044454737b2fe6c683d60",
+    "bytes": 818184
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-spotify.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-spotify.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-spotify.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 4191
+}

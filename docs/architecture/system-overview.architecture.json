@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Coucou Windows — System Overview",
+    "locale": "en",
+    "output": "docs/architecture/system-overview.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
+    },
+    "legend": {
+      "mode": "all",
+      "entries": {
+        "frontend": { "label": "UI / WebView" },
+        "backend": { "label": "Application logic" },
+        "database": { "label": "Local persistence" },
+        "cloud": { "label": "Configured online service" },
+        "security": { "label": "Permission / trust boundary" },
+        "messagebus": { "label": "Events / local protocol" },
+        "external": { "label": "User / Windows / other app" }
+      }
+    }
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "User", "sublabel": "types, approves, configures", "pos": [40, 270], "sources": [{ "path": "windows/src/main.ts", "line": 43, "label": "island actions" }] },
+    { "id": "island", "type": "frontend", "label": "Island WebView", "sublabel": "views · chat · Mochi · state", "pos": [220, 180], "sources": [{ "path": "windows/src/main.ts", "line": 11 }, { "path": "windows/src/views/views.ts", "line": 487 }, { "path": "windows/src/core/state.ts", "line": 170 }] },
+    { "id": "settings_ui", "type": "frontend", "label": "Settings WebView", "sublabel": "preferences · workflows", "pos": [220, 360], "sources": [{ "path": "windows/src/settings/main.ts", "line": 1348 }] },
+    { "id": "bridge", "type": "messagebus", "label": "Tauri bridge", "sublabel": "commands · events", "pos": [400, 270], "sources": [{ "path": "windows/src/core/bridge.ts", "line": 1 }, { "path": "windows/src/core/bridge.ts", "line": 80 }] },
+    { "id": "rust", "type": "backend", "label": "Rust application", "sublabel": "chat · hooks · settings", "pos": [580, 270], "sources": [{ "path": "windows/src-tauri/src/lib.rs", "line": 623 }, { "path": "windows/src-tauri/src/claude.rs", "line": 239 }] },
+    { "id": "local_files", "type": "database", "label": "Local data files", "sublabel": "settings · workflows · memory", "pos": [760, 60], "sources": [{ "path": "windows/src-tauri/src/settings.rs", "line": 104 }, { "path": "windows/src-tauri/src/workflows.rs", "line": 35 }, { "path": "windows/src-tauri/src/memory.rs", "line": 19 }] },
+    { "id": "credentials", "type": "security", "label": "Credentials", "sublabel": "service keys · OAuth tokens", "pos": [760, 160], "sources": [{ "path": "windows/src-tauri/src/secrets.rs", "line": 1 }, { "path": "windows/src-tauri/src/secrets.rs", "line": 17 }] },
+    { "id": "local_python", "type": "backend", "label": "Python services", "sublabel": "Whisper · MediaPipe vision", "pos": [760, 270], "sources": [{ "path": "windows/src-tauri/src/voice.rs", "line": 162 }, { "path": "windows/src-tauri/src/gesture_mouse.rs", "line": 64 }] },
+    { "id": "windows_os", "type": "external", "label": "Windows facilities", "sublabel": "cursor · camera · alerts", "pos": [1060, 270], "sources": [{ "path": "windows/src-tauri/src/platform/windows.rs", "line": 1 }, { "path": "windows/src-tauri/src/messages.rs", "line": 31 }] },
+    { "id": "claude_code", "type": "external", "label": "Claude Code", "sublabel": "hook JSON on stdin", "pos": [400, 450], "sources": [{ "path": "windows/hook/src/main.rs", "line": 17 }, { "path": "windows/src-tauri/src/hooks.rs", "line": 14 }] },
+    { "id": "local_models", "type": "cloud", "label": "Local Ollama", "sublabel": "local model · :11434", "pos": [940, 60], "sources": [{ "path": "windows/src-tauri/src/llm_client.rs", "line": 11 }] },
+    { "id": "openrouter", "type": "cloud", "label": "OpenRouter", "sublabel": "configured model API · HTTPS", "pos": [940, 160], "sources": [{ "path": "windows/src-tauri/src/llm_client.rs", "line": 12 }, { "path": "windows/src-tauri/src/llm_client.rs", "line": 621 }] },
+    { "id": "integrations", "type": "cloud", "label": "Integration APIs", "sublabel": "Vercel · GitHub · Stripe", "pos": [940, 380], "sources": [{ "path": "windows/src-tauri/src/integrations.rs", "line": 64 }, { "path": "windows/src-tauri/src/integrations.rs", "line": 153 }, { "path": "windows/src-tauri/src/integrations.rs", "line": 613 }] },
+    { "id": "spotify", "type": "cloud", "label": "Spotify API", "sublabel": "OAuth · playback status", "pos": [940, 470], "sources": [{ "path": "windows/src-tauri/src/spotify.rs", "line": 22 }, { "path": "windows/src-tauri/src/spotify.rs", "line": 229 }] }
+  ],
+  "connections": [
+    { "id": "user-island", "from": "user", "to": "island", "label": "interact" },
+    { "id": "user-settings", "from": "user", "to": "settings_ui", "label": "configure" },
+    { "id": "island-bridge", "from": "island", "to": "bridge", "label": "commands / events" },
+    { "id": "settings-bridge", "from": "settings_ui", "to": "bridge", "label": "commands / events" },
+    { "id": "bridge-rust", "from": "bridge", "to": "rust", "label": "invoke / emit" },
+    { "id": "rust-files", "from": "rust", "to": "local_files", "label": "read / write" },
+    { "id": "rust-credentials", "from": "rust", "to": "credentials", "label": "get / set secret", "variant": "security" },
+    { "id": "rust-python", "from": "rust", "to": "local_python", "label": "start / stop process" },
+    { "id": "python-windows", "from": "local_python", "to": "windows_os", "label": "camera / cursor / local services" },
+    { "id": "rust-windows", "from": "rust", "to": "windows_os", "label": "Tauri / Windows APIs" },
+    { "id": "claude-pipe", "from": "claude_code", "to": "rust", "label": "named-pipe hook relay", "variant": "emphasis" },
+    { "id": "rust-claude", "from": "rust", "to": "claude_code", "label": "allow / deny response", "variant": "security" },
+    { "id": "rust-ollama", "from": "rust", "to": "local_models", "label": "local chat request" },
+    { "id": "rust-openrouter", "from": "rust", "to": "openrouter", "label": "configured chat request" },
+    { "id": "rust-integrations", "from": "rust", "to": "integrations", "label": "credential-gated polling" },
+    { "id": "rust-spotify", "from": "rust", "to": "spotify", "label": "OAuth / playback API" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Local-first data", "items": ["No SQL, Firebase, or hosted Coucou database was found. Settings, workflows, memories, inbox files, and logs are stored locally.", "Secrets use Windows Credential Manager. Audio is transcribed by local Whisper; prompts and optional screenshots may go to a configured cloud model."] },
+    { "dot": "amber", "title": "Optional services", "items": ["Ollama and APIs for Vercel, GitHub, Stripe, Notion, and Cal.com require local availability or user configuration. Spotify adds OAuth playback controls.", "Windows notifications, camera access, cursor control, and SAPI are provided by Windows; permission and packaging behavior can vary."] }
+  ]
+}

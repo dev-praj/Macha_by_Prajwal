@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Coucou Windows — Chat and Local Action",
+    "locale": "en",
+    "output": "docs/architecture/flow-chat-automation.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
+    },
+    "legend": {
+      "mode": "all",
+      "entries": {
+        "default": { "label": "Normal request / operation" },
+        "emphasis": { "label": "State-changing action" },
+        "security": { "label": "Permission-sensitive action" },
+        "dashed": { "label": "Optional or asynchronous work" },
+        "return": { "label": "Reply / result" }
+      }
+    }
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "User", "sublabel": "asks / approves", "sources": [{ "path": "windows/src/views/chat.ts", "line": 1173 }] },
+    { "id": "ui", "type": "frontend", "label": "Chat WebView", "sublabel": "history · action card", "sources": [{ "path": "windows/src/views/chat.ts", "line": 1 }] },
+    { "id": "bridge", "type": "messagebus", "label": "Tauri bridge", "sublabel": "chat_send / chat_action", "sources": [{ "path": "windows/src/core/bridge.ts", "line": 100 }] },
+    { "id": "rust", "type": "backend", "label": "Claude chat", "sublabel": "context · tools · queue", "sources": [{ "path": "windows/src-tauri/src/claude.rs", "line": 239 }, { "path": "windows/src-tauri/src/claude.rs", "line": 554 }] },
+    { "id": "provider", "type": "cloud", "label": "Model provider", "sublabel": "Ollama / OpenRouter", "sources": [{ "path": "windows/src-tauri/src/llm_client.rs", "line": 94 }, { "path": "windows/src-tauri/src/llm_client.rs", "line": 152 }] },
+    { "id": "action", "type": "backend", "label": "Automation", "sublabel": "validate · execute", "sources": [{ "path": "windows/src-tauri/src/automation.rs", "line": 177 }, { "path": "windows/src-tauri/src/automation.rs", "line": 502 }] },
+    { "id": "windows", "type": "external", "label": "Windows / files", "sublabel": "user-level actions", "sources": [{ "path": "windows/src-tauri/src/automation.rs", "line": 908 }] }
+  ],
+  "messages": [
+    { "from": "user", "to": "ui", "y": 160, "label": "type or submit request" },
+    { "from": "ui", "to": "bridge", "y": 205, "label": "chatSend + history + context" },
+    { "from": "bridge", "to": "rust", "y": 250, "label": "chat_send command" },
+    { "from": "rust", "to": "provider", "y": 295, "label": "system prompt + memory + history + optional file/screen" },
+    { "from": "provider", "to": "rust", "y": 340, "label": "text reply or tool request", "variant": "return" },
+    { "from": "rust", "to": "ui", "y": 385, "label": "reply or pending action card", "variant": "return" },
+    { "from": "user", "to": "ui", "y": 430, "label": "review proposed action; approve or deny", "variant": "security" },
+    { "from": "ui", "to": "bridge", "y": 475, "label": "chatAction(approved, selected target)" },
+    { "from": "bridge", "to": "rust", "y": 520, "label": "resolve pending action" },
+    { "from": "rust", "to": "action", "y": 565, "label": "prepare / execute validated action", "variant": "emphasis" },
+    { "from": "action", "to": "windows", "y": 610, "label": "open, file, mouse, keys, PowerShell" },
+    { "from": "windows", "to": "action", "y": 655, "label": "operation result", "variant": "return" },
+    { "from": "action", "to": "rust", "y": 700, "label": "result / error text", "variant": "return" },
+    { "from": "rust", "to": "provider", "y": 745, "label": "optional answer follow-up", "variant": "dashed" },
+    { "from": "rust", "to": "ui", "y": 790, "label": "assistant reply + provider/model label", "variant": "return" }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "Approval rule", "items": ["Ordinary chat local actions require an explicit approval; saved workflows started by the user use a separate pre-authorized single-action path.", "PowerShell runs with the current Windows user's permissions."] },
+    { "dot": "cyan", "title": "Provider boundary", "items": ["Ollama is contacted at loopback; OpenRouter uses HTTPS.", "File contents, memories, and screenshots included in a request may be sent to the selected cloud provider."] }
+  ]
+}

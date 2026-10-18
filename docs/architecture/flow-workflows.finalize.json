@@ -1,0 +1,417 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "sequence",
+  "quality": "showcase",
+  "startedAt": "2026-10-17T05:26:34.381Z",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.sequence.json",
+    "sha256": "887d381e34698f10a0cd0a16d75940c69c54b1991c4be06042f66437b7d1cd39",
+    "bytes": 4914
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.html"
+  },
+  "stages": {
+    "validate": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": null,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "sequence",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.sequence.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "deliver",
+        "receiptId": "ff03598c-6ee2-46fd-b655-2560ca2ebb93",
+        "stage": "render",
+        "type": "sequence",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.sequence.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.html",
+        "error": "Sequence layout validation failed:\n- Sublabel \"prompt/name/archive/timestamps\" needs ~126px at the 7px minimum that stays readable on this 1085px canvas, but participant \"store\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Chat workflow loop\" (~122px) is wider than component \"chat\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"screenshot · checkpoint · retry\" needs ~131px at the 7px minimum that stays readable on this 1085px canvas, but participant \"chat\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Selected model provider\" (~156px) is wider than component \"provider\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"plan / action / verify phases\" needs ~122px at the 7px minimum that stays readable on this 1085px canvas, but participant \"provider\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"fresh screenshot per phase\" needs ~110px at the 7px minimum that stays readable on this 1085px canvas, but participant \"screen\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Automation executor\" (~129px) is wider than component \"automation\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"one visible action at a time\" needs ~118px at the 7px minimum that stays readable on this 1085px canvas, but participant \"automation\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+        "diagnostics": [
+          {
+            "code": "sequence/participant-sublabel-overflow",
+            "severity": "error",
+            "message": "Sublabel \"prompt/name/archive/timestamps\" needs ~126px at the 7px minimum that stays readable on this 1085px canvas, but participant \"store\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "store",
+              "path": "/participants/2/sublabel"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 113,
+              "text": "prompt/name/archive/timestamps",
+              "requiredWidth": 126,
+              "availableWidth": 105,
+              "minimumFontPx": 7
+            },
+            "supportedFixes": [
+              "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+            ]
+          },
+          {
+            "code": "sequence/participant-label-overflow",
+            "severity": "error",
+            "message": "Label \"Chat workflow loop\" (~122px) is wider than component \"chat\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "chat",
+              "path": "/participants/3/label"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 113,
+              "text": "Chat workflow loop",
+              "requiredWidth": 122.39999999999999,
+              "availableWidth": 119
+            },
+            "supportedFixes": [
+              "shorten the participant label while preserving its role"
+            ]
+          },
+          {
+            "code": "sequence/participant-sublabel-overflow",
+            "severity": "error",
+            "message": "Sublabel \"screenshot · checkpoint · retry\" needs ~131px at the 7px minimum that stays readable on this 1085px canvas, but participant \"chat\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "chat",
+              "path": "/participants/3/sublabel"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 113,
+              "text": "screenshot · checkpoint · retry",
+              "requiredWidth": 130.2,
+              "availableWidth": 105,
+              "minimumFontPx": 7
+            },
+            "supportedFixes": [
+              "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+            ]
+          },
+          {
+            "code": "sequence/participant-label-overflow",
+            "severity": "error",
+            "message": "Label \"Selected model provider\" (~156px) is wider than component \"provider\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "provider",
+              "path": "/participants/4/label"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 113,
+              "text": "Selected model provider",
+              "requiredWidth": 156.4,
+              "availableWidth": 119
+            },
+            "supportedFixes": [
+              "shorten the participant label while preserving its role"
+            ]
+          },
+          {
+            "code": "sequence/participant-sublabel-overflow",
+            "severity": "error",
+            "message": "Sublabel \"plan / action / verify phases\" needs ~122px at the 7px minimum that stays readable on this 1085px canvas, but participant \"provider\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "provider",
+              "path": "/participants/4/sublabel"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 113,
+              "text": "plan / action / verify phases",
+              "requiredWidth": 121.8,
+              "availableWidth": 105,
+              "minimumFontPx": 7
+            },
+            "supportedFixes": [
+              "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+            ]
+          },
+          {
+            "code": "sequence/participant-sublabel-overflow",
+            "severity": "error",
+            "message": "Sublabel \"fresh screenshot per phase\" needs ~110px at the 7px minimum that stays readable on this 1085px canvas, but participant \"screen\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "screen",
+              "path": "/participants/5/sublabel"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 113,
+              "text": "fresh screenshot per phase",
+              "requiredWidth": 109.2,
+              "availableWidth": 105,
+              "minimumFontPx": 7
+            },
+            "supportedFixes": [
+              "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+            ]
+          },
+          {
+            "code": "sequence/participant-label-overflow",
+            "severity": "error",
+            "message": "Label \"Automation executor\" (~129px) is wider than component \"automation\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "automation",
+              "path": "/participants/6/label"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 113,
+              "text": "Automation executor",
+              "requiredWidth": 129.2,
+              "availableWidth": 119
+            },
+            "supportedFixes": [
+              "shorten the participant label while preserving its role"
+            ]
+          },
+          {
+            "code": "sequence/participant-sublabel-overflow",
+            "severity": "error",
+            "message": "Sublabel \"one visible action at a time\" needs ~118px at the 7px minimum that stays readable on this 1085px canvas, but participant \"automation\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "automation",
+              "path": "/participants/6/sublabel"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 113,
+              "text": "one visible action at a time",
+              "requiredWidth": 117.6,
+              "availableWidth": 105,
+              "minimumFontPx": 7
+            },
+            "supportedFixes": [
+              "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+            ]
+          }
+        ],
+        "provenance": "absent",
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      },
+      "execution": "embedded-in-deliver"
+    },
+    "deliver": {
+      "status": "not-run",
+      "execution": "blocked-by-validate"
+    }
+  },
+  "diagnostics": [
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"prompt/name/archive/timestamps\" needs ~126px at the 7px minimum that stays readable on this 1085px canvas, but participant \"store\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "store",
+        "path": "/participants/2/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "prompt/name/archive/timestamps",
+        "requiredWidth": 126,
+        "availableWidth": 105,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    },
+    {
+      "code": "sequence/participant-label-overflow",
+      "severity": "error",
+      "message": "Label \"Chat workflow loop\" (~122px) is wider than component \"chat\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "chat",
+        "path": "/participants/3/label"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "Chat workflow loop",
+        "requiredWidth": 122.39999999999999,
+        "availableWidth": 119
+      },
+      "supportedFixes": [
+        "shorten the participant label while preserving its role"
+      ]
+    },
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"screenshot · checkpoint · retry\" needs ~131px at the 7px minimum that stays readable on this 1085px canvas, but participant \"chat\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "chat",
+        "path": "/participants/3/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "screenshot · checkpoint · retry",
+        "requiredWidth": 130.2,
+        "availableWidth": 105,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    },
+    {
+      "code": "sequence/participant-label-overflow",
+      "severity": "error",
+      "message": "Label \"Selected model provider\" (~156px) is wider than component \"provider\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "provider",
+        "path": "/participants/4/label"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "Selected model provider",
+        "requiredWidth": 156.4,
+        "availableWidth": 119
+      },
+      "supportedFixes": [
+        "shorten the participant label while preserving its role"
+      ]
+    },
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"plan / action / verify phases\" needs ~122px at the 7px minimum that stays readable on this 1085px canvas, but participant \"provider\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "provider",
+        "path": "/participants/4/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "plan / action / verify phases",
+        "requiredWidth": 121.8,
+        "availableWidth": 105,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    },
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"fresh screenshot per phase\" needs ~110px at the 7px minimum that stays readable on this 1085px canvas, but participant \"screen\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "screen",
+        "path": "/participants/5/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "fresh screenshot per phase",
+        "requiredWidth": 109.2,
+        "availableWidth": 105,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    },
+    {
+      "code": "sequence/participant-label-overflow",
+      "severity": "error",
+      "message": "Label \"Automation executor\" (~129px) is wider than component \"automation\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "automation",
+        "path": "/participants/6/label"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "Automation executor",
+        "requiredWidth": 129.2,
+        "availableWidth": 119
+      },
+      "supportedFixes": [
+        "shorten the participant label while preserving its role"
+      ]
+    },
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"one visible action at a time\" needs ~118px at the 7px minimum that stays readable on this 1085px canvas, but participant \"automation\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "automation",
+        "path": "/participants/6/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "one visible action at a time",
+        "requiredWidth": 117.6,
+        "availableWidth": 105,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "validate",
+  "finishedAt": "2026-10-17T05:26:35.630Z",
+  "durationMs": 1249,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

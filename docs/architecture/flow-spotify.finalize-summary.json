@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "sequence",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-spotify.sequence.json",
+    "sha256": "f52de9e76d5982716fa1fe3405355e7becbc6eb1f71abf53de7f97ae172921ea",
+    "bytes": 4185
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-spotify.html"
+  },
+  "gates": {
+    "validate": "fail",
+    "deliver": "not-run",
+    "check": "not-run",
+    "browser-check": "not-run"
+  },
+  "failedStage": "validate",
+  "diagnostics": [
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"configures / signs in / controls\" needs ~135px at the 7px minimum that stays readable on this 1085px canvas, but participant \"user\" provides 128px — shorten the sublabel (participant boxes are 136px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "user",
+        "path": "/participants/0/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 136,
+        "text": "configures / signs in / controls",
+        "requiredWidth": 134.4,
+        "availableWidth": 128,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    },
+    {
+      "code": "sequence/participant-label-overflow",
+      "severity": "error",
+      "message": "Label \"Spotify OAuth / Web API\" (~156px) is wider than component \"spotify\" — shorten it to at most 20 text units (CJK counts 2; participant boxes are 136px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "spotify",
+        "path": "/participants/5/label"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 136,
+        "text": "Spotify OAuth / Web API",
+        "requiredWidth": 156.4,
+        "availableWidth": 142
+      },
+      "supportedFixes": [
+        "shorten the participant label while preserving its role"
+      ]
+    },
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"OAuth callback · token refresh · poll / control\" needs ~198px at the 7px minimum that stays readable on this 1085px canvas, but participant \"rust\" provides 128px — shorten the sublabel (participant boxes are 136px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "rust",
+        "path": "/participants/2/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 136,
+        "text": "OAuth callback · token refresh · poll / control",
+        "requiredWidth": 197.4,
+        "availableWidth": 128,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    },
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"accounts.spotify.com · api.spotify.com\" needs ~160px at the 7px minimum that stays readable on this 1085px canvas, but participant \"spotify\" provides 128px — shorten the sublabel (participant boxes are 136px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "spotify",
+        "path": "/participants/5/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 136,
+        "text": "accounts.spotify.com · api.spotify.com",
+        "requiredWidth": 159.6,
+        "availableWidth": 128,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 4,
+    "shown": 4,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-spotify.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-spotify.finalize-summary.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 1134,
+  "nextAction": {
+    "action": "edit-in-place",
+    "candidate": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-spotify.sequence.json",
+    "constraint": "Preserve unaffected semantics and geometry; apply each diagnostic's supportedFixes, or the fix its message names, and do not replace the whole candidate.",
+    "then": "finalize-once"
+  }
+}

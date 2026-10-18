@@ -231,6 +231,9 @@ class AppState {
   isPinned = false;
   paused = false;
 
+  nixiPttActive = false;
+  nixiDictateActive = false;
+
   uploadProgress = 0;
   uploadDuration = 2.4;
   fileDragOver = false;

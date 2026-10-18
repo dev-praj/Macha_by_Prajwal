@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Coucou Windows — File Drop and Chat Context",
+    "locale": "en",
+    "output": "docs/architecture/flow-file-drop.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
+    },
+    "legend": {
+      "mode": "all",
+      "entries": {
+        "default": { "label": "Normal request / operation" },
+        "emphasis": { "label": "State-changing action" },
+        "security": { "label": "Data leaves local disk boundary" },
+        "dashed": { "label": "Optional work" },
+        "return": { "label": "Result / response" }
+      }
+    }
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "User", "sublabel": "drops or selects file", "sources": [{ "path": "windows/src/views/upload.ts", "line": 1 }] },
+    { "id": "ui", "type": "frontend", "label": "Island / chat", "sublabel": "drop · file chip", "sources": [{ "path": "windows/src/views/upload.ts", "line": 1 }, { "path": "windows/src/views/chat.ts", "line": 1 }] },
+    { "id": "bridge", "type": "messagebus", "label": "Tauri file bridge", "sublabel": "picker · ingest_file", "sources": [{ "path": "windows/src/core/bridge.ts", "line": 270 }, { "path": "windows/src/core/bridge.ts", "line": 326 }] },
+    { "id": "rust", "type": "backend", "label": "Rust file ingestion", "sublabel": "validate and copy source", "sources": [{ "path": "windows/src-tauri/src/files.rs", "line": 26 }] },
+    { "id": "inbox", "type": "database", "label": "Local inbox", "sublabel": "%LOCALAPPDATA%\\Coucou\\inbox", "sources": [{ "path": "windows/src-tauri/src/files.rs", "line": 17 }] },
+    { "id": "provider", "type": "cloud", "label": "Chat model provider", "sublabel": "optional interpretation", "sources": [{ "path": "windows/src-tauri/src/claude.rs", "line": 239 }] }
+  ],
+  "messages": [
+    { "from": "user", "to": "ui", "y": 160, "label": "drop file or open native picker" },
+    { "from": "ui", "to": "bridge", "y": 205, "label": "selected path" },
+    { "from": "bridge", "to": "rust", "y": 250, "label": "ingest_file(path)" },
+    { "from": "rust", "to": "inbox", "y": 295, "label": "copy file; choose collision-safe name", "variant": "emphasis" },
+    { "from": "inbox", "to": "rust", "y": 340, "label": "local copied-file path and size", "variant": "return" },
+    { "from": "rust", "to": "bridge", "y": 385, "label": "DroppedFile metadata", "variant": "return" },
+    { "from": "bridge", "to": "ui", "y": 430, "label": "show upload completion / file chip", "variant": "return" },
+    { "from": "user", "to": "ui", "y": 475, "label": "ask a question about the attached file" },
+    { "from": "ui", "to": "rust", "y": 520, "label": "chat request includes context path" },
+    { "from": "rust", "to": "inbox", "y": 565, "label": "read supported file contents" },
+    { "from": "rust", "to": "provider", "y": 610, "label": "include contents in model context", "variant": "security" },
+    { "from": "provider", "to": "rust", "y": 655, "label": "assistant answer", "variant": "return" },
+    { "from": "rust", "to": "ui", "y": 700, "label": "chat reply", "variant": "return" }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "Local copy behavior", "items": ["Directories are rejected; original source is not modified.", "Inbox copies older than seven days are removed during a later ingestion.", "If a cloud provider handles the question, included file contents can leave the device."] }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "3855f37b-1bf6-40cf-8207-b8b93e55159f",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.architecture.json",
+  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.html",
+  "specification": {
+    "sha256": "9379c3fcd98e4fdb75aa9ca90c486427fac079b38ae3eccd409dc6bf40e1eee7",
+    "bytes": 7128
+  },
+  "artifact": {
+    "sha256": "99edf8b9dfb6b49d59d2f158747492794ab58178663e586c33e537cc3a7ebe3c",
+    "bytes": 846102
+  }
+}

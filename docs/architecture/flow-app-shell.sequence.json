@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Coucou Windows — Launch and Island Navigation",
+    "locale": "en",
+    "output": "docs/architecture/flow-app-shell.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
+    },
+    "legend": {
+      "mode": "all",
+      "entries": {
+        "default": { "label": "Normal request / operation" },
+        "emphasis": { "label": "State-changing action" },
+        "security": { "label": "Permission-sensitive action" },
+        "dashed": { "label": "Optional or asynchronous work" },
+        "return": { "label": "Reply / event" }
+      }
+    }
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "User", "sublabel": "launches or interacts", "sources": [{ "path": "windows/src/main.ts", "line": 43 }] },
+    { "id": "runtime", "type": "backend", "label": "Tauri runtime", "sublabel": "plugins · boot · lifecycle", "sources": [{ "path": "windows/src-tauri/src/lib.rs", "line": 623 }] },
+    { "id": "settings", "type": "frontend", "label": "Settings WebView", "sublabel": "created hidden before island", "sources": [{ "path": "windows/src-tauri/src/lib.rs", "line": 582 }] },
+    { "id": "island", "type": "frontend", "label": "Island WebView", "sublabel": "tabs · views · Mochi", "sources": [{ "path": "windows/src/main.ts", "line": 11 }, { "path": "windows/src/views/views.ts", "line": 81 }] },
+    { "id": "bridge", "type": "messagebus", "label": "Tauri bridge", "sublabel": "commands and events", "sources": [{ "path": "windows/src/core/bridge.ts", "line": 1 }, { "path": "windows/src/core/bridge.ts", "line": 313 }] },
+    { "id": "os", "type": "external", "label": "Windows desktop", "sublabel": "cursor · display · tray", "sources": [{ "path": "windows/src-tauri/src/platform/windows.rs", "line": 1 }, { "path": "windows/src-tauri/src/island.rs", "line": 560 }] }
+  ],
+  "messages": [
+    { "from": "user", "to": "runtime", "y": 160, "label": "launch Coucou" },
+    { "from": "runtime", "to": "os", "y": 205, "label": "register tray, shortcut, optional autostart", "variant": "dashed" },
+    { "from": "runtime", "to": "settings", "y": 250, "label": "create hidden Settings window" },
+    { "from": "runtime", "to": "island", "y": 295, "label": "create and show island window" },
+    { "from": "island", "to": "bridge", "y": 340, "label": "boot()" },
+    { "from": "bridge", "to": "runtime", "y": 385, "label": "invoke boot command" },
+    { "from": "runtime", "to": "island", "y": 430, "label": "settings + screen + version", "variant": "return" },
+    { "from": "runtime", "to": "os", "y": 475, "label": "poll cursor / display while active", "variant": "dashed" },
+    { "from": "os", "to": "bridge", "y": 520, "label": "cursor / display-change event", "variant": "return" },
+    { "from": "bridge", "to": "island", "y": 565, "label": "update position / reveal" },
+    { "from": "user", "to": "island", "y": 610, "label": "hover, click tab, or open tray item", "variant": "emphasis" },
+    { "from": "island", "to": "bridge", "y": 655, "label": "settings / collapse / focus command" },
+    { "from": "bridge", "to": "runtime", "y": 700, "label": "invoke window command" },
+    { "from": "runtime", "to": "os", "y": 745, "label": "resize, focus, or reposition window", "variant": "return" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Navigation", "items": ["Overview, Ask, Drop, and the compact Settings view are header tabs.", "The full settings UI is a second Tauri WebView."] },
+    { "dot": "amber", "title": "Windows behavior", "items": ["The hidden island is a zero-height top-edge window; cursor polling may be gated by pause/auto-hide state.", "The settings window is created early and hidden so it can be shown later."] }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "821b0888-e246-403b-b7b2-d9b220ffaef8",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-hooks-approval.sequence.json",
+  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-hooks-approval.html",
+  "specification": {
+    "sha256": "e80ec7fdb2fd68762f96f097491629ea9829c581bbb0c290a1f954f0740a2148",
+    "bytes": 4120
+  },
+  "artifact": {
+    "sha256": "04105f65cc8d071c0877e9ca01c1e4951f58c0d9c25e9e11588957dab77fbbc1",
+    "bytes": 817237
+  }
+}

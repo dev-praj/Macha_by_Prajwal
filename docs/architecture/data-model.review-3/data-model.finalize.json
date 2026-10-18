@@ -1,0 +1,1367 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-10-17T05:25:05.328Z",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.architecture.json",
+    "sha256": "93b1e0ef0f41b25b436a94604c956f8a5b83f692337f493bbba81096eb2119e1",
+    "bytes": 6667
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.html",
+    "sha256": "1f4fa3af3f51c8070b34c067a5bbe1ba62b4a5c4ab2549068992dd31b6f9b7ca",
+    "bytes": 846400
+  },
+  "stages": {
+    "validate": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": null,
+      "execution": "embedded-in-deliver",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "architecture",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.architecture.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "validate",
+        "specification": {
+          "sha256": "93b1e0ef0f41b25b436a94604c956f8a5b83f692337f493bbba81096eb2119e1",
+          "bytes": 6667
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        }
+      }
+    },
+    "deliver": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 1527,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "architecture",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.architecture.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "1854eff3-7024-4b34-bf97-55d2d775bb17",
+        "ok": true,
+        "command": "deliver",
+        "type": "architecture",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.architecture.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.html",
+        "specification": {
+          "sha256": "93b1e0ef0f41b25b436a94604c956f8a5b83f692337f493bbba81096eb2119e1",
+          "bytes": 6667
+        },
+        "artifact": {
+          "sha256": "1f4fa3af3f51c8070b34c067a5bbe1ba62b4a5c4ab2549068992dd31b6f9b7ca",
+          "bytes": 846400
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        },
+        "evidence": {
+          "verified": true,
+          "repository": "https://github.com/vemalaprajwal8200-a11y/coucou-customised",
+          "revision": "bd05b4a680a5876221544934fa776d1963bb28cf",
+          "references": 28
+        },
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      }
+    },
+    "check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 329,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "check",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.html",
+        "--require-provenance"
+      ],
+      "receipt": {
+        "ok": true,
+        "file": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.html",
+        "artifact": {
+          "sha256": "1f4fa3af3f51c8070b34c067a5bbe1ba62b4a5c4ab2549068992dd31b6f9b7ca",
+          "bytes": 846400
+        },
+        "checks": [
+          {
+            "name": "single_svg",
+            "ok": true,
+            "details": [
+              "found 1 <svg> block(s)"
+            ]
+          },
+          {
+            "name": "finite_svg",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "orthogonal_arrows",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "label_route_clearance",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "relationship_crossings",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "relationship_corridors",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "container_border_runs",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "route_rhythm",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "legend_clearance",
+            "ok": true,
+            "details": []
+          }
+        ],
+        "composition": {
+          "schemaVersion": 1,
+          "profile": "showcase",
+          "status": "pass",
+          "summary": {
+            "errors": 0,
+            "warnings": 0
+          },
+          "metrics": {
+            "properCrossings": 0,
+            "resolvedCrossovers": 15,
+            "ambiguousCorridors": 0,
+            "arrowheadCollisions": 0,
+            "containerBorderRuns": 0,
+            "labelRouteClearanceIssues": 0,
+            "labelCanvasOverflowIssues": 0,
+            "minLabelRouteClearance": 7,
+            "desktopReadabilityIssues": 0,
+            "viewportHeightIssues": 0,
+            "minProjectedNodeTextPx": 6.2,
+            "maxBends": 6,
+            "routesOverSuggestedBends": 5,
+            "maxStretch": 1.357,
+            "routesOverSuggestedStretch": 1,
+            "minSegmentPx": 24,
+            "minInteriorSegmentPx": 30.4,
+            "shortSegmentCount": 0,
+            "shortEndpointSegmentCount": 0,
+            "shortInteriorSegmentCount": 0,
+            "microSegmentCount": 0
+          },
+          "suggestedLimits": {
+            "bendsPerRelationship": 2,
+            "stretch": 1.35,
+            "segmentPx": 16,
+            "microSegmentPx": 8
+          },
+          "routeReview": {
+            "crossings": [
+              {
+                "left": {
+                  "from": "rust",
+                  "to": "settings_file",
+                  "label": "load / save",
+                  "collectionIndex": 1,
+                  "artifactIndex": 2
+                },
+                "right": {
+                  "from": "rust",
+                  "to": "memories_file",
+                  "label": "memory records",
+                  "collectionIndex": 3,
+                  "artifactIndex": 4
+                },
+                "point": [
+                  334,
+                  156
+                ],
+                "sharedNode": "rust"
+              },
+              {
+                "left": {
+                  "from": "rust",
+                  "to": "workflows_file",
+                  "label": "list / save / archive / delete",
+                  "collectionIndex": 2,
+                  "artifactIndex": 3
+                },
+                "right": {
+                  "from": "rust",
+                  "to": "memories_file",
+                  "label": "memory records",
+                  "collectionIndex": 3,
+                  "artifactIndex": 4
+                },
+                "point": [
+                  468,
+                  203
+                ],
+                "sharedNode": "rust"
+              },
+              {
+                "left": {
+                  "from": "rust",
+                  "to": "inbox",
+                  "label": "copy / read / sweep",
+                  "collectionIndex": 4,
+                  "artifactIndex": 5
+                },
+                "right": {
+                  "from": "rust",
+                  "to": "account_meta",
+                  "label": "save OpenRouter names / IDs",
+                  "collectionIndex": 8,
+                  "artifactIndex": 9
+                },
+                "point": [
+                  475.27272727272725,
+                  316
+                ],
+                "sharedNode": "rust"
+              },
+              {
+                "left": {
+                  "from": "chat_ui",
+                  "to": "conversations",
+                  "label": "restore / persist",
+                  "collectionIndex": 5,
+                  "artifactIndex": 6
+                },
+                "right": {
+                  "from": "settings_ui",
+                  "to": "credential_store",
+                  "label": "explicit key operations",
+                  "collectionIndex": 6,
+                  "artifactIndex": 7
+                },
+                "point": [
+                  241,
+                  420
+                ]
+              },
+              {
+                "left": {
+                  "from": "chat_ui",
+                  "to": "conversations",
+                  "label": "restore / persist",
+                  "collectionIndex": 5,
+                  "artifactIndex": 6
+                },
+                "right": {
+                  "from": "rust",
+                  "to": "credential_store",
+                  "label": "get / set / clear",
+                  "collectionIndex": 7,
+                  "artifactIndex": 8
+                },
+                "point": [
+                  249,
+                  420
+                ]
+              },
+              {
+                "left": {
+                  "from": "chat_ui",
+                  "to": "conversations",
+                  "label": "restore / persist",
+                  "collectionIndex": 5,
+                  "artifactIndex": 6
+                },
+                "right": {
+                  "from": "rust",
+                  "to": "ephemeral",
+                  "label": "active request and event state",
+                  "collectionIndex": 9,
+                  "artifactIndex": 10
+                },
+                "point": [
+                  236,
+                  420
+                ]
+              },
+              {
+                "left": {
+                  "from": "settings_ui",
+                  "to": "credential_store",
+                  "label": "explicit key operations",
+                  "collectionIndex": 6,
+                  "artifactIndex": 7
+                },
+                "right": {
+                  "from": "rust",
+                  "to": "ephemeral",
+                  "label": "active request and event state",
+                  "collectionIndex": 9,
+                  "artifactIndex": 10
+                },
+                "point": [
+                  241,
+                  210.3846153846154
+                ]
+              },
+              {
+                "left": {
+                  "from": "settings_ui",
+                  "to": "credential_store",
+                  "label": "explicit key operations",
+                  "collectionIndex": 6,
+                  "artifactIndex": 7
+                },
+                "right": {
+                  "from": "rust",
+                  "to": "claude_config",
+                  "label": "preview / backup / confirmed write",
+                  "collectionIndex": 10,
+                  "artifactIndex": 11
+                },
+                "point": [
+                  484.00000000000006,
+                  520
+                ]
+              },
+              {
+                "left": {
+                  "from": "settings_ui",
+                  "to": "credential_store",
+                  "label": "explicit key operations",
+                  "collectionIndex": 6,
+                  "artifactIndex": 7
+                },
+                "right": {
+                  "from": "chat_ui",
+                  "to": "llm_context",
+                  "label": "chat + optional screenshot",
+                  "collectionIndex": 11,
+                  "artifactIndex": 12
+                },
+                "point": [
+                  241,
+                  384
+                ]
+              },
+              {
+                "left": {
+                  "from": "rust",
+                  "to": "credential_store",
+                  "label": "get / set / clear",
+                  "collectionIndex": 7,
+                  "artifactIndex": 8
+                },
+                "right": {
+                  "from": "rust",
+                  "to": "claude_config",
+                  "label": "preview / backup / confirmed write",
+                  "collectionIndex": 10,
+                  "artifactIndex": 11
+                },
+                "point": [
+                  320,
+                  264
+                ],
+                "sharedNode": "rust"
+              },
+              {
+                "left": {
+                  "from": "rust",
+                  "to": "credential_store",
+                  "label": "get / set / clear",
+                  "collectionIndex": 7,
+                  "artifactIndex": 8
+                },
+                "right": {
+                  "from": "chat_ui",
+                  "to": "llm_context",
+                  "label": "chat + optional screenshot",
+                  "collectionIndex": 11,
+                  "artifactIndex": 12
+                },
+                "point": [
+                  249,
+                  384
+                ]
+              },
+              {
+                "left": {
+                  "from": "rust",
+                  "to": "account_meta",
+                  "label": "save OpenRouter names / IDs",
+                  "collectionIndex": 8,
+                  "artifactIndex": 9
+                },
+                "right": {
+                  "from": "rust",
+                  "to": "claude_config",
+                  "label": "preview / backup / confirmed write",
+                  "collectionIndex": 10,
+                  "artifactIndex": 11
+                },
+                "point": [
+                  475.93333333333334,
+                  319
+                ],
+                "sharedNode": "rust"
+              },
+              {
+                "left": {
+                  "from": "rust",
+                  "to": "account_meta",
+                  "label": "save OpenRouter names / IDs",
+                  "collectionIndex": 8,
+                  "artifactIndex": 9
+                },
+                "right": {
+                  "from": "chat_ui",
+                  "to": "llm_context",
+                  "label": "chat + optional screenshot",
+                  "collectionIndex": 11,
+                  "artifactIndex": 12
+                },
+                "point": [
+                  476,
+                  384
+                ]
+              },
+              {
+                "left": {
+                  "from": "rust",
+                  "to": "ephemeral",
+                  "label": "active request and event state",
+                  "collectionIndex": 9,
+                  "artifactIndex": 10
+                },
+                "right": {
+                  "from": "chat_ui",
+                  "to": "llm_context",
+                  "label": "chat + optional screenshot",
+                  "collectionIndex": 11,
+                  "artifactIndex": 12
+                },
+                "point": [
+                  236,
+                  384
+                ]
+              },
+              {
+                "left": {
+                  "from": "rust",
+                  "to": "claude_config",
+                  "label": "preview / backup / confirmed write",
+                  "collectionIndex": 10,
+                  "artifactIndex": 11
+                },
+                "right": {
+                  "from": "chat_ui",
+                  "to": "llm_context",
+                  "label": "chat + optional screenshot",
+                  "collectionIndex": 11,
+                  "artifactIndex": 12
+                },
+                "point": [
+                  484,
+                  384
+                ]
+              }
+            ],
+            "crowdedSides": [
+              {
+                "node": "rust",
+                "label": "Rust data layer",
+                "side": "right",
+                "relationships": 5,
+                "sidePx": 60,
+                "neededPx": 88
+              }
+            ],
+            "detours": [
+              {
+                "relationship": {
+                  "from": "rust",
+                  "to": "memories_file",
+                  "label": "memory records",
+                  "collectionIndex": 3,
+                  "artifactIndex": 4
+                },
+                "bends": 3,
+                "stretch": 1.192
+              },
+              {
+                "relationship": {
+                  "from": "settings_ui",
+                  "to": "credential_store",
+                  "label": "explicit key operations",
+                  "collectionIndex": 6,
+                  "artifactIndex": 7
+                },
+                "bends": 6,
+                "stretch": 1.262
+              },
+              {
+                "relationship": {
+                  "from": "rust",
+                  "to": "credential_store",
+                  "label": "get / set / clear",
+                  "collectionIndex": 7,
+                  "artifactIndex": 8
+                },
+                "bends": 4,
+                "stretch": 1.357
+              },
+              {
+                "relationship": {
+                  "from": "rust",
+                  "to": "account_meta",
+                  "label": "save OpenRouter names / IDs",
+                  "collectionIndex": 8,
+                  "artifactIndex": 9
+                },
+                "bends": 4,
+                "stretch": 1
+              },
+              {
+                "relationship": {
+                  "from": "rust",
+                  "to": "claude_config",
+                  "label": "preview / backup / confirmed write",
+                  "collectionIndex": 10,
+                  "artifactIndex": 11
+                },
+                "bends": 4,
+                "stretch": 1
+              }
+            ]
+          },
+          "leadingSpace": {
+            "measured": true,
+            "emptyTopPx": 60,
+            "emptyTopRatio": 0.081,
+            "occupiedTop": 60,
+            "viewBoxTop": 0,
+            "canvasHeight": 740,
+            "typicalNodeHeight": 60,
+            "reviewSuggested": false
+          },
+          "desktopReadability": {
+            "budgetBasis": "recognized-declared-wide",
+            "readerContract": "declared-wide-v1",
+            "availableDiagramWidth": 1200,
+            "actualBudgetPx": 1200,
+            "actualReaderWidth": 1230,
+            "desiredReaderWidth": 1230,
+            "viewportCap": 1376,
+            "limit": "source-size",
+            "requestedTargetPx": 7.5,
+            "requestedTargetMet": false,
+            "hardFloorPx": 6,
+            "hardFloorMet": true,
+            "minimumOwner": {
+              "kind": "node",
+              "id": "settings_ui"
+            },
+            "minimumSourceTextPx": 6.2,
+            "minimumProjectedTextPx": 6.2,
+            "semanticTextCount": 44
+          },
+          "issues": []
+        },
+        "provenance": "current",
+        "deliveryReceiptId": "1854eff3-7024-4b34-bf97-55d2d775bb17"
+      }
+    },
+    "browser-check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 3208,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "browser-check",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.html",
+        "--json",
+        "--require-provenance",
+        "--out-dir",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.review-3"
+      ],
+      "execution": "in-process",
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "browser-check",
+        "evidenceKind": "automated-browser",
+        "status": "pass",
+        "visualReview": "not-requested",
+        "provenance": "current",
+        "deliveryReceiptId": "1854eff3-7024-4b34-bf97-55d2d775bb17",
+        "artifact": {
+          "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.html",
+          "sha256": "1f4fa3af3f51c8070b34c067a5bbe1ba62b4a5c4ab2549068992dd31b6f9b7ca",
+          "bytes": 846400
+        },
+        "state": {
+          "detail": "read",
+          "motion": "still"
+        },
+        "chrome": {
+          "status": "available",
+          "executable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+        },
+        "diagnostics": [],
+        "containment": {
+          "status": "pass",
+          "policy": "fit-or-reader-declared-readable-vertical-scroll",
+          "viewports": [
+            {
+              "width": 1440,
+              "height": 900,
+              "theme": "light",
+              "innerWidth": 1440,
+              "innerHeight": 900,
+              "scrollWidth": 1440,
+              "scrollHeight": 900,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1240,
+              "diagramWidth": 1210,
+              "pageComposition": {
+                "bodyPaddingPx": 12,
+                "headerPx": 52,
+                "diagramChromePx": 78,
+                "svgPx": 746,
+                "cardsPx": 0,
+                "viewBoxHeight": 740
+              },
+              "viewBoxWidth": 1200,
+              "minimumProjectedNodeTextPx": 6.2,
+              "minimumProjectedNonEdgeTextPx": 6.2,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "preferences · workflows · keys",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "settings_ui"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1600,
+              "height": 1000,
+              "theme": "light",
+              "innerWidth": 1600,
+              "innerHeight": 1000,
+              "scrollWidth": 1600,
+              "scrollHeight": 1000,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1295,
+              "diagramWidth": 1265,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 60,
+                "diagramChromePx": 84,
+                "svgPx": 780,
+                "cardsPx": 0,
+                "viewBoxHeight": 740
+              },
+              "viewBoxWidth": 1200,
+              "minimumProjectedNodeTextPx": 6.2,
+              "minimumProjectedNonEdgeTextPx": 6.2,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "preferences · workflows · keys",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "settings_ui"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1920,
+              "height": 1080,
+              "theme": "light",
+              "innerWidth": 1920,
+              "innerHeight": 1080,
+              "scrollWidth": 1920,
+              "scrollHeight": 1080,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1425,
+              "diagramWidth": 1395,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 60,
+                "diagramChromePx": 84,
+                "svgPx": 860,
+                "cardsPx": 0,
+                "viewBoxHeight": 740
+              },
+              "viewBoxWidth": 1200,
+              "minimumProjectedNodeTextPx": 6.2,
+              "minimumProjectedNonEdgeTextPx": 6.2,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "preferences · workflows · keys",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "settings_ui"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 2048,
+              "height": 1320,
+              "theme": "light",
+              "innerWidth": 2048,
+              "innerHeight": 1320,
+              "scrollWidth": 2048,
+              "scrollHeight": 1320,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1805,
+              "diagramWidth": 1755,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 68,
+                "diagramChromePx": 94,
+                "svgPx": 1082,
+                "cardsPx": 0,
+                "viewBoxHeight": 740
+              },
+              "viewBoxWidth": 1200,
+              "minimumProjectedNodeTextPx": 6.2,
+              "minimumProjectedNonEdgeTextPx": 6.2,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "preferences · workflows · keys",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "settings_ui"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 44,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            }
+          ]
+        },
+        "themeStates": {
+          "status": "pass",
+          "viewports": [
+            {
+              "width": 1440,
+              "height": 900,
+              "requestedTheme": "light",
+              "resolvedTheme": "light",
+              "ok": true
+            },
+            {
+              "width": 1600,
+              "height": 1000,
+              "requestedTheme": "light",
+              "resolvedTheme": "light",
+              "ok": true
+            },
+            {
+              "width": 1920,
+              "height": 1080,
+              "requestedTheme": "light",
+              "resolvedTheme": "light",
+              "ok": true
+            },
+            {
+              "width": 2048,
+              "height": 1320,
+              "requestedTheme": "light",
+              "resolvedTheme": "light",
+              "ok": true
+            },
+            {
+              "width": 1440,
+              "height": 900,
+              "requestedTheme": "dark",
+              "resolvedTheme": "dark",
+              "ok": true
+            },
+            {
+              "width": 2048,
+              "height": 1320,
+              "requestedTheme": "dark",
+              "resolvedTheme": "dark",
+              "ok": true
+            }
+          ]
+        },
+        "readability": {
+          "status": "pass",
+          "minimumProjectedNodeTextPx": 6,
+          "viewports": [
+            {
+              "width": 1440,
+              "height": 900,
+              "theme": "light",
+              "innerWidth": 1440,
+              "innerHeight": 900,
+              "scrollWidth": 1440,
+              "scrollHeight": 900,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1240,
+              "diagramWidth": 1210,
+              "pageComposition": {
+                "bodyPaddingPx": 12,
+                "headerPx": 52,
+                "diagramChromePx": 78,
+                "svgPx": 746,
+                "cardsPx": 0,
+                "viewBoxHeight": 740
+              },
+              "viewBoxWidth": 1200,
+              "minimumProjectedNodeTextPx": 6.2,
+              "minimumProjectedNonEdgeTextPx": 6.2,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "preferences · workflows · keys",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "settings_ui"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1600,
+              "height": 1000,
+              "theme": "light",
+              "innerWidth": 1600,
+              "innerHeight": 1000,
+              "scrollWidth": 1600,
+              "scrollHeight": 1000,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1295,
+              "diagramWidth": 1265,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 60,
+                "diagramChromePx": 84,
+                "svgPx": 780,
+                "cardsPx": 0,
+                "viewBoxHeight": 740
+              },
+              "viewBoxWidth": 1200,
+              "minimumProjectedNodeTextPx": 6.2,
+              "minimumProjectedNonEdgeTextPx": 6.2,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "preferences · workflows · keys",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "settings_ui"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1920,
+              "height": 1080,
+              "theme": "light",
+              "innerWidth": 1920,
+              "innerHeight": 1080,
+              "scrollWidth": 1920,
+              "scrollHeight": 1080,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1425,
+              "diagramWidth": 1395,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 60,
+                "diagramChromePx": 84,
+                "svgPx": 860,
+                "cardsPx": 0,
+                "viewBoxHeight": 740
+              },
+              "viewBoxWidth": 1200,
+              "minimumProjectedNodeTextPx": 6.2,
+              "minimumProjectedNonEdgeTextPx": 6.2,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "preferences · workflows · keys",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "settings_ui"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 2048,
+              "height": 1320,
+              "theme": "light",
+              "innerWidth": 2048,
+              "innerHeight": 1320,
+              "scrollWidth": 2048,
+              "scrollHeight": 1320,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1805,
+              "diagramWidth": 1755,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 68,
+                "diagramChromePx": 94,
+                "svgPx": 1082,
+                "cardsPx": 0,
+                "viewBoxHeight": 740
+              },
+              "viewBoxWidth": 1200,
+              "minimumProjectedNodeTextPx": 6.2,
+              "minimumProjectedNonEdgeTextPx": 6.2,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "preferences · workflows · keys",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "settings_ui"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 44,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            }
+          ]
+        },
+        "viewerChrome": {
+          "status": "pass",
+          "viewports": [
+            {
+              "width": 1440,
+              "height": 900,
+              "theme": "light",
+              "innerWidth": 1440,
+              "innerHeight": 900,
+              "scrollWidth": 1440,
+              "scrollHeight": 900,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1240,
+              "diagramWidth": 1210,
+              "pageComposition": {
+                "bodyPaddingPx": 12,
+                "headerPx": 52,
+                "diagramChromePx": 78,
+                "svgPx": 746,
+                "cardsPx": 0,
+                "viewBoxHeight": 740
+              },
+              "viewBoxWidth": 1200,
+              "minimumProjectedNodeTextPx": 6.2,
+              "minimumProjectedNonEdgeTextPx": 6.2,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "preferences · workflows · keys",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "settings_ui"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1600,
+              "height": 1000,
+              "theme": "light",
+              "innerWidth": 1600,
+              "innerHeight": 1000,
+              "scrollWidth": 1600,
+              "scrollHeight": 1000,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1295,
+              "diagramWidth": 1265,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 60,
+                "diagramChromePx": 84,
+                "svgPx": 780,
+                "cardsPx": 0,
+                "viewBoxHeight": 740
+              },
+              "viewBoxWidth": 1200,
+              "minimumProjectedNodeTextPx": 6.2,
+              "minimumProjectedNonEdgeTextPx": 6.2,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "preferences · workflows · keys",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "settings_ui"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1920,
+              "height": 1080,
+              "theme": "light",
+              "innerWidth": 1920,
+              "innerHeight": 1080,
+              "scrollWidth": 1920,
+              "scrollHeight": 1080,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1425,
+              "diagramWidth": 1395,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 60,
+                "diagramChromePx": 84,
+                "svgPx": 860,
+                "cardsPx": 0,
+                "viewBoxHeight": 740
+              },
+              "viewBoxWidth": 1200,
+              "minimumProjectedNodeTextPx": 6.2,
+              "minimumProjectedNonEdgeTextPx": 6.2,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "preferences · workflows · keys",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "settings_ui"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 2048,
+              "height": 1320,
+              "theme": "light",
+              "innerWidth": 2048,
+              "innerHeight": 1320,
+              "scrollWidth": 2048,
+              "scrollHeight": 1320,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1805,
+              "diagramWidth": 1755,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 68,
+                "diagramChromePx": 94,
+                "svgPx": 1082,
+                "cardsPx": 0,
+                "viewBoxHeight": 740
+              },
+              "viewBoxWidth": 1200,
+              "minimumProjectedNodeTextPx": 6.2,
+              "minimumProjectedNonEdgeTextPx": 6.2,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "preferences · workflows · keys",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "settings_ui"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 44,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            }
+          ]
+        },
+        "captures": {
+          "status": "not-requested",
+          "screenshots": [],
+          "contactSheet": null
+        },
+        "sidecars": {
+          "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.review-3",
+          "receipt": "data-model.browser-check.json",
+          "files": []
+        }
+      }
+    }
+  },
+  "diagnostics": [],
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.review-3\\data-model.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.review-3\\data-model.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.review-3\\data-model.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "finishedAt": "2026-10-17T05:25:11.873Z",
+  "durationMs": 6544,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

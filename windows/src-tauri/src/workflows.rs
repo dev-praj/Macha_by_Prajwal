@@ -178,15 +178,14 @@ pub fn run(app: &AppHandle, id: &str) -> Result<(), String> {
     if workflow.archived {
         return Err("Unarchive this workflow before running it.".into());
     }
-    app.emit(
-        "workflow-run",
-        WorkflowRun {
-            id: workflow.id.clone(),
-            name: workflow.name.clone(),
-            prompt: workflow.prompt.clone(),
-        },
-    )
-    .map_err(|error| format!("Could not start the workflow: {error}"))
+    let payload = WorkflowRun {
+        id: workflow.id.clone(),
+        name: workflow.name.clone(),
+        prompt: workflow.prompt.clone(),
+    };
+    let _ = app.emit_to(crate::island::WINDOW_LABEL, "workflow-run", payload.clone());
+    app.emit("workflow-run", payload)
+        .map_err(|error| format!("Could not start the workflow: {error}"))
 }
 
 #[cfg(test)]

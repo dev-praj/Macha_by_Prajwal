@@ -1,0 +1,579 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-10-17T05:20:49.445Z",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
+    "sha256": "5b5e852f03eba53cec6c93f0af57cc5b8b6a8df03dc5639acceefc3ad338569d",
+    "bytes": 8677
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+    "sha256": "0739a04be6edc69a2da629538f8a19204220ea5e35b375e6c224f40cf4de717b",
+    "bytes": 866935
+  },
+  "stages": {
+    "validate": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": null,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "architecture",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "deliver",
+        "receiptId": "f8381c8c-14ee-49ae-9284-3452fd37b252",
+        "stage": "render",
+        "type": "architecture",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+        "error": "Architecture layout validation failed:\n- Components \"workflows\" and \"vision\" are less than 8px apart — move one or shrink its size.\n  \"workflows\" [640, 400, 120, 60]; \"vision\" [640, 360, 120, 60]\n  Suggested fix: move \"vision\" pos to [768, 360] (right of \"workflows\") or [640, 468] (below)\n- Components \"files\" and \"pollers\" are less than 8px apart — move one or shrink its size.\n  \"files\" [840, 400, 120, 60]; \"pollers\" [840, 360, 120, 60]\n  Suggested fix: move \"pollers\" pos to [968, 360] (right of \"files\") or [840, 468] (below)\n- [composition/label-route-clearance] showcase architecture label \"recognized command\" on connections[12] \"voice\" -> \"chat\" label \"recognized command\" is 0px from connections[21] \"chat\" -> \"localstores\" label \"persist conversations\" segment 0 [79, 460] -> [79, 569] (label rect [45, 560, 96, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.\n- [composition/label-route-clearance] showcase architecture label \"enable / configure\" on connections[15] \"settings\" -> \"pollers\" label \"enable / configure\" is 0px from connections[16] \"settings\" -> \"messages\" label \"request Windows access\" segment 0 [907, 260] -> [907, 310] (label rect [841, 290, 96, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.\n- [composition/label-route-clearance] showcase architecture label \"enable / configure\" on connections[15] \"settings\" -> \"pollers\" label \"enable / configure\" is 0px from connections[20] \"settings\" -> \"localstores\" label \"save preferences / workflows\" segment 0 [893, 260] -> [893, 350] (label rect [841, 290, 96, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+        "diagnostics": [
+          {
+            "code": "composition/label-route-clearance",
+            "severity": "error",
+            "message": "[composition/label-route-clearance] showcase architecture label \"recognized command\" on connections[12] \"voice\" -> \"chat\" label \"recognized command\" is 0px from connections[21] \"chat\" -> \"localstores\" label \"persist conversations\" segment 0 [79, 460] -> [79, 569] (label rect [45, 560, 96, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+            "subject": {
+              "diagramType": "architecture",
+              "collection": "connections",
+              "index": 12,
+              "from": "voice",
+              "to": "chat"
+            },
+            "evidence": {
+              "label": "recognized command",
+              "otherRelationship": {
+                "diagramType": "architecture",
+                "collection": "connections",
+                "index": 21,
+                "from": "chat",
+                "to": "localstores"
+              },
+              "segmentIndex": 0,
+              "clearancePx": 0,
+              "minimumPx": 4,
+              "labelRect": {
+                "relation": {
+                  "from": "voice",
+                  "to": "chat",
+                  "label": "recognized command"
+                },
+                "relationIndex": 12,
+                "label": "recognized command",
+                "x": 44.800000000000004,
+                "y": 560,
+                "width": 96.39999999999999,
+                "height": 14,
+                "lx": 93,
+                "ly": 570
+              },
+              "from": [
+                79,
+                460
+              ],
+              "to": [
+                79,
+                569
+              ]
+            },
+            "supportedFixes": [
+              "adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+            ]
+          },
+          {
+            "code": "composition/label-route-clearance",
+            "severity": "error",
+            "message": "[composition/label-route-clearance] showcase architecture label \"enable / configure\" on connections[15] \"settings\" -> \"pollers\" label \"enable / configure\" is 0px from connections[16] \"settings\" -> \"messages\" label \"request Windows access\" segment 0 [907, 260] -> [907, 310] (label rect [841, 290, 96, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+            "subject": {
+              "diagramType": "architecture",
+              "collection": "connections",
+              "index": 15,
+              "from": "settings",
+              "to": "pollers"
+            },
+            "evidence": {
+              "label": "enable / configure",
+              "otherRelationship": {
+                "diagramType": "architecture",
+                "collection": "connections",
+                "index": 16,
+                "from": "settings",
+                "to": "messages"
+              },
+              "segmentIndex": 0,
+              "clearancePx": 0,
+              "minimumPx": 4,
+              "labelRect": {
+                "relation": {
+                  "from": "settings",
+                  "to": "pollers",
+                  "label": "enable / configure"
+                },
+                "relationIndex": 15,
+                "label": "enable / configure",
+                "x": 841.3,
+                "y": 290,
+                "width": 96.39999999999999,
+                "height": 14,
+                "lx": 889.5,
+                "ly": 300
+              },
+              "from": [
+                907,
+                260
+              ],
+              "to": [
+                907,
+                310
+              ]
+            },
+            "supportedFixes": [
+              "adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+            ]
+          },
+          {
+            "code": "composition/label-route-clearance",
+            "severity": "error",
+            "message": "[composition/label-route-clearance] showcase architecture label \"enable / configure\" on connections[15] \"settings\" -> \"pollers\" label \"enable / configure\" is 0px from connections[20] \"settings\" -> \"localstores\" label \"save preferences / workflows\" segment 0 [893, 260] -> [893, 350] (label rect [841, 290, 96, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+            "subject": {
+              "diagramType": "architecture",
+              "collection": "connections",
+              "index": 15,
+              "from": "settings",
+              "to": "pollers"
+            },
+            "evidence": {
+              "label": "enable / configure",
+              "otherRelationship": {
+                "diagramType": "architecture",
+                "collection": "connections",
+                "index": 20,
+                "from": "settings",
+                "to": "localstores"
+              },
+              "segmentIndex": 0,
+              "clearancePx": 0,
+              "minimumPx": 4,
+              "labelRect": {
+                "relation": {
+                  "from": "settings",
+                  "to": "pollers",
+                  "label": "enable / configure"
+                },
+                "relationIndex": 15,
+                "label": "enable / configure",
+                "x": 841.3,
+                "y": 290,
+                "width": 96.39999999999999,
+                "height": 14,
+                "lx": 889.5,
+                "ly": 300
+              },
+              "from": [
+                893,
+                260
+              ],
+              "to": [
+                893,
+                350
+              ]
+            },
+            "supportedFixes": [
+              "adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+            ]
+          },
+          {
+            "code": "layout/component-overlap",
+            "severity": "error",
+            "message": "Components \"workflows\" and \"vision\" are less than 8px apart — move one or shrink its size.\n  \"workflows\" [640, 400, 120, 60]; \"vision\" [640, 360, 120, 60]\n  Suggested fix: move \"vision\" pos to [768, 360] (right of \"workflows\") or [640, 468] (below)",
+            "subject": {
+              "diagramType": "architecture",
+              "nodeId": "workflows"
+            },
+            "evidence": {
+              "otherId": "vision",
+              "minimumGapPx": 8,
+              "boxes": [
+                {
+                  "id": "workflows",
+                  "type": "backend",
+                  "label": "Saved workflows",
+                  "x": 640,
+                  "y": 400,
+                  "width": 120,
+                  "height": 60,
+                  "pos": [
+                    640,
+                    400
+                  ]
+                },
+                {
+                  "id": "vision",
+                  "type": "backend",
+                  "label": "Palm lock",
+                  "x": 640,
+                  "y": 360,
+                  "width": 120,
+                  "height": 60,
+                  "pos": [
+                    640,
+                    360
+                  ]
+                }
+              ]
+            },
+            "supportedFixes": [
+              "move component \"vision\" pos to [768, 360] (right of \"workflows\")",
+              "or move component \"vision\" pos to [640, 468] (below)",
+              "or shrink \"workflows\" or \"vision\" while keeping every label and sublabel readable"
+            ]
+          },
+          {
+            "code": "layout/component-overlap",
+            "severity": "error",
+            "message": "Components \"files\" and \"pollers\" are less than 8px apart — move one or shrink its size.\n  \"files\" [840, 400, 120, 60]; \"pollers\" [840, 360, 120, 60]\n  Suggested fix: move \"pollers\" pos to [968, 360] (right of \"files\") or [840, 468] (below)",
+            "subject": {
+              "diagramType": "architecture",
+              "nodeId": "files"
+            },
+            "evidence": {
+              "otherId": "pollers",
+              "minimumGapPx": 8,
+              "boxes": [
+                {
+                  "id": "files",
+                  "type": "backend",
+                  "label": "Drop / file context",
+                  "x": 840,
+                  "y": 400,
+                  "width": 120,
+                  "height": 60,
+                  "pos": [
+                    840,
+                    400
+                  ]
+                },
+                {
+                  "id": "pollers",
+                  "type": "backend",
+                  "label": "Integrations",
+                  "x": 840,
+                  "y": 360,
+                  "width": 120,
+                  "height": 60,
+                  "pos": [
+                    840,
+                    360
+                  ]
+                }
+              ]
+            },
+            "supportedFixes": [
+              "move component \"pollers\" pos to [968, 360] (right of \"files\")",
+              "or move component \"pollers\" pos to [840, 468] (below)",
+              "or shrink \"files\" or \"pollers\" while keeping every label and sublabel readable"
+            ]
+          }
+        ],
+        "provenance": "failed",
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      },
+      "execution": "embedded-in-deliver"
+    },
+    "deliver": {
+      "status": "not-run",
+      "execution": "blocked-by-validate"
+    }
+  },
+  "diagnostics": [
+    {
+      "code": "composition/label-route-clearance",
+      "severity": "error",
+      "message": "[composition/label-route-clearance] showcase architecture label \"recognized command\" on connections[12] \"voice\" -> \"chat\" label \"recognized command\" is 0px from connections[21] \"chat\" -> \"localstores\" label \"persist conversations\" segment 0 [79, 460] -> [79, 569] (label rect [45, 560, 96, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+      "subject": {
+        "diagramType": "architecture",
+        "collection": "connections",
+        "index": 12,
+        "from": "voice",
+        "to": "chat"
+      },
+      "evidence": {
+        "label": "recognized command",
+        "otherRelationship": {
+          "diagramType": "architecture",
+          "collection": "connections",
+          "index": 21,
+          "from": "chat",
+          "to": "localstores"
+        },
+        "segmentIndex": 0,
+        "clearancePx": 0,
+        "minimumPx": 4,
+        "labelRect": {
+          "relation": {
+            "from": "voice",
+            "to": "chat",
+            "label": "recognized command"
+          },
+          "relationIndex": 12,
+          "label": "recognized command",
+          "x": 44.800000000000004,
+          "y": 560,
+          "width": 96.39999999999999,
+          "height": 14,
+          "lx": 93,
+          "ly": 570
+        },
+        "from": [
+          79,
+          460
+        ],
+        "to": [
+          79,
+          569
+        ]
+      },
+      "supportedFixes": [
+        "adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+      ]
+    },
+    {
+      "code": "composition/label-route-clearance",
+      "severity": "error",
+      "message": "[composition/label-route-clearance] showcase architecture label \"enable / configure\" on connections[15] \"settings\" -> \"pollers\" label \"enable / configure\" is 0px from connections[16] \"settings\" -> \"messages\" label \"request Windows access\" segment 0 [907, 260] -> [907, 310] (label rect [841, 290, 96, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+      "subject": {
+        "diagramType": "architecture",
+        "collection": "connections",
+        "index": 15,
+        "from": "settings",
+        "to": "pollers"
+      },
+      "evidence": {
+        "label": "enable / configure",
+        "otherRelationship": {
+          "diagramType": "architecture",
+          "collection": "connections",
+          "index": 16,
+          "from": "settings",
+          "to": "messages"
+        },
+        "segmentIndex": 0,
+        "clearancePx": 0,
+        "minimumPx": 4,
+        "labelRect": {
+          "relation": {
+            "from": "settings",
+            "to": "pollers",
+            "label": "enable / configure"
+          },
+          "relationIndex": 15,
+          "label": "enable / configure",
+          "x": 841.3,
+          "y": 290,
+          "width": 96.39999999999999,
+          "height": 14,
+          "lx": 889.5,
+          "ly": 300
+        },
+        "from": [
+          907,
+          260
+        ],
+        "to": [
+          907,
+          310
+        ]
+      },
+      "supportedFixes": [
+        "adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+      ]
+    },
+    {
+      "code": "composition/label-route-clearance",
+      "severity": "error",
+      "message": "[composition/label-route-clearance] showcase architecture label \"enable / configure\" on connections[15] \"settings\" -> \"pollers\" label \"enable / configure\" is 0px from connections[20] \"settings\" -> \"localstores\" label \"save preferences / workflows\" segment 0 [893, 260] -> [893, 350] (label rect [841, 290, 96, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+      "subject": {
+        "diagramType": "architecture",
+        "collection": "connections",
+        "index": 15,
+        "from": "settings",
+        "to": "pollers"
+      },
+      "evidence": {
+        "label": "enable / configure",
+        "otherRelationship": {
+          "diagramType": "architecture",
+          "collection": "connections",
+          "index": 20,
+          "from": "settings",
+          "to": "localstores"
+        },
+        "segmentIndex": 0,
+        "clearancePx": 0,
+        "minimumPx": 4,
+        "labelRect": {
+          "relation": {
+            "from": "settings",
+            "to": "pollers",
+            "label": "enable / configure"
+          },
+          "relationIndex": 15,
+          "label": "enable / configure",
+          "x": 841.3,
+          "y": 290,
+          "width": 96.39999999999999,
+          "height": 14,
+          "lx": 889.5,
+          "ly": 300
+        },
+        "from": [
+          893,
+          260
+        ],
+        "to": [
+          893,
+          350
+        ]
+      },
+      "supportedFixes": [
+        "adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+      ]
+    },
+    {
+      "code": "layout/component-overlap",
+      "severity": "error",
+      "message": "Components \"workflows\" and \"vision\" are less than 8px apart — move one or shrink its size.\n  \"workflows\" [640, 400, 120, 60]; \"vision\" [640, 360, 120, 60]\n  Suggested fix: move \"vision\" pos to [768, 360] (right of \"workflows\") or [640, 468] (below)",
+      "subject": {
+        "diagramType": "architecture",
+        "nodeId": "workflows"
+      },
+      "evidence": {
+        "otherId": "vision",
+        "minimumGapPx": 8,
+        "boxes": [
+          {
+            "id": "workflows",
+            "type": "backend",
+            "label": "Saved workflows",
+            "x": 640,
+            "y": 400,
+            "width": 120,
+            "height": 60,
+            "pos": [
+              640,
+              400
+            ]
+          },
+          {
+            "id": "vision",
+            "type": "backend",
+            "label": "Palm lock",
+            "x": 640,
+            "y": 360,
+            "width": 120,
+            "height": 60,
+            "pos": [
+              640,
+              360
+            ]
+          }
+        ]
+      },
+      "supportedFixes": [
+        "move component \"vision\" pos to [768, 360] (right of \"workflows\")",
+        "or move component \"vision\" pos to [640, 468] (below)",
+        "or shrink \"workflows\" or \"vision\" while keeping every label and sublabel readable"
+      ]
+    },
+    {
+      "code": "layout/component-overlap",
+      "severity": "error",
+      "message": "Components \"files\" and \"pollers\" are less than 8px apart — move one or shrink its size.\n  \"files\" [840, 400, 120, 60]; \"pollers\" [840, 360, 120, 60]\n  Suggested fix: move \"pollers\" pos to [968, 360] (right of \"files\") or [840, 468] (below)",
+      "subject": {
+        "diagramType": "architecture",
+        "nodeId": "files"
+      },
+      "evidence": {
+        "otherId": "pollers",
+        "minimumGapPx": 8,
+        "boxes": [
+          {
+            "id": "files",
+            "type": "backend",
+            "label": "Drop / file context",
+            "x": 840,
+            "y": 400,
+            "width": 120,
+            "height": 60,
+            "pos": [
+              840,
+              400
+            ]
+          },
+          {
+            "id": "pollers",
+            "type": "backend",
+            "label": "Integrations",
+            "x": 840,
+            "y": 360,
+            "width": 120,
+            "height": 60,
+            "pos": [
+              840,
+              360
+            ]
+          }
+        ]
+      },
+      "supportedFixes": [
+        "move component \"pollers\" pos to [968, 360] (right of \"files\")",
+        "or move component \"pollers\" pos to [840, 468] (below)",
+        "or shrink \"files\" or \"pollers\" while keeping every label and sublabel readable"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.review-2\\feature-map.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.review-2\\feature-map.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "validate",
+  "finishedAt": "2026-10-17T05:20:51.203Z",
+  "durationMs": 1757,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

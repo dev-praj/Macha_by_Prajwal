@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "2018506c-f3af-4312-939b-30f34ea31609",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-voice.sequence.json",
+  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\repaired\\flow-voice.html",
+  "specification": {
+    "sha256": "975cd2a6a974eeee8c062275747c619d1fa29ffdb0851782b06fa4911f6f208e",
+    "bytes": 4265
+  },
+  "artifact": {
+    "sha256": "4cdd0f669d30b85807f7aed59ea9eba8d2791a0baa6d6d159a6739963006a885",
+    "bytes": 820343
+  }
+}

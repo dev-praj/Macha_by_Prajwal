@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "851a12e5-e734-4972-ae42-4fbfd2d8f2b6",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.sequence.json",
+  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\repaired\\flow-settings-memory.html",
+  "specification": {
+    "sha256": "4732c78f8ce6965d3d8a05b30ff15686c4f5aaeb597d638d911213cc9deb3bf1",
+    "bytes": 4476
+  },
+  "artifact": {
+    "sha256": "fd5a3573962c6ecb854d0f4f8694ed0f7d22394a061f538de3acc56654669f94",
+    "bytes": 821471
+  }
+}

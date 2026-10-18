@@ -1,0 +1,1997 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-10-17T05:19:34.808Z",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
+    "sha256": "9477300a9581d94faa87f907db7f36f3c9227d01cb8230c09e2f23b7f14337a8",
+    "bytes": 8665
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+    "sha256": "0739a04be6edc69a2da629538f8a19204220ea5e35b375e6c224f40cf4de717b",
+    "bytes": 866935
+  },
+  "stages": {
+    "validate": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": null,
+      "execution": "embedded-in-deliver",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "architecture",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "validate",
+        "specification": {
+          "sha256": "9477300a9581d94faa87f907db7f36f3c9227d01cb8230c09e2f23b7f14337a8",
+          "bytes": 8665
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        }
+      }
+    },
+    "deliver": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 1823,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "architecture",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "b985172e-7d70-4d6c-8482-afe44ece773b",
+        "ok": true,
+        "command": "deliver",
+        "type": "architecture",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+        "specification": {
+          "sha256": "9477300a9581d94faa87f907db7f36f3c9227d01cb8230c09e2f23b7f14337a8",
+          "bytes": 8665
+        },
+        "artifact": {
+          "sha256": "0739a04be6edc69a2da629538f8a19204220ea5e35b375e6c224f40cf4de717b",
+          "bytes": 866935
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        },
+        "evidence": {
+          "verified": true,
+          "repository": "https://github.com/vemalaprajwal8200-a11y/coucou-customised",
+          "revision": "bd05b4a680a5876221544934fa776d1963bb28cf",
+          "references": 44
+        },
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      }
+    },
+    "check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 400,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "check",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+        "--require-provenance"
+      ],
+      "receipt": {
+        "ok": true,
+        "file": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+        "artifact": {
+          "sha256": "0739a04be6edc69a2da629538f8a19204220ea5e35b375e6c224f40cf4de717b",
+          "bytes": 866935
+        },
+        "checks": [
+          {
+            "name": "single_svg",
+            "ok": true,
+            "details": [
+              "found 1 <svg> block(s)"
+            ]
+          },
+          {
+            "name": "finite_svg",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "orthogonal_arrows",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "label_route_clearance",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "relationship_crossings",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "relationship_corridors",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "container_border_runs",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "route_rhythm",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "legend_clearance",
+            "ok": true,
+            "details": []
+          }
+        ],
+        "composition": {
+          "schemaVersion": 1,
+          "profile": "showcase",
+          "status": "pass",
+          "summary": {
+            "errors": 0,
+            "warnings": 0
+          },
+          "metrics": {
+            "properCrossings": 0,
+            "resolvedCrossovers": 32,
+            "ambiguousCorridors": 0,
+            "arrowheadCollisions": 0,
+            "containerBorderRuns": 0,
+            "labelRouteClearanceIssues": 0,
+            "labelCanvasOverflowIssues": 0,
+            "minLabelRouteClearance": 4.6,
+            "desktopReadabilityIssues": 0,
+            "viewportHeightIssues": 0,
+            "minProjectedNodeTextPx": 6.417000000000001,
+            "maxBends": 6,
+            "routesOverSuggestedBends": 15,
+            "maxStretch": 1.406,
+            "routesOverSuggestedStretch": 2,
+            "minSegmentPx": 24,
+            "minInteriorSegmentPx": 26,
+            "shortSegmentCount": 0,
+            "shortEndpointSegmentCount": 0,
+            "shortInteriorSegmentCount": 0,
+            "microSegmentCount": 0
+          },
+          "suggestedLimits": {
+            "bendsPerRelationship": 2,
+            "stretch": 1.35,
+            "segmentPx": 16,
+            "microSegmentPx": 8
+          },
+          "routeReview": {
+            "crossings": [
+              {
+                "left": {
+                  "from": "tray",
+                  "to": "island",
+                  "label": "show / hide / pause",
+                  "collectionIndex": 2,
+                  "artifactIndex": 3
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "vision",
+                  "label": "start / stop",
+                  "collectionIndex": 14,
+                  "artifactIndex": 15
+                },
+                "point": [
+                  500,
+                  57
+                ]
+              },
+              {
+                "left": {
+                  "from": "hookrelay",
+                  "to": "taskpills",
+                  "label": "session events",
+                  "collectionIndex": 4,
+                  "artifactIndex": 5
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "pollers",
+                  "label": "enable / configure",
+                  "collectionIndex": 15,
+                  "artifactIndex": 16
+                },
+                "point": [
+                  385.4000000000001,
+                  170.5
+                ]
+              },
+              {
+                "left": {
+                  "from": "hookrelay",
+                  "to": "taskpills",
+                  "label": "session events",
+                  "collectionIndex": 4,
+                  "artifactIndex": 5
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "messages",
+                  "label": "request Windows access",
+                  "collectionIndex": 16,
+                  "artifactIndex": 17
+                },
+                "point": [
+                  521,
+                  170.5
+                ]
+              },
+              {
+                "left": {
+                  "from": "hookrelay",
+                  "to": "taskpills",
+                  "label": "session events",
+                  "collectionIndex": 4,
+                  "artifactIndex": 5
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "spotify",
+                  "label": "connect / disconnect",
+                  "collectionIndex": 17,
+                  "artifactIndex": 18
+                },
+                "point": [
+                  535,
+                  170.5
+                ]
+              },
+              {
+                "left": {
+                  "from": "hookrelay",
+                  "to": "taskpills",
+                  "label": "session events",
+                  "collectionIndex": 4,
+                  "artifactIndex": 5
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "secrets",
+                  "label": "store credentials",
+                  "collectionIndex": 19,
+                  "artifactIndex": 20
+                },
+                "point": [
+                  493,
+                  170.5
+                ]
+              },
+              {
+                "left": {
+                  "from": "hookrelay",
+                  "to": "taskpills",
+                  "label": "session events",
+                  "collectionIndex": 4,
+                  "artifactIndex": 5
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "localstores",
+                  "label": "save preferences / workflows",
+                  "collectionIndex": 20,
+                  "artifactIndex": 21
+                },
+                "point": [
+                  637,
+                  170.5
+                ]
+              },
+              {
+                "left": {
+                  "from": "hookrelay",
+                  "to": "approval",
+                  "label": "approve",
+                  "collectionIndex": 5,
+                  "artifactIndex": 6
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "pollers",
+                  "label": "enable / configure",
+                  "collectionIndex": 15,
+                  "artifactIndex": 16
+                },
+                "point": [
+                  385.4000000000001,
+                  237
+                ]
+              },
+              {
+                "left": {
+                  "from": "hookrelay",
+                  "to": "approval",
+                  "label": "approve",
+                  "collectionIndex": 5,
+                  "artifactIndex": 6
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "secrets",
+                  "label": "store credentials",
+                  "collectionIndex": 19,
+                  "artifactIndex": 20
+                },
+                "point": [
+                  363,
+                  237
+                ]
+              },
+              {
+                "left": {
+                  "from": "chat",
+                  "to": "providers",
+                  "label": "ask / stream reply",
+                  "collectionIndex": 6,
+                  "artifactIndex": 7
+                },
+                "right": {
+                  "from": "files",
+                  "to": "chat",
+                  "label": "file context",
+                  "collectionIndex": 10,
+                  "artifactIndex": 11
+                },
+                "point": [
+                  216,
+                  378.06666666667445
+                ],
+                "sharedNode": "chat"
+              },
+              {
+                "left": {
+                  "from": "chat",
+                  "to": "providers",
+                  "label": "ask / stream reply",
+                  "collectionIndex": 6,
+                  "artifactIndex": 7
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "pollers",
+                  "label": "enable / configure",
+                  "collectionIndex": 15,
+                  "artifactIndex": 16
+                },
+                "point": [
+                  200.39999999999995,
+                  424
+                ]
+              },
+              {
+                "left": {
+                  "from": "providers",
+                  "to": "automation",
+                  "label": "tool request",
+                  "collectionIndex": 7,
+                  "artifactIndex": 8
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "secrets",
+                  "label": "store credentials",
+                  "collectionIndex": 19,
+                  "artifactIndex": 20
+                },
+                "point": [
+                  363,
+                  377
+                ]
+              },
+              {
+                "left": {
+                  "from": "automation",
+                  "to": "chat",
+                  "label": "result / follow-up",
+                  "collectionIndex": 8,
+                  "artifactIndex": 9
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "pollers",
+                  "label": "enable / configure",
+                  "collectionIndex": 15,
+                  "artifactIndex": 16
+                },
+                "point": [
+                  200.39999999999995,
+                  316
+                ]
+              },
+              {
+                "left": {
+                  "from": "automation",
+                  "to": "chat",
+                  "label": "result / follow-up",
+                  "collectionIndex": 8,
+                  "artifactIndex": 9
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "secrets",
+                  "label": "store credentials",
+                  "collectionIndex": 19,
+                  "artifactIndex": 20
+                },
+                "point": [
+                  363,
+                  316
+                ]
+              },
+              {
+                "left": {
+                  "from": "workflows",
+                  "to": "chat",
+                  "label": "single action + verify",
+                  "collectionIndex": 9,
+                  "artifactIndex": 10
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "pollers",
+                  "label": "enable / configure",
+                  "collectionIndex": 15,
+                  "artifactIndex": 16
+                },
+                "point": [
+                  200.39999999999995,
+                  291
+                ]
+              },
+              {
+                "left": {
+                  "from": "workflows",
+                  "to": "chat",
+                  "label": "single action + verify",
+                  "collectionIndex": 9,
+                  "artifactIndex": 10
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "messages",
+                  "label": "request Windows access",
+                  "collectionIndex": 16,
+                  "artifactIndex": 17
+                },
+                "point": [
+                  603,
+                  370
+                ]
+              },
+              {
+                "left": {
+                  "from": "workflows",
+                  "to": "chat",
+                  "label": "single action + verify",
+                  "collectionIndex": 9,
+                  "artifactIndex": 10
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "spotify",
+                  "label": "connect / disconnect",
+                  "collectionIndex": 17,
+                  "artifactIndex": 18
+                },
+                "point": [
+                  629,
+                  370
+                ]
+              },
+              {
+                "left": {
+                  "from": "workflows",
+                  "to": "chat",
+                  "label": "single action + verify",
+                  "collectionIndex": 9,
+                  "artifactIndex": 10
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "secrets",
+                  "label": "store credentials",
+                  "collectionIndex": 19,
+                  "artifactIndex": 20
+                },
+                "point": [
+                  363,
+                  291
+                ]
+              },
+              {
+                "left": {
+                  "from": "workflows",
+                  "to": "chat",
+                  "label": "single action + verify",
+                  "collectionIndex": 9,
+                  "artifactIndex": 10
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "localstores",
+                  "label": "save preferences / workflows",
+                  "collectionIndex": 20,
+                  "artifactIndex": 21
+                },
+                "point": [
+                  637,
+                  370
+                ]
+              },
+              {
+                "left": {
+                  "from": "workflows",
+                  "to": "chat",
+                  "label": "single action + verify",
+                  "collectionIndex": 9,
+                  "artifactIndex": 10
+                },
+                "right": {
+                  "from": "chat",
+                  "to": "localstores",
+                  "label": "persist conversations",
+                  "collectionIndex": 21,
+                  "artifactIndex": 22
+                },
+                "point": [
+                  100,
+                  316
+                ],
+                "sharedNode": "chat"
+              },
+              {
+                "left": {
+                  "from": "files",
+                  "to": "chat",
+                  "label": "file context",
+                  "collectionIndex": 10,
+                  "artifactIndex": 11
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "pollers",
+                  "label": "enable / configure",
+                  "collectionIndex": 15,
+                  "artifactIndex": 16
+                },
+                "point": [
+                  200.39999999999995,
+                  374.66666666666674
+                ]
+              },
+              {
+                "left": {
+                  "from": "files",
+                  "to": "chat",
+                  "label": "file context",
+                  "collectionIndex": 10,
+                  "artifactIndex": 11
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "messages",
+                  "label": "request Windows access",
+                  "collectionIndex": 16,
+                  "artifactIndex": 17
+                },
+                "point": [
+                  603,
+                  424
+                ]
+              },
+              {
+                "left": {
+                  "from": "files",
+                  "to": "chat",
+                  "label": "file context",
+                  "collectionIndex": 10,
+                  "artifactIndex": 11
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "spotify",
+                  "label": "connect / disconnect",
+                  "collectionIndex": 17,
+                  "artifactIndex": 18
+                },
+                "point": [
+                  629,
+                  424
+                ]
+              },
+              {
+                "left": {
+                  "from": "files",
+                  "to": "chat",
+                  "label": "file context",
+                  "collectionIndex": 10,
+                  "artifactIndex": 11
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "secrets",
+                  "label": "store credentials",
+                  "collectionIndex": 19,
+                  "artifactIndex": 20
+                },
+                "point": [
+                  363,
+                  424
+                ]
+              },
+              {
+                "left": {
+                  "from": "files",
+                  "to": "chat",
+                  "label": "file context",
+                  "collectionIndex": 10,
+                  "artifactIndex": 11
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "localstores",
+                  "label": "save preferences / workflows",
+                  "collectionIndex": 20,
+                  "artifactIndex": 21
+                },
+                "point": [
+                  637,
+                  424
+                ]
+              },
+              {
+                "left": {
+                  "from": "voice",
+                  "to": "stt",
+                  "label": "local audio transcription",
+                  "collectionIndex": 11,
+                  "artifactIndex": 12
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "pollers",
+                  "label": "enable / configure",
+                  "collectionIndex": 15,
+                  "artifactIndex": 16
+                },
+                "point": [
+                  200.39999999999995,
+                  564
+                ]
+              },
+              {
+                "left": {
+                  "from": "chat",
+                  "to": "tts",
+                  "label": "optional spoken response",
+                  "collectionIndex": 13,
+                  "artifactIndex": 14
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "pollers",
+                  "label": "enable / configure",
+                  "collectionIndex": 15,
+                  "artifactIndex": 16
+                },
+                "point": [
+                  200.39999999999995,
+                  440
+                ]
+              },
+              {
+                "left": {
+                  "from": "chat",
+                  "to": "tts",
+                  "label": "optional spoken response",
+                  "collectionIndex": 13,
+                  "artifactIndex": 14
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "secrets",
+                  "label": "store credentials",
+                  "collectionIndex": 19,
+                  "artifactIndex": 20
+                },
+                "point": [
+                  363,
+                  440
+                ]
+              },
+              {
+                "left": {
+                  "from": "settings",
+                  "to": "vision",
+                  "label": "start / stop",
+                  "collectionIndex": 14,
+                  "artifactIndex": 15
+                },
+                "right": {
+                  "from": "chat",
+                  "to": "memory",
+                  "label": "read / optionally remember",
+                  "collectionIndex": 18,
+                  "artifactIndex": 19
+                },
+                "point": [
+                  37,
+                  650
+                ]
+              },
+              {
+                "left": {
+                  "from": "settings",
+                  "to": "vision",
+                  "label": "start / stop",
+                  "collectionIndex": 14,
+                  "artifactIndex": 15
+                },
+                "right": {
+                  "from": "chat",
+                  "to": "localstores",
+                  "label": "persist conversations",
+                  "collectionIndex": 21,
+                  "artifactIndex": 22
+                },
+                "point": [
+                  29,
+                  650
+                ]
+              },
+              {
+                "left": {
+                  "from": "settings",
+                  "to": "pollers",
+                  "label": "enable / configure",
+                  "collectionIndex": 15,
+                  "artifactIndex": 16
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "secrets",
+                  "label": "store credentials",
+                  "collectionIndex": 19,
+                  "artifactIndex": 20
+                },
+                "point": [
+                  385.4000000000001,
+                  181
+                ],
+                "sharedNode": "settings"
+              },
+              {
+                "left": {
+                  "from": "settings",
+                  "to": "messages",
+                  "label": "request Windows access",
+                  "collectionIndex": 16,
+                  "artifactIndex": 17
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "localstores",
+                  "label": "save preferences / workflows",
+                  "collectionIndex": 20,
+                  "artifactIndex": 21
+                },
+                "point": [
+                  521,
+                  144
+                ],
+                "sharedNode": "settings"
+              },
+              {
+                "left": {
+                  "from": "settings",
+                  "to": "spotify",
+                  "label": "connect / disconnect",
+                  "collectionIndex": 17,
+                  "artifactIndex": 18
+                },
+                "right": {
+                  "from": "settings",
+                  "to": "localstores",
+                  "label": "save preferences / workflows",
+                  "collectionIndex": 20,
+                  "artifactIndex": 21
+                },
+                "point": [
+                  535,
+                  144
+                ],
+                "sharedNode": "settings"
+              }
+            ],
+            "crowdedSides": [
+              {
+                "node": "chat",
+                "label": "Chat",
+                "side": "right",
+                "relationships": 5,
+                "sidePx": 60,
+                "neededPx": 88
+              }
+            ],
+            "detours": [
+              {
+                "relationship": {
+                  "from": "user",
+                  "to": "settings",
+                  "label": "configure",
+                  "collectionIndex": 1,
+                  "artifactIndex": 2
+                },
+                "bends": 4,
+                "stretch": 1.181,
+                "directCorridorBlockers": [
+                  {
+                    "id": "island",
+                    "label": "Island / Mochi",
+                    "box": [
+                      240,
+                      60,
+                      120,
+                      60
+                    ]
+                  }
+                ]
+              },
+              {
+                "relationship": {
+                  "from": "tray",
+                  "to": "island",
+                  "label": "show / hide / pause",
+                  "collectionIndex": 2,
+                  "artifactIndex": 3
+                },
+                "bends": 4,
+                "stretch": 1.236,
+                "directCorridorBlockers": [
+                  {
+                    "id": "settings",
+                    "label": "Settings window",
+                    "box": [
+                      440,
+                      60,
+                      120,
+                      60
+                    ]
+                  }
+                ]
+              },
+              {
+                "relationship": {
+                  "from": "hookrelay",
+                  "to": "taskpills",
+                  "label": "session events",
+                  "collectionIndex": 4,
+                  "artifactIndex": 5
+                },
+                "bends": 3,
+                "stretch": 1
+              },
+              {
+                "relationship": {
+                  "from": "chat",
+                  "to": "providers",
+                  "label": "ask / stream reply",
+                  "collectionIndex": 6,
+                  "artifactIndex": 7
+                },
+                "bends": 3,
+                "stretch": 1.356
+              },
+              {
+                "relationship": {
+                  "from": "automation",
+                  "to": "chat",
+                  "label": "result / follow-up",
+                  "collectionIndex": 8,
+                  "artifactIndex": 9
+                },
+                "bends": 3,
+                "stretch": 1.135,
+                "directCorridorBlockers": [
+                  {
+                    "id": "providers",
+                    "label": "Ollama / OpenRouter",
+                    "box": [
+                      240,
+                      340,
+                      120,
+                      60
+                    ]
+                  }
+                ]
+              },
+              {
+                "relationship": {
+                  "from": "workflows",
+                  "to": "chat",
+                  "label": "single action + verify",
+                  "collectionIndex": 9,
+                  "artifactIndex": 10
+                },
+                "bends": 3,
+                "stretch": 1.172,
+                "directCorridorBlockers": [
+                  {
+                    "id": "providers",
+                    "label": "Ollama / OpenRouter",
+                    "box": [
+                      240,
+                      340,
+                      120,
+                      60
+                    ]
+                  },
+                  {
+                    "id": "automation",
+                    "label": "Automation",
+                    "box": [
+                      440,
+                      340,
+                      120,
+                      60
+                    ]
+                  }
+                ]
+              },
+              {
+                "relationship": {
+                  "from": "files",
+                  "to": "chat",
+                  "label": "file context",
+                  "collectionIndex": 10,
+                  "artifactIndex": 11
+                },
+                "bends": 3,
+                "stretch": 1.063,
+                "directCorridorBlockers": [
+                  {
+                    "id": "providers",
+                    "label": "Ollama / OpenRouter",
+                    "box": [
+                      240,
+                      340,
+                      120,
+                      60
+                    ]
+                  },
+                  {
+                    "id": "automation",
+                    "label": "Automation",
+                    "box": [
+                      440,
+                      340,
+                      120,
+                      60
+                    ]
+                  },
+                  {
+                    "id": "workflows",
+                    "label": "Saved workflows",
+                    "box": [
+                      640,
+                      340,
+                      120,
+                      60
+                    ]
+                  }
+                ]
+              },
+              {
+                "relationship": {
+                  "from": "settings",
+                  "to": "vision",
+                  "label": "start / stop",
+                  "collectionIndex": 14,
+                  "artifactIndex": 15
+                },
+                "bends": 3,
+                "stretch": 1.091
+              },
+              {
+                "relationship": {
+                  "from": "settings",
+                  "to": "pollers",
+                  "label": "enable / configure",
+                  "collectionIndex": 15,
+                  "artifactIndex": 16
+                },
+                "bends": 6,
+                "stretch": 1.293
+              },
+              {
+                "relationship": {
+                  "from": "settings",
+                  "to": "messages",
+                  "label": "request Windows access",
+                  "collectionIndex": 16,
+                  "artifactIndex": 17
+                },
+                "bends": 4,
+                "stretch": 1.315,
+                "directCorridorBlockers": [
+                  {
+                    "id": "approval",
+                    "label": "Permission cards",
+                    "box": [
+                      480,
+                      200,
+                      120,
+                      60
+                    ]
+                  },
+                  {
+                    "id": "automation",
+                    "label": "Automation",
+                    "box": [
+                      440,
+                      340,
+                      120,
+                      60
+                    ]
+                  },
+                  {
+                    "id": "tts",
+                    "label": "Spoken replies",
+                    "box": [
+                      440,
+                      480,
+                      120,
+                      60
+                    ]
+                  }
+                ]
+              },
+              {
+                "relationship": {
+                  "from": "settings",
+                  "to": "spotify",
+                  "label": "connect / disconnect",
+                  "collectionIndex": 17,
+                  "artifactIndex": 18
+                },
+                "bends": 4,
+                "stretch": 1
+              },
+              {
+                "relationship": {
+                  "from": "chat",
+                  "to": "memory",
+                  "label": "read / optionally remember",
+                  "collectionIndex": 18,
+                  "artifactIndex": 19
+                },
+                "bends": 4,
+                "stretch": 1.22,
+                "directCorridorBlockers": [
+                  {
+                    "id": "voice",
+                    "label": "Hey Macha",
+                    "box": [
+                      40,
+                      480,
+                      120,
+                      60
+                    ]
+                  },
+                  {
+                    "id": "vision",
+                    "label": "Palm lock",
+                    "box": [
+                      40,
+                      620,
+                      120,
+                      60
+                    ]
+                  }
+                ]
+              },
+              {
+                "relationship": {
+                  "from": "settings",
+                  "to": "secrets",
+                  "label": "store credentials",
+                  "collectionIndex": 19,
+                  "artifactIndex": 20
+                },
+                "bends": 4,
+                "stretch": 1
+              },
+              {
+                "relationship": {
+                  "from": "settings",
+                  "to": "localstores",
+                  "label": "save preferences / workflows",
+                  "collectionIndex": 20,
+                  "artifactIndex": 21
+                },
+                "bends": 4,
+                "stretch": 1.406,
+                "directCorridorBlockers": [
+                  {
+                    "id": "approval",
+                    "label": "Permission cards",
+                    "box": [
+                      480,
+                      200,
+                      120,
+                      60
+                    ]
+                  },
+                  {
+                    "id": "automation",
+                    "label": "Automation",
+                    "box": [
+                      440,
+                      340,
+                      120,
+                      60
+                    ]
+                  },
+                  {
+                    "id": "tts",
+                    "label": "Spoken replies",
+                    "box": [
+                      440,
+                      480,
+                      120,
+                      60
+                    ]
+                  },
+                  {
+                    "id": "messages",
+                    "label": "Notifications",
+                    "box": [
+                      440,
+                      620,
+                      120,
+                      60
+                    ]
+                  }
+                ]
+              },
+              {
+                "relationship": {
+                  "from": "chat",
+                  "to": "localstores",
+                  "label": "persist conversations",
+                  "collectionIndex": 21,
+                  "artifactIndex": 22
+                },
+                "bends": 4,
+                "stretch": 1.273
+              }
+            ]
+          },
+          "leadingSpace": {
+            "measured": true,
+            "emptyTopPx": 16,
+            "emptyTopRatio": 0.018,
+            "occupiedTop": 16,
+            "viewBoxTop": 0,
+            "canvasHeight": 910,
+            "typicalNodeHeight": 60,
+            "reviewSuggested": false
+          },
+          "desktopReadability": {
+            "budgetBasis": "legacy-930",
+            "readerContract": "declared-wide-v1",
+            "availableDiagramWidth": 930,
+            "actualBudgetPx": 930,
+            "limit": "legacy",
+            "requestedTargetPx": 7.5,
+            "requestedTargetMet": false,
+            "hardFloorPx": 6,
+            "hardFloorMet": true,
+            "minimumOwner": {
+              "kind": "node",
+              "id": "localstores"
+            },
+            "minimumSourceTextPx": 6.9,
+            "minimumProjectedTextPx": 6.417000000000001,
+            "semanticTextCount": 55
+          },
+          "issues": []
+        },
+        "provenance": "current",
+        "deliveryReceiptId": "b985172e-7d70-4d6c-8482-afe44ece773b"
+      }
+    },
+    "browser-check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 3957,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "browser-check",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+        "--json",
+        "--require-provenance"
+      ],
+      "execution": "in-process",
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "browser-check",
+        "evidenceKind": "automated-browser",
+        "status": "pass",
+        "visualReview": "not-requested",
+        "provenance": "current",
+        "deliveryReceiptId": "b985172e-7d70-4d6c-8482-afe44ece773b",
+        "artifact": {
+          "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+          "sha256": "0739a04be6edc69a2da629538f8a19204220ea5e35b375e6c224f40cf4de717b",
+          "bytes": 866935
+        },
+        "state": {
+          "detail": "read",
+          "motion": "still"
+        },
+        "chrome": {
+          "status": "available",
+          "executable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+        },
+        "diagnostics": [],
+        "containment": {
+          "status": "pass",
+          "policy": "fit-or-reader-declared-readable-vertical-scroll",
+          "viewports": [
+            {
+              "width": 1440,
+              "height": 900,
+              "theme": "light",
+              "innerWidth": 1440,
+              "innerHeight": 900,
+              "scrollWidth": 1440,
+              "scrollHeight": 1053,
+              "overflowX": false,
+              "overflowY": true,
+              "verticalScrollAccepted": true,
+              "overflowDisposition": "readable-vertical-scroll",
+              "readerLayout": "adaptive",
+              "readerOverflow": "authored",
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1030,
+              "diagramWidth": 1000,
+              "pageComposition": {
+                "bodyPaddingPx": 12,
+                "headerPx": 52,
+                "diagramChromePx": 78,
+                "svgPx": 910,
+                "cardsPx": 0,
+                "viewBoxHeight": 910
+              },
+              "viewBoxWidth": 1000,
+              "minimumProjectedNodeTextPx": 6.9,
+              "minimumProjectedNonEdgeTextPx": 6.9,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "JSON · localStorage · inbox",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "localstores"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1600,
+              "height": 1000,
+              "theme": "light",
+              "innerWidth": 1600,
+              "innerHeight": 1000,
+              "scrollWidth": 1600,
+              "scrollHeight": 1119,
+              "overflowX": false,
+              "overflowY": true,
+              "verticalScrollAccepted": true,
+              "overflowDisposition": "readable-vertical-scroll",
+              "readerLayout": "adaptive",
+              "readerOverflow": "authored",
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1030,
+              "diagramWidth": 1000,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 60,
+                "diagramChromePx": 84,
+                "svgPx": 910,
+                "cardsPx": 0,
+                "viewBoxHeight": 910
+              },
+              "viewBoxWidth": 1000,
+              "minimumProjectedNodeTextPx": 6.9,
+              "minimumProjectedNonEdgeTextPx": 6.9,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "JSON · localStorage · inbox",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "localstores"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1920,
+              "height": 1080,
+              "theme": "light",
+              "innerWidth": 1920,
+              "innerHeight": 1080,
+              "scrollWidth": 1920,
+              "scrollHeight": 1119,
+              "overflowX": false,
+              "overflowY": true,
+              "verticalScrollAccepted": true,
+              "overflowDisposition": "readable-vertical-scroll",
+              "readerLayout": "adaptive",
+              "readerOverflow": "authored",
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1030,
+              "diagramWidth": 1000,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 60,
+                "diagramChromePx": 84,
+                "svgPx": 910,
+                "cardsPx": 0,
+                "viewBoxHeight": 910
+              },
+              "viewBoxWidth": 1000,
+              "minimumProjectedNodeTextPx": 6.9,
+              "minimumProjectedNonEdgeTextPx": 6.9,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "JSON · localStorage · inbox",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "localstores"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 2048,
+              "height": 1320,
+              "theme": "light",
+              "innerWidth": 2048,
+              "innerHeight": 1320,
+              "scrollWidth": 2048,
+              "scrollHeight": 1320,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1239,
+              "diagramWidth": 1189,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 68,
+                "diagramChromePx": 94,
+                "svgPx": 1082,
+                "cardsPx": 0,
+                "viewBoxHeight": 910
+              },
+              "viewBoxWidth": 1000,
+              "minimumProjectedNodeTextPx": 6.9,
+              "minimumProjectedNonEdgeTextPx": 6.9,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "JSON · localStorage · inbox",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "localstores"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 44,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            }
+          ]
+        },
+        "themeStates": {
+          "status": "pass",
+          "viewports": [
+            {
+              "width": 1440,
+              "height": 900,
+              "requestedTheme": "light",
+              "resolvedTheme": "light",
+              "ok": true
+            },
+            {
+              "width": 1600,
+              "height": 1000,
+              "requestedTheme": "light",
+              "resolvedTheme": "light",
+              "ok": true
+            },
+            {
+              "width": 1920,
+              "height": 1080,
+              "requestedTheme": "light",
+              "resolvedTheme": "light",
+              "ok": true
+            },
+            {
+              "width": 2048,
+              "height": 1320,
+              "requestedTheme": "light",
+              "resolvedTheme": "light",
+              "ok": true
+            },
+            {
+              "width": 1440,
+              "height": 900,
+              "requestedTheme": "dark",
+              "resolvedTheme": "dark",
+              "ok": true
+            },
+            {
+              "width": 2048,
+              "height": 1320,
+              "requestedTheme": "dark",
+              "resolvedTheme": "dark",
+              "ok": true
+            }
+          ]
+        },
+        "readability": {
+          "status": "pass",
+          "minimumProjectedNodeTextPx": 6,
+          "viewports": [
+            {
+              "width": 1440,
+              "height": 900,
+              "theme": "light",
+              "innerWidth": 1440,
+              "innerHeight": 900,
+              "scrollWidth": 1440,
+              "scrollHeight": 1053,
+              "overflowX": false,
+              "overflowY": true,
+              "verticalScrollAccepted": true,
+              "overflowDisposition": "readable-vertical-scroll",
+              "readerLayout": "adaptive",
+              "readerOverflow": "authored",
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1030,
+              "diagramWidth": 1000,
+              "pageComposition": {
+                "bodyPaddingPx": 12,
+                "headerPx": 52,
+                "diagramChromePx": 78,
+                "svgPx": 910,
+                "cardsPx": 0,
+                "viewBoxHeight": 910
+              },
+              "viewBoxWidth": 1000,
+              "minimumProjectedNodeTextPx": 6.9,
+              "minimumProjectedNonEdgeTextPx": 6.9,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "JSON · localStorage · inbox",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "localstores"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1600,
+              "height": 1000,
+              "theme": "light",
+              "innerWidth": 1600,
+              "innerHeight": 1000,
+              "scrollWidth": 1600,
+              "scrollHeight": 1119,
+              "overflowX": false,
+              "overflowY": true,
+              "verticalScrollAccepted": true,
+              "overflowDisposition": "readable-vertical-scroll",
+              "readerLayout": "adaptive",
+              "readerOverflow": "authored",
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1030,
+              "diagramWidth": 1000,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 60,
+                "diagramChromePx": 84,
+                "svgPx": 910,
+                "cardsPx": 0,
+                "viewBoxHeight": 910
+              },
+              "viewBoxWidth": 1000,
+              "minimumProjectedNodeTextPx": 6.9,
+              "minimumProjectedNonEdgeTextPx": 6.9,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "JSON · localStorage · inbox",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "localstores"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1920,
+              "height": 1080,
+              "theme": "light",
+              "innerWidth": 1920,
+              "innerHeight": 1080,
+              "scrollWidth": 1920,
+              "scrollHeight": 1119,
+              "overflowX": false,
+              "overflowY": true,
+              "verticalScrollAccepted": true,
+              "overflowDisposition": "readable-vertical-scroll",
+              "readerLayout": "adaptive",
+              "readerOverflow": "authored",
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1030,
+              "diagramWidth": 1000,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 60,
+                "diagramChromePx": 84,
+                "svgPx": 910,
+                "cardsPx": 0,
+                "viewBoxHeight": 910
+              },
+              "viewBoxWidth": 1000,
+              "minimumProjectedNodeTextPx": 6.9,
+              "minimumProjectedNonEdgeTextPx": 6.9,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "JSON · localStorage · inbox",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "localstores"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 2048,
+              "height": 1320,
+              "theme": "light",
+              "innerWidth": 2048,
+              "innerHeight": 1320,
+              "scrollWidth": 2048,
+              "scrollHeight": 1320,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1239,
+              "diagramWidth": 1189,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 68,
+                "diagramChromePx": 94,
+                "svgPx": 1082,
+                "cardsPx": 0,
+                "viewBoxHeight": 910
+              },
+              "viewBoxWidth": 1000,
+              "minimumProjectedNodeTextPx": 6.9,
+              "minimumProjectedNonEdgeTextPx": 6.9,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "JSON · localStorage · inbox",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "localstores"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 44,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            }
+          ]
+        },
+        "viewerChrome": {
+          "status": "pass",
+          "viewports": [
+            {
+              "width": 1440,
+              "height": 900,
+              "theme": "light",
+              "innerWidth": 1440,
+              "innerHeight": 900,
+              "scrollWidth": 1440,
+              "scrollHeight": 1053,
+              "overflowX": false,
+              "overflowY": true,
+              "verticalScrollAccepted": true,
+              "overflowDisposition": "readable-vertical-scroll",
+              "readerLayout": "adaptive",
+              "readerOverflow": "authored",
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1030,
+              "diagramWidth": 1000,
+              "pageComposition": {
+                "bodyPaddingPx": 12,
+                "headerPx": 52,
+                "diagramChromePx": 78,
+                "svgPx": 910,
+                "cardsPx": 0,
+                "viewBoxHeight": 910
+              },
+              "viewBoxWidth": 1000,
+              "minimumProjectedNodeTextPx": 6.9,
+              "minimumProjectedNonEdgeTextPx": 6.9,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "JSON · localStorage · inbox",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "localstores"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1600,
+              "height": 1000,
+              "theme": "light",
+              "innerWidth": 1600,
+              "innerHeight": 1000,
+              "scrollWidth": 1600,
+              "scrollHeight": 1119,
+              "overflowX": false,
+              "overflowY": true,
+              "verticalScrollAccepted": true,
+              "overflowDisposition": "readable-vertical-scroll",
+              "readerLayout": "adaptive",
+              "readerOverflow": "authored",
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1030,
+              "diagramWidth": 1000,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 60,
+                "diagramChromePx": 84,
+                "svgPx": 910,
+                "cardsPx": 0,
+                "viewBoxHeight": 910
+              },
+              "viewBoxWidth": 1000,
+              "minimumProjectedNodeTextPx": 6.9,
+              "minimumProjectedNonEdgeTextPx": 6.9,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "JSON · localStorage · inbox",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "localstores"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 1920,
+              "height": 1080,
+              "theme": "light",
+              "innerWidth": 1920,
+              "innerHeight": 1080,
+              "scrollWidth": 1920,
+              "scrollHeight": 1119,
+              "overflowX": false,
+              "overflowY": true,
+              "verticalScrollAccepted": true,
+              "overflowDisposition": "readable-vertical-scroll",
+              "readerLayout": "adaptive",
+              "readerOverflow": "authored",
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1030,
+              "diagramWidth": 1000,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 60,
+                "diagramChromePx": 84,
+                "svgPx": 910,
+                "cardsPx": 0,
+                "viewBoxHeight": 910
+              },
+              "viewBoxWidth": 1000,
+              "minimumProjectedNodeTextPx": 6.9,
+              "minimumProjectedNonEdgeTextPx": 6.9,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "JSON · localStorage · inbox",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "localstores"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 54,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            },
+            {
+              "width": 2048,
+              "height": 1320,
+              "theme": "light",
+              "innerWidth": 2048,
+              "innerHeight": 1320,
+              "scrollWidth": 2048,
+              "scrollHeight": 1320,
+              "overflowX": false,
+              "overflowY": false,
+              "verticalScrollAccepted": false,
+              "overflowDisposition": "contained",
+              "readerLayout": "adaptive",
+              "readerOverflow": null,
+              "readerFit": "intrinsic-height",
+              "ok": true,
+              "readerWidth": 1239,
+              "diagramWidth": 1189,
+              "pageComposition": {
+                "bodyPaddingPx": 64,
+                "headerPx": 68,
+                "diagramChromePx": 94,
+                "svgPx": 1082,
+                "cardsPx": 0,
+                "viewBoxHeight": 910
+              },
+              "viewBoxWidth": 1000,
+              "minimumProjectedNodeTextPx": 6.9,
+              "minimumProjectedNonEdgeTextPx": 6.9,
+              "minimumProjectedEdgeTextPx": 8,
+              "minimumProjectedNodeText": "JSON · localStorage · inbox",
+              "minimumProjectedNodeTextDetail": "context",
+              "minimumProjectedNodeTextOwner": {
+                "kind": "node",
+                "id": "localstores"
+              },
+              "minimumRequiredNodeTextPx": 6,
+              "readabilityOk": true,
+              "hasLegend": true,
+              "hasNavigationDock": true,
+              "legendDockIntersectionArea": 0,
+              "dockStageIntersectionArea": 0,
+              "dockStageGap": 10,
+              "requiredDockStageGap": 10,
+              "viewerChromeStageOk": true,
+              "viewerChromeReserve": 44,
+              "viewerChromeActive": true,
+              "viewerChromeOk": true,
+              "resolvedTheme": "light"
+            }
+          ]
+        },
+        "captures": {
+          "status": "not-requested",
+          "screenshots": [],
+          "contactSheet": null
+        },
+        "sidecars": {
+          "receipt": "feature-map.browser-check.json",
+          "files": []
+        }
+      }
+    }
+  },
+  "diagnostics": [],
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "finishedAt": "2026-10-17T05:19:43.599Z",
+  "durationMs": 8791,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

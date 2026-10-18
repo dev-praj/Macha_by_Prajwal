@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Coucou Windows — Push-to-talk and Hey Macha",
+    "locale": "en",
+    "output": "docs/architecture/flow-voice.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
+    },
+    "legend": {
+      "mode": "all",
+      "entries": {
+        "default": { "label": "Normal request / operation" },
+        "emphasis": { "label": "Wake or state-changing action" },
+        "security": { "label": "Local audio / provider boundary" },
+        "dashed": { "label": "Retry / optional speech output" },
+        "return": { "label": "Transcription / result" }
+      }
+    }
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "User", "sublabel": "hotkey or wake", "sources": [{ "path": "windows/src-tauri/src/lib.rs", "line": 42 }] },
+    { "id": "mic", "type": "external", "label": "Microphone", "sublabel": "WebView permission", "sources": [{ "path": "windows/src/views/chat.ts", "line": 982 }] },
+    { "id": "ui", "type": "frontend", "label": "Wake listener", "sublabel": "audio · phrase", "sources": [{ "path": "windows/src/core/wakeWord.ts", "line": 429 }, { "path": "windows/src/views/chat.ts", "line": 668 }] },
+    { "id": "matcher", "type": "frontend", "label": "Phrase matcher", "sublabel": "phonetic variants", "sources": [{ "path": "windows/src/core/wakeWord.ts", "line": 1 }, { "path": "windows/src/core/wakeWord.ts", "line": 145 }] },
+    { "id": "stt", "type": "backend", "label": "Whisper service", "sublabel": "/transcribe · :5005", "sources": [{ "path": "stt_server.py", "line": 20 }, { "path": "stt_server.py", "line": 66 }] },
+    { "id": "shell", "type": "frontend", "label": "Island shell", "sublabel": "expand · sound", "sources": [{ "path": "windows/src/main.ts", "line": 65 }] },
+    { "id": "chat", "type": "backend", "label": "Chat model", "sublabel": "transcript only", "sources": [{ "path": "windows/src-tauri/src/claude.rs", "line": 239 }, { "path": "windows/src-tauri/src/llm_client.rs", "line": 94 }] },
+    { "id": "speaker", "type": "external", "label": "Speech output", "sublabel": "Web Speech · SAPI", "sources": [{ "path": "windows/src/core/tts.ts", "line": 1 }, { "path": "windows/src-tauri/src/voice.rs", "line": 59 }] }
+  ],
+  "messages": [
+    { "from": "user", "to": "ui", "y": 160, "label": "Ctrl+Alt+Space or start listening" },
+    { "from": "ui", "to": "mic", "y": 205, "label": "request permission / capture locally", "variant": "security" },
+    { "from": "user", "to": "mic", "y": 250, "label": "speak wake phrase and optional command" },
+    { "from": "mic", "to": "ui", "y": 295, "label": "audio frames / recorded clip", "variant": "return" },
+    { "from": "ui", "to": "stt", "y": 340, "label": "POST audio clip to loopback /transcribe", "variant": "security" },
+    { "from": "stt", "to": "matcher", "y": 385, "label": "English transcript + confidence", "variant": "return" },
+    { "from": "matcher", "to": "shell", "y": 430, "label": "matched phrase: expand / pin / play blip", "variant": "emphasis" },
+    { "from": "matcher", "to": "chat", "y": 475, "label": "submit text after wake phrase" },
+    { "from": "chat", "to": "ui", "y": 520, "label": "assistant answer / action proposal", "variant": "return" },
+    { "from": "ui", "to": "speaker", "y": 565, "label": "local acknowledgement or optional TTS", "variant": "dashed" },
+    { "from": "shell", "to": "ui", "y": 610, "label": "wake conversation focus / visibility event", "variant": "return" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "On-device audio path", "items": ["The microphone clip is sent to the local Flask/Whisper service; raw audio is not sent to the model API.", "Recognized text and any selected screen/file context follow the chat provider path."] },
+    { "dot": "amber", "title": "Recovery", "items": ["The wake listener retries when STT or the microphone/audio context is unavailable.", "Permission denial requires user action in Windows microphone privacy settings."] }
+  ]
+}

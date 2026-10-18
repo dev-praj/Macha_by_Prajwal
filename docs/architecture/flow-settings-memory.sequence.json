@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Coucou Windows — Settings, Secrets, and Memory",
+    "locale": "en",
+    "output": "docs/architecture/flow-settings-memory.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
+    },
+    "legend": {
+      "mode": "all",
+      "entries": {
+        "default": { "label": "Normal request / operation" },
+        "emphasis": { "label": "Persisted state change" },
+        "security": { "label": "Credential boundary" },
+        "dashed": { "label": "Optional prompt context" },
+        "return": { "label": "Loaded data / response" }
+      }
+    }
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "User", "sublabel": "edits settings", "sources": [{ "path": "windows/src/settings/main.ts", "line": 760 }, { "path": "windows/src/settings/main.ts", "line": 1230 }] },
+    { "id": "settings", "type": "frontend", "label": "Settings UI", "sublabel": "forms · validation", "sources": [{ "path": "windows/src/settings/main.ts", "line": 26 }, { "path": "windows/src/settings/main.ts", "line": 1230 }] },
+    { "id": "bridge", "type": "messagebus", "label": "Tauri bridge", "sublabel": "invoke commands", "sources": [{ "path": "windows/src/core/bridge.ts", "line": 60 }, { "path": "windows/src/core/bridge.ts", "line": 180 }] },
+    { "id": "rust", "type": "backend", "label": "Data commands", "sublabel": "validate · save", "sources": [{ "path": "windows/src-tauri/src/settings.rs", "line": 9 }, { "path": "windows/src-tauri/src/memory.rs", "line": 42 }] },
+    { "id": "files", "type": "database", "label": "JSON files", "sublabel": "settings · memories", "sources": [{ "path": "windows/src-tauri/src/settings.rs", "line": 104 }, { "path": "windows/src-tauri/src/memory.rs", "line": 19 }] },
+    { "id": "keys", "type": "security", "label": "Credentials", "sublabel": "allowlisted only", "sources": [{ "path": "windows/src-tauri/src/secrets.rs", "line": 17 }, { "path": "windows/src-tauri/src/secrets.rs", "line": 200 }] },
+    { "id": "chat", "type": "backend", "label": "Chat context", "sublabel": "adds memory", "sources": [{ "path": "windows/src-tauri/src/claude.rs", "line": 281 }, { "path": "windows/src-tauri/src/claude.rs", "line": 780 }] },
+    { "id": "provider", "type": "cloud", "label": "LLM provider", "sublabel": "Ollama or cloud", "sources": [{ "path": "windows/src-tauri/src/llm_client.rs", "line": 11 }, { "path": "windows/src-tauri/src/llm_client.rs", "line": 12 }] }
+  ],
+  "messages": [
+    { "from": "user", "to": "settings", "y": 160, "label": "edit preference, API key, or memory" },
+    { "from": "settings", "to": "bridge", "y": 205, "label": "saveSettings / secretSet / memoryRemember" },
+    { "from": "bridge", "to": "rust", "y": 250, "label": "invoke Tauri command" },
+    { "from": "rust", "to": "files", "y": 295, "label": "validate and write preference or memory", "variant": "emphasis" },
+    { "from": "rust", "to": "keys", "y": 340, "label": "set allowlisted credential", "variant": "security" },
+    { "from": "files", "to": "rust", "y": 385, "label": "read saved memory / settings", "variant": "return" },
+    { "from": "rust", "to": "settings", "y": 430, "label": "result or explicit validation error", "variant": "return" },
+    { "from": "user", "to": "chat", "y": 475, "label": "start a model conversation" },
+    { "from": "chat", "to": "files", "y": 520, "label": "read memories.json" },
+    { "from": "files", "to": "chat", "y": 565, "label": "memory records", "variant": "return" },
+    { "from": "chat", "to": "provider", "y": 610, "label": "prompt includes saved memory text", "variant": "dashed" },
+    { "from": "provider", "to": "chat", "y": 655, "label": "assistant response", "variant": "return" }
+  ],
+  "cards": [
+    { "dot": "rose", "title": "Storage separation", "items": ["API key values use Windows Credential Manager; settings JSON stores preferences only.", "OpenRouter account JSON stores account IDs/names, not key material."] },
+    { "dot": "amber", "title": "Model privacy", "items": ["Memory stays on local disk but is included in chat context.", "If a cloud provider handles the request, prompt text including memory may leave the device."] }
+  ]
+}

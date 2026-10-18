@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "b285e6c3-4997-4346-9d0f-13cd293e3f17",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.sequence.json",
+  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-workflows.html",
+  "specification": {
+    "sha256": "c37088b58262482192bf5792a89834093bef3ef2a59fcb7fd07225fe52ae480d",
+    "bytes": 4843
+  },
+  "artifact": {
+    "sha256": "c13214a13b2fb0323c8095ed7f6193d750bdb8b9c7a2c07a2712cf43554958fd",
+    "bytes": 821781
+  }
+}

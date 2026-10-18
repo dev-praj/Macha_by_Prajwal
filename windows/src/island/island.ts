@@ -19,6 +19,7 @@ import { USC, UploadSeq } from "../upload/sequence";
 import { buildHeader, buildViews, type ViewActions, type ViewHost } from "../views/views";
 import { h } from "../views/dom";
 import { IslandStateMachine } from "./fsm";
+import { NixiStatusBar } from "../nixi/status";
 
 const BOT_OVERHANG = 40;
 /** Same margin as the Rust hit test (src-tauri/src/island.rs). */
@@ -34,6 +35,7 @@ const modeOrder = (m: IslandMode) => (m === "hidden" ? 0 : m === "compact" ? 1 :
 
 export class Island {
   readonly fsm = new IslandStateMachine();
+  statusBar!: NixiStatusBar;
 
   private root: HTMLElement;
   private islandEl!: HTMLElement;
@@ -188,6 +190,7 @@ export class Island {
     this.greetingCanvas = h("canvas", { id: "greeting-canvas" });
     this.miniGrid = h("div", { id: "mini-grid" });
     this.countdown = h("div", { id: "countdown" });
+    this.statusBar = new NixiStatusBar();
 
     this.header = buildHeader(actions);
     this.views = buildViews(actions, () => this.animateGeometry(false));
@@ -220,6 +223,7 @@ export class Island {
       this.clipEl,
       this.botGlow,
       this.botCanvas,
+      this.statusBar.el,
       this.miniGrid,
       this.countdown,
     );
@@ -929,6 +933,11 @@ export class Island {
       }
     }
 
+    // Compact status bar
+    const isCompact = State.mode === "compact";
+    this.statusBar.el.style.opacity = isCompact ? "1" : "0";
+    this.statusBar.el.style.pointerEvents = isCompact ? "auto" : "none";
+
     // Compact mini grid
     const showGrid = State.mode === "compact";
     this.miniGrid.style.opacity = showGrid ? "1" : "0";
@@ -963,5 +972,21 @@ export class Island {
 
   get chatHeight() {
     return chatPromptHeight(State.chatHistory.length);
+  }
+
+  setNixiPtt(active: boolean) {
+    State.nixiPttActive = active;
+    State.stateOverride = active
+      ? "question"
+      : (State.nixiDictateActive ? "searching" : null);
+    State.notify();
+  }
+
+  setNixiDictate(active: boolean) {
+    State.nixiDictateActive = active;
+    State.stateOverride = active
+      ? "searching"
+      : (State.nixiPttActive ? "question" : null);
+    State.notify();
   }
 }

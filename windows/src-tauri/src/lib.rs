@@ -20,6 +20,11 @@ mod tray;
 mod voice;
 mod windows_automation;
 mod workflows;
+mod nixi_dictation;
+mod nixi_hotkeys;
+mod nixi_commands;
+pub mod nixi_search;
+pub mod nixi_system;
 
 use std::process::Command;
 use std::sync::atomic::Ordering;
@@ -554,6 +559,21 @@ fn log_line(message: String) {
     log::line(format!("ui  {message}"));
 }
 
+#[tauri::command]
+fn nixi_status(app: AppHandle, text: String, detail: Option<String>) {
+    use serde::Serialize;
+    #[derive(Clone, Serialize)]
+    struct NixiStatusPayload {
+        text: String,
+        detail: Option<String>,
+    }
+    let _ = app.emit_to(
+        island::WINDOW_LABEL,
+        "nixi-status",
+        NixiStatusPayload { text, detail },
+    );
+}
+
 // ── Settings window ───────────────────────────────────────────────────────────
 
 /// WebView2 allows exactly one browser environment per app, and its options are
@@ -717,6 +737,16 @@ pub fn run() {
             open_settings_window,
             set_paused,
             toggle_auto_hide,
+            nixi_status,
+            nixi_dictation::nixi_dictate_insert,
+            nixi_commands::nixi_run_command,
+            nixi_commands::nixi_undo_last_command,
+            nixi_search::nixi_search_files,
+            nixi_search::nixi_reveal_file,
+            nixi_system::nixi_adjust_volume,
+            nixi_system::nixi_send_media,
+            nixi_system::nixi_toggle_theme,
+            nixi_system::nixi_capture_screenshot,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();
@@ -726,6 +756,7 @@ pub fn run() {
                 }
             }
             tray::build(&handle)?;
+            nixi_hotkeys::start(&handle);
             if let Ok(shortcut) = HOTKEY.parse::<Shortcut>() {
                 if let Err(error) = app.global_shortcut().register(shortcut) {
                     log::line(format!("could not register {HOTKEY}: {error}"));
@@ -771,6 +802,7 @@ pub fn run() {
         .expect("error while building Coucou")
         .run(|app, event| {
             if matches!(event, tauri::RunEvent::Exit) {
+                nixi_hotkeys::stop();
                 if let Err(error) = app.global_shortcut().unregister_all() {
                     log::line(format!("could not unregister global shortcuts: {error}"));
                 }

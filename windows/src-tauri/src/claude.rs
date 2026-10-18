@@ -255,6 +255,8 @@ pub async fn send(
     if let Some(image) = screen_image {
         validate_screen_image(image)?;
     }
+    let query_preview = query.chars().take(80).collect::<String>();
+    crate::log::line(format!("[claude::send] phase={workflow_phase:?} query={query_preview:?}"));
     chat.seed_history(
         &conversation_id,
         &history,
@@ -337,7 +339,7 @@ pub async fn send(
     } else {
         llm_client::chat(
             request_messages.clone(),
-            tools,
+            tools.clone(),
             provider_mode,
             ollama_model,
             model,
@@ -376,8 +378,26 @@ pub async fn send(
                 "configured model returned an empty tool batch; retrying with an action-envelope compatibility prompt",
             );
             llm_client::chat(
-                compatibility_messages(request_messages)?,
+                compatibility_messages(request_messages.clone())?,
                 None,
+                provider_mode,
+                ollama_model,
+                model,
+                cancel,
+            )
+            .await
+        }
+        result => result,
+    };
+    let completion = match completion {
+        Err(error) if is_multimodal_error(&error) && screen_image.is_some() => {
+            crate::log::line(
+                "configured model does not support images/multimodal; retrying with text-only prompt",
+            );
+            let text_only_messages = strip_screen_images(request_messages.clone());
+            llm_client::chat(
+                text_only_messages,
+                tools,
                 provider_mode,
                 ollama_model,
                 model,
@@ -395,7 +415,7 @@ pub async fn send(
         }
     };
 
-    match handle_response_mode(
+    let reply = match handle_response_mode(
         chat,
         &conversation_id,
         automation_folders,
@@ -408,7 +428,15 @@ pub async fn send(
             chat.pop(&conversation_id);
             Err(error)
         }
+    };
+    if let Ok(ref r) = reply {
+        let text_preview = r.text.chars().take(100).collect::<String>();
+        let action_name = r.action.as_ref().map(|a| a.name.as_str());
+        crate::log::line(format!("[claude::send] reply action={action_name:?} text={text_preview:?}"));
+    } else if let Err(ref e) = reply {
+        crate::log::line(format!("[claude::send] error={e}"));
     }
+    reply
 }
 
 fn tool_support_error(error: &str) -> bool {
@@ -428,6 +456,27 @@ fn tool_support_error(error: &str) -> bool {
         ]
         .iter()
         .any(|marker| message.contains(marker))
+}
+
+fn is_multimodal_error(error: &str) -> bool {
+    let message = error.to_ascii_lowercase();
+    message.contains("multimodal")
+        || message.contains("does not support image")
+        || message.contains("image input")
+        || message.contains("images are not supported")
+        || message.contains("unsupported image")
+        || message.contains("has no image support")
+}
+
+fn strip_screen_images(mut messages: Vec<Value>) -> Vec<Value> {
+    for message in &mut messages {
+        if let Some(content) = message.get_mut("content").and_then(Value::as_array_mut) {
+            content.retain(|part| {
+                part.get("type").and_then(Value::as_str) != Some("image_url")
+            });
+        }
+    }
+    messages
 }
 
 fn has_empty_action_response(response: &Value) -> bool {
@@ -631,6 +680,11 @@ pub async fn resolve_action(
     } else {
         "The user denied this action. Do not repeat it; explain that no change was made.".into()
     };
+    crate::log::line(format!(
+        "[claude::action] name={} result={:?}",
+        pending.action.name,
+        result.chars().take(100).collect::<String>()
+    ));
     let mut results = pending.results;
     results.push(QueuedActionResult {
         call_index: pending.call_index,
@@ -766,7 +820,7 @@ Ordinary chat actions require explicit user approval. Actions in a saved workflo
 }
 
 fn with_screen_image(mut messages: Vec<Value>, image: Option<&str>) -> Vec<Value> {
-    let Some(image) = image else {
+    let Some(image) = image.filter(|s| !s.trim().is_empty()) else {
         return messages;
     };
     let Some(last_user_message) = messages
@@ -789,6 +843,9 @@ fn with_screen_image(mut messages: Vec<Value>, image: Option<&str>) -> Vec<Value
 }
 
 fn validate_screen_image(image: &str) -> Result<(), String> {
+    if image.trim().is_empty() {
+        return Ok(());
+    }
     let encoded = image
         .strip_prefix("data:image/jpeg;base64,")
         .ok_or_else(|| "The screen capture must be a JPEG data URL.".to_string())?;

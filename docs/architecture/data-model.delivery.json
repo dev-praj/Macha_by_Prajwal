@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "1854eff3-7024-4b34-bf97-55d2d775bb17",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.architecture.json",
+  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.html",
+  "specification": {
+    "sha256": "93b1e0ef0f41b25b436a94604c956f8a5b83f692337f493bbba81096eb2119e1",
+    "bytes": 6667
+  },
+  "artifact": {
+    "sha256": "1f4fa3af3f51c8070b34c067a5bbe1ba62b4a5c4ab2549068992dd31b6f9b7ca",
+    "bytes": 846400
+  }
+}

@@ -278,8 +278,34 @@ def hand_finger_states(landmarks):
     )
 
 
-def is_open_palm(fingers):
-    return all(fingers[:5])
+def finger_fully_extended(landmarks, mcp_index, pip_index, dip_index, tip_index):
+    return (
+        joint_angle(
+            landmarks[mcp_index], landmarks[pip_index], landmarks[dip_index]
+        ) >= 160.0
+        and joint_angle(
+            landmarks[pip_index], landmarks[dip_index], landmarks[tip_index]
+        ) >= 150.0
+    )
+
+
+def is_open_palm(fingers, landmarks):
+    palm_width = max(dist(landmarks[5], landmarks[17]), 0.001)
+    thumb_fully_open = (
+        fingers[0]
+        and joint_angle(landmarks[2], landmarks[3], landmarks[4]) >= 155.0
+        and dist(landmarks[4], landmarks[5]) > palm_width * 0.45
+    )
+    fingers_fully_open = all(
+        finger_fully_extended(landmarks, mcp, pip, dip, tip)
+        for mcp, pip, dip, tip in (
+            (5, 6, 7, 8),
+            (9, 10, 11, 12),
+            (13, 14, 15, 16),
+            (17, 18, 19, 20),
+        )
+    )
+    return thumb_fully_open and fingers_fully_open
 
 
 def update_palm_hold(palm_open, now):
@@ -300,15 +326,6 @@ def update_palm_hold(palm_open, now):
             else:
                 state.palm_hold_progress = 1.0
             palm_effective = True
-        elif (
-            state.palm_gesture_since is not None
-            and state.palm_last_seen is not None
-            and now - state.palm_last_seen <= PALM_TRACKING_GRACE
-        ):
-            palm_effective = True
-            state.palm_hold_progress = min(
-                (now - state.palm_gesture_since) / PALM_HOLD_SECONDS, 1.0
-            )
         else:
             state.palm_gesture_since = None
             state.palm_last_seen = None
@@ -555,7 +572,7 @@ def hand_detection_thread():
                     rmax = state.hand_range_max
 
                 fingers = hand_finger_states(landmarks)
-                palm_open = is_open_palm(fingers)
+                palm_open = is_open_palm(fingers, landmarks)
                 hold_completed, palm_effective, was_cursor_locked = update_palm_hold(
                     palm_open, palm_now
                 )

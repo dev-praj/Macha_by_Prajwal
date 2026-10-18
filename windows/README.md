@@ -324,6 +324,48 @@ The app icon and the tray icon are drawn in code, like Mochi itself:
 npm run icons          # regenerates src-tauri/icons from scripts/gen-icons.mjs
 ```
 
+## Start at Windows logon
+
+The Task Scheduler task runs the release app as the current user, 20 seconds
+after logon. It launches the app's tray/island UI (no terminal window), waits
+for the local speech service at `http://127.0.0.1:5005/health`, and retries a
+failed start up to three times, 10 seconds apart. Installation disables the
+app's separate autostart registration so only the scheduled task launches it.
+This is a per-user task; it does not need administrator rights and does not
+start the app before sign-in.
+
+Run these commands from the repository root in PowerShell:
+
+```powershell
+# Install and enable the logon task.
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\windows\manage-startup-task.ps1 -Action Install
+
+# Test the launcher directly, then run the scheduled task on demand.
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\windows\start-app.ps1
+Start-ScheduledTask -TaskPath "\Coucou\" -TaskName "Coucou Auto Start"
+Get-ScheduledTaskInfo -TaskPath "\Coucou\" -TaskName "Coucou Auto Start"
+
+# Manage or remove the task.
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\windows\manage-startup-task.ps1 -Action Enable
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\windows\manage-startup-task.ps1 -Action Disable
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\windows\manage-startup-task.ps1 -Action Remove
+```
+
+The launcher is idempotent: it reuses a running Coucou process, and reports a
+clear error rather than terminating another process if port 5005 is occupied.
+Its timestamped log is `%LOCALAPPDATA%\Coucou\startup.log`; Coucou and speech
+service diagnostics are in `%LOCALAPPDATA%\Coucou\coucou.log`. Check both after
+a failure. The GUI executable has no console streams; its timestamped app log
+is where runtime errors are recorded.
+
+To verify after a reboot, sign in, wait up to 20 seconds plus the speech-model
+startup time, confirm the Coucou island/tray icon appears, and run
+`curl.exe http://127.0.0.1:5005/health` (expect `{"status":"ok"}`). Review both
+logs for the latest timestamp. `-Action Remove` unregisters the task and
+restores the app-managed autostart preference/registration that was present
+before installation. If you move the repository or rebuild the app, reinstall
+the task so its absolute executable and working-directory paths are refreshed.
+
 ### Layout
 
 ```

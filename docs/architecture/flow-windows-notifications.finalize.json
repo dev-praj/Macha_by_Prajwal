@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "sequence",
+  "quality": "showcase",
+  "startedAt": "2026-10-17T05:26:43.234Z",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-windows-notifications.sequence.json",
+    "sha256": "730ff424dc8fc51dc7c70b54d3aac981367c4a58435a0a3e321606c2fce138fa",
+    "bytes": 3732
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-windows-notifications.html"
+  },
+  "stages": {
+    "validate": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": null,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "sequence",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-windows-notifications.sequence.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-windows-notifications.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "deliver",
+        "receiptId": "731e7e5f-b39e-4a5d-ba59-da733ee828d3",
+        "stage": "render",
+        "type": "sequence",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-windows-notifications.sequence.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-windows-notifications.html",
+        "error": "Sequence layout validation failed:\n- Message \"queue item and show notification card\" is a self-message on participant \"island\"; this Sequence renderer supports only messages between distinct participants. Participant spacing cannot repair it. Preserve the internal step's meaning and order in a supported representation such as a note on a real message or a card; do not invent a participant.",
+        "diagnostics": [
+          {
+            "code": "sequence/self-message-unsupported",
+            "severity": "error",
+            "message": "Message \"queue item and show notification card\" is a self-message on participant \"island\"; this Sequence renderer supports only messages between distinct participants. Participant spacing cannot repair it. Preserve the internal step's meaning and order in a supported representation such as a note on a real message or a card; do not invent a participant.",
+            "subject": {
+              "diagramType": "sequence",
+              "message": "queue item and show notification card",
+              "collection": "messages",
+              "index": 7,
+              "path": "/messages/7",
+              "from": "island",
+              "to": "island",
+              "fromPath": "/messages/7/from",
+              "toPath": "/messages/7/to"
+            },
+            "evidence": {
+              "participant": "island",
+              "participantPath": "/participants/4",
+              "y": 475,
+              "supportedMessageGeometry": "horizontal-between-distinct-participants"
+            },
+            "supportedFixes": []
+          }
+        ],
+        "provenance": "absent",
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      },
+      "execution": "embedded-in-deliver"
+    },
+    "deliver": {
+      "status": "not-run",
+      "execution": "blocked-by-validate"
+    }
+  },
+  "diagnostics": [
+    {
+      "code": "sequence/self-message-unsupported",
+      "severity": "error",
+      "message": "Message \"queue item and show notification card\" is a self-message on participant \"island\"; this Sequence renderer supports only messages between distinct participants. Participant spacing cannot repair it. Preserve the internal step's meaning and order in a supported representation such as a note on a real message or a card; do not invent a participant.",
+      "subject": {
+        "diagramType": "sequence",
+        "message": "queue item and show notification card",
+        "collection": "messages",
+        "index": 7,
+        "path": "/messages/7",
+        "from": "island",
+        "to": "island",
+        "fromPath": "/messages/7/from",
+        "toPath": "/messages/7/to"
+      },
+      "evidence": {
+        "participant": "island",
+        "participantPath": "/participants/4",
+        "y": 475,
+        "supportedMessageGeometry": "horizontal-between-distinct-participants"
+      },
+      "supportedFixes": []
+    }
+  ],
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-windows-notifications.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-windows-notifications.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "validate",
+  "finishedAt": "2026-10-17T05:26:44.376Z",
+  "durationMs": 1141,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

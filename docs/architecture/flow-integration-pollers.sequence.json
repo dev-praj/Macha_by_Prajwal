@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Coucou Windows — External Integration Pollers",
+    "locale": "en",
+    "output": "docs/architecture/flow-integration-pollers.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
+    },
+    "legend": {
+      "mode": "all",
+      "entries": {
+        "default": { "label": "Normal request / operation" },
+        "emphasis": { "label": "New activity surfaced" },
+        "security": { "label": "Credential-gated request" },
+        "dashed": { "label": "Periodic / optional work" },
+        "return": { "label": "Result / event" }
+      }
+    }
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "User", "sublabel": "sets key and enables a pill", "sources": [{ "path": "windows/src/settings/main.ts", "line": 492 }] },
+    { "id": "settings", "type": "frontend", "label": "Settings", "sublabel": "integrations · keys", "sources": [{ "path": "windows/src/settings/main.ts", "line": 492 }] },
+    { "id": "rust", "type": "backend", "label": "Rust poller", "sublabel": "pause + enabled + key checks", "sources": [{ "path": "windows/src-tauri/src/integrations.rs", "line": 64 }, { "path": "windows/src-tauri/src/integrations.rs", "line": 80 }] },
+    { "id": "keys", "type": "security", "label": "Credential Manager", "sublabel": "service-specific API key", "sources": [{ "path": "windows/src-tauri/src/secrets.rs", "line": 17 }] },
+    { "id": "api", "type": "cloud", "label": "Service API", "sublabel": "HTTPS poller", "sources": [{ "path": "windows/src-tauri/src/integrations.rs", "line": 142 }, { "path": "windows/src-tauri/src/integrations.rs", "line": 287 }, { "path": "windows/src-tauri/src/integrations.rs", "line": 613 }] },
+    { "id": "island", "type": "frontend", "label": "Integration card", "sublabel": "result · pill event", "sources": [{ "path": "windows/src/island/integrations.ts", "line": 18 }, { "path": "windows/src/views/integrations.ts", "line": 1 }] }
+  ],
+  "messages": [
+    { "from": "user", "to": "settings", "y": 160, "label": "save credential and enable integration" },
+    { "from": "settings", "to": "keys", "y": 205, "label": "secret_set(key, value)", "variant": "security" },
+    { "from": "rust", "to": "settings", "y": 250, "label": "load active integration IDs" },
+    { "from": "rust", "to": "keys", "y": 295, "label": "read configured key", "variant": "security" },
+    { "from": "rust", "to": "api", "y": 340, "label": "periodic HTTPS request while enabled/unpaused", "variant": "dashed" },
+    { "from": "api", "to": "rust", "y": 385, "label": "summary / HTTP error", "variant": "return" },
+    { "from": "rust", "to": "island", "y": 430, "label": "emit integration data/error event", "variant": "return" },
+    { "from": "user", "to": "island", "y": 520, "label": "manual Refresh" },
+    { "from": "island", "to": "rust", "y": 565, "label": "refresh_integration(id)" },
+    { "from": "rust", "to": "api", "y": 610, "label": "one-shot poll using same key gate", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "Active schedule", "items": ["Vercel and Stripe: 30 seconds; GitHub, Notion, and Cal.com: 300 seconds, after short first-run delays.", "Pause or disabling an integration skips its network work."] },
+    { "dot": "slate", "title": "Dormant functions", "items": ["Resend and n8n poll functions exist in source but are not started by integrations::start.", "Responses and task updates are process-memory state, not a persistent remote cache."] }
+  ]
+}

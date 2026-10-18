@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "21bcd9d4-88f0-4a03-97e1-c5276605edf0",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-file-drop.sequence.json",
+  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-file-drop.html",
+  "specification": {
+    "sha256": "228bb7d6531c8f022edbc9bf13227a4fde3b1415025378d263d0e27b0f43cde8",
+    "bytes": 3696
+  },
+  "artifact": {
+    "sha256": "b727c9427273a656e85e8a02a3c8fe37a9ba2edbdb6b7a110ede3ed018bbc833",
+    "bytes": 816642
+  }
+}

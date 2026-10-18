@@ -1,0 +1,335 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "sequence",
+  "quality": "showcase",
+  "startedAt": "2026-10-17T05:30:35.022Z",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-voice.sequence.json",
+    "sha256": "9ebcdf406f787725ae2e1fa43e081dea75e268ab551f849fdb0d9e3b74884e24",
+    "bytes": 4320
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-voice.html"
+  },
+  "stages": {
+    "validate": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": null,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "sequence",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-voice.sequence.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-voice.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "deliver",
+        "receiptId": "861d7819-9852-41bf-b40e-3cae2b841f37",
+        "stage": "render",
+        "type": "sequence",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-voice.sequence.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-voice.html",
+        "error": "Sequence layout validation failed:\n- Sublabel \"MediaRecorder · match\" needs ~89px at the 7px minimum that stays readable on this 1085px canvas, but participant \"ui\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"expand · react · sound\" needs ~93px at the 7px minimum that stays readable on this 1085px canvas, but participant \"shell\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Chat / model routing\" (~136px) is wider than component \"chat\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"transcript text, not raw audio\" needs ~126px at the 7px minimum that stays readable on this 1085px canvas, but participant \"chat\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Local speech output\" (~129px) is wider than component \"speaker\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"Web Speech or Windows SAPI\" needs ~110px at the 7px minimum that stays readable on this 1085px canvas, but participant \"speaker\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+        "diagnostics": [
+          {
+            "code": "sequence/participant-sublabel-overflow",
+            "severity": "error",
+            "message": "Sublabel \"MediaRecorder · match\" needs ~89px at the 7px minimum that stays readable on this 1085px canvas, but participant \"ui\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "ui",
+              "path": "/participants/2/sublabel"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 96,
+              "text": "MediaRecorder · match",
+              "requiredWidth": 88.2,
+              "availableWidth": 88,
+              "minimumFontPx": 7
+            },
+            "supportedFixes": [
+              "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+            ]
+          },
+          {
+            "code": "sequence/participant-sublabel-overflow",
+            "severity": "error",
+            "message": "Sublabel \"expand · react · sound\" needs ~93px at the 7px minimum that stays readable on this 1085px canvas, but participant \"shell\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "shell",
+              "path": "/participants/5/sublabel"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 96,
+              "text": "expand · react · sound",
+              "requiredWidth": 92.39999999999999,
+              "availableWidth": 88,
+              "minimumFontPx": 7
+            },
+            "supportedFixes": [
+              "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+            ]
+          },
+          {
+            "code": "sequence/participant-label-overflow",
+            "severity": "error",
+            "message": "Label \"Chat / model routing\" (~136px) is wider than component \"chat\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "chat",
+              "path": "/participants/6/label"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 96,
+              "text": "Chat / model routing",
+              "requiredWidth": 136,
+              "availableWidth": 102
+            },
+            "supportedFixes": [
+              "shorten the participant label while preserving its role"
+            ]
+          },
+          {
+            "code": "sequence/participant-sublabel-overflow",
+            "severity": "error",
+            "message": "Sublabel \"transcript text, not raw audio\" needs ~126px at the 7px minimum that stays readable on this 1085px canvas, but participant \"chat\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "chat",
+              "path": "/participants/6/sublabel"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 96,
+              "text": "transcript text, not raw audio",
+              "requiredWidth": 126,
+              "availableWidth": 88,
+              "minimumFontPx": 7
+            },
+            "supportedFixes": [
+              "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+            ]
+          },
+          {
+            "code": "sequence/participant-label-overflow",
+            "severity": "error",
+            "message": "Label \"Local speech output\" (~129px) is wider than component \"speaker\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "speaker",
+              "path": "/participants/7/label"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 96,
+              "text": "Local speech output",
+              "requiredWidth": 129.2,
+              "availableWidth": 102
+            },
+            "supportedFixes": [
+              "shorten the participant label while preserving its role"
+            ]
+          },
+          {
+            "code": "sequence/participant-sublabel-overflow",
+            "severity": "error",
+            "message": "Sublabel \"Web Speech or Windows SAPI\" needs ~110px at the 7px minimum that stays readable on this 1085px canvas, but participant \"speaker\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "speaker",
+              "path": "/participants/7/sublabel"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 96,
+              "text": "Web Speech or Windows SAPI",
+              "requiredWidth": 109.2,
+              "availableWidth": 88,
+              "minimumFontPx": 7
+            },
+            "supportedFixes": [
+              "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+            ]
+          }
+        ],
+        "provenance": "absent",
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      },
+      "execution": "embedded-in-deliver"
+    },
+    "deliver": {
+      "status": "not-run",
+      "execution": "blocked-by-validate"
+    }
+  },
+  "diagnostics": [
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"MediaRecorder · match\" needs ~89px at the 7px minimum that stays readable on this 1085px canvas, but participant \"ui\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "ui",
+        "path": "/participants/2/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 96,
+        "text": "MediaRecorder · match",
+        "requiredWidth": 88.2,
+        "availableWidth": 88,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    },
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"expand · react · sound\" needs ~93px at the 7px minimum that stays readable on this 1085px canvas, but participant \"shell\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "shell",
+        "path": "/participants/5/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 96,
+        "text": "expand · react · sound",
+        "requiredWidth": 92.39999999999999,
+        "availableWidth": 88,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    },
+    {
+      "code": "sequence/participant-label-overflow",
+      "severity": "error",
+      "message": "Label \"Chat / model routing\" (~136px) is wider than component \"chat\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "chat",
+        "path": "/participants/6/label"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 96,
+        "text": "Chat / model routing",
+        "requiredWidth": 136,
+        "availableWidth": 102
+      },
+      "supportedFixes": [
+        "shorten the participant label while preserving its role"
+      ]
+    },
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"transcript text, not raw audio\" needs ~126px at the 7px minimum that stays readable on this 1085px canvas, but participant \"chat\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "chat",
+        "path": "/participants/6/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 96,
+        "text": "transcript text, not raw audio",
+        "requiredWidth": 126,
+        "availableWidth": 88,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    },
+    {
+      "code": "sequence/participant-label-overflow",
+      "severity": "error",
+      "message": "Label \"Local speech output\" (~129px) is wider than component \"speaker\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "speaker",
+        "path": "/participants/7/label"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 96,
+        "text": "Local speech output",
+        "requiredWidth": 129.2,
+        "availableWidth": 102
+      },
+      "supportedFixes": [
+        "shorten the participant label while preserving its role"
+      ]
+    },
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"Web Speech or Windows SAPI\" needs ~110px at the 7px minimum that stays readable on this 1085px canvas, but participant \"speaker\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "speaker",
+        "path": "/participants/7/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 96,
+        "text": "Web Speech or Windows SAPI",
+        "requiredWidth": 109.2,
+        "availableWidth": 88,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-voice.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-voice.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "validate",
+  "finishedAt": "2026-10-17T05:30:35.868Z",
+  "durationMs": 846,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

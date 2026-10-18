@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "5b3a487c-d3bf-4dfe-a22d-1e31d87c8d05",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-vision-mode.sequence.json",
+  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-vision-mode.html",
+  "specification": {
+    "sha256": "7255e0e26c6e3f0c5644d02b706e3d220727f344bfffcef36e430517089ef4e7",
+    "bytes": 3967
+  },
+  "artifact": {
+    "sha256": "4404ba9df3cdf37e0bbae667b4bcf6ce5872408f207d05b07a0482a9f07a2e3e",
+    "bytes": 816566
+  }
+}

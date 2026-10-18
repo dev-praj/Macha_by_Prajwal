@@ -233,6 +233,26 @@ export const Bridge = {
 
   /** Tray → toggle the native auto-hide state. */
   toggleAutoHide: () => call<boolean>("toggle_auto_hide"),
+
+  // ── Nixi Commands & Dictation ─────────────────────────────────────────────
+  nixiRunCommand: (input: string) =>
+    callOrThrow<NixiCommandResult>("nixi_run_command", { input }),
+  nixiUndoLastCommand: () =>
+    callOrThrow<string>("nixi_undo_last_command"),
+  nixiDictateInsert: (text: string) =>
+    callOrThrow<string>("nixi_dictate_insert", { text }),
+  nixiSearchFiles: (query: string, limit?: number) =>
+    callOrThrow<NixiFileMatch[]>("nixi_search_files", { query, limit }),
+  nixiRevealFile: (path: string) =>
+    callOrThrow<void>("nixi_reveal_file", { path }),
+  nixiAdjustVolume: (action: string, steps?: number) =>
+    callOrThrow<string>("nixi_adjust_volume", { action, steps }),
+  nixiSendMedia: (action: string) =>
+    callOrThrow<string>("nixi_send_media", { action }),
+  nixiToggleTheme: (enableDark?: boolean) =>
+    callOrThrow<boolean>("nixi_toggle_theme", { enableDark }),
+  nixiCaptureScreenshot: () =>
+    callOrThrow<ScreenshotResult>("nixi_capture_screenshot"),
 };
 
 export interface IntegrationUpdate {
@@ -334,3 +354,52 @@ export async function onEvent<T>(name: string, handler: (payload: T) => void) {
   if (!IS_TAURI) return () => {};
   return listen<T>(name, (e) => handler(e.payload));
 }
+
+export interface NixiStatus {
+  text: string;
+  detail?: string;
+}
+
+export interface NixiFileMatch {
+  path: string;
+  name: string;
+  folder: string;
+  sizeBytes: number;
+}
+
+export interface ScreenshotResult {
+  success: boolean;
+  path: string;
+  message: string;
+}
+
+export interface NixiCommandResult {
+  success: boolean;
+  intentName: string;
+  summary: string;
+  detail?: string;
+  canUndo: boolean;
+}
+
+export type NixiHotkeyPayload = null | Record<string, unknown> | void;
+
+export function onNixiStatus(handler: (payload: NixiStatus) => void) {
+  return onEvent<NixiStatus>("nixi-status", handler);
+}
+
+export function onNixiPttStart(handler: (payload: NixiHotkeyPayload) => void) {
+  return onEvent<NixiHotkeyPayload>("nixi-ptt-start", handler);
+}
+
+export function onNixiPttStop(handler: (payload: NixiHotkeyPayload) => void) {
+  return onEvent<NixiHotkeyPayload>("nixi-ptt-stop", handler);
+}
+
+export function onNixiDictateStart(handler: (payload: NixiHotkeyPayload) => void) {
+  return onEvent<NixiHotkeyPayload>("nixi-dictate-start", handler);
+}
+
+export function onNixiDictateStop(handler: (payload: NixiHotkeyPayload) => void) {
+  return onEvent<NixiHotkeyPayload>("nixi-dictate-stop", handler);
+}
+

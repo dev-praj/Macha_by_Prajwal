@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Coucou Windows — Vision Mode Gesture Loop",
+    "locale": "en",
+    "output": "docs/architecture/flow-vision-mode.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
+    },
+    "legend": {
+      "mode": "all",
+      "entries": {
+        "default": { "label": "Normal request / operation" },
+        "emphasis": { "label": "Cursor or process state change" },
+        "security": { "label": "Camera / local processing boundary" },
+        "dashed": { "label": "Periodic status work" },
+        "return": { "label": "Status / process result" }
+      }
+    }
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "User", "sublabel": "enables Vision Mode", "sources": [{ "path": "windows/src/settings/main.ts", "line": 660 }] },
+    { "id": "settings", "type": "frontend", "label": "Settings WebView", "sublabel": "start / stop / dashboard", "sources": [{ "path": "windows/src/settings/main.ts", "line": 660 }] },
+    { "id": "tauri", "type": "backend", "label": "Process manager", "sublabel": "Python · spawn · stop", "sources": [{ "path": "windows/src-tauri/src/gesture_mouse.rs", "line": 64 }] },
+    { "id": "python", "type": "backend", "label": "Vision Mode", "sublabel": "OpenCV · MediaPipe", "sources": [{ "path": "windows/gesture_mouse/app.py", "line": 1 }, { "path": "windows/gesture_mouse/app.py", "line": 1687 }] },
+    { "id": "camera", "type": "external", "label": "Webcam / hand", "sublabel": "frames processed locally", "sources": [{ "path": "windows/gesture_mouse/app.py", "line": 1 }] },
+    { "id": "desktop", "type": "external", "label": "Windows cursor", "sublabel": "PyAutoGUI actions", "sources": [{ "path": "windows/gesture_mouse/app.py", "line": 24 }] },
+    { "id": "dashboard", "type": "frontend", "label": "Local dashboard", "sublabel": ":8765 · WebSocket", "sources": [{ "path": "windows/gesture_mouse/app.py", "line": 1628 }, { "path": "windows/gesture_mouse/app.py", "line": 1764 }] }
+  ],
+  "messages": [
+    { "from": "user", "to": "settings", "y": 160, "label": "enable and start Vision Mode" },
+    { "from": "settings", "to": "tauri", "y": 205, "label": "gesture_mouse_start()" },
+    { "from": "tauri", "to": "python", "y": 250, "label": "check Python/dependencies; spawn managed process" },
+    { "from": "python", "to": "camera", "y": 295, "label": "request frames and detect hand landmarks", "variant": "security" },
+    { "from": "camera", "to": "python", "y": 340, "label": "local video frames", "variant": "return" },
+    { "from": "python", "to": "desktop", "y": 385, "label": "move / click / scroll cursor", "variant": "emphasis" },
+    { "from": "python", "to": "dashboard", "y": 430, "label": "broadcast status over loopback WebSocket", "variant": "dashed" },
+    { "from": "dashboard", "to": "settings", "y": 475, "label": "display hand / lock / progress status", "variant": "return" },
+    { "from": "settings", "to": "tauri", "y": 520, "label": "gesture_mouse_stop() or check running" },
+    { "from": "tauri", "to": "python", "y": 565, "label": "send stop; kill after bounded wait if needed", "variant": "emphasis" }
+  ],
+  "cards": [
+    { "dot": "rose", "title": "Local processing", "items": ["Camera frames stay in the Python process; the dashboard receives gesture status, not a video upload.", "The hand-landmarker model is downloaded from Google storage if it is not already present."] },
+    { "dot": "amber", "title": "Palm lock", "items": ["In the current working tree, the hold begins only while thumb and all four fingers satisfy the fully-open pose test.", "A non-open pose resets the hold timer; a five-second hold toggles cursor lock."] }
+  ]
+}

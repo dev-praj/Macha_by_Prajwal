@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "2206b82e-7ff7-4201-b8c8-a14a00f7fe7d",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-integration-pollers.sequence.json",
+  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-integration-pollers.html",
+  "specification": {
+    "sha256": "f630a5544c417f36fda0fe48d68817f5ea4982f1ece6290398afb643470a06b5",
+    "bytes": 3780
+  },
+  "artifact": {
+    "sha256": "4ac7f3a3ec6b7b0a60e270ea0856e3a84b59b82b1ba7e7deb76b0127e485f6bb",
+    "bytes": 815594
+  }
+}

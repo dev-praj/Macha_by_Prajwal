@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "dabacfe1-35dd-40ce-b390-74264c4b50f5",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-app-shell.sequence.json",
+  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-app-shell.html",
+  "specification": {
+    "sha256": "f6433f646a871db4d1c378da2241cacf28bea2b4e20e6498bda58d5426c8689d",
+    "bytes": 4015
+  },
+  "artifact": {
+    "sha256": "afbf683b4db65ce69f6bed78271dcca939dbe6696d2170ea84772825588c40d5",
+    "bytes": 818282
+  }
+}

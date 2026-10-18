@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "62407959-2915-48a4-bd6e-80e4287ecc96",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
+  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+  "specification": {
+    "sha256": "9477300a9581d94faa87f907db7f36f3c9227d01cb8230c09e2f23b7f14337a8",
+    "bytes": 8665
+  },
+  "artifact": {
+    "sha256": "0739a04be6edc69a2da629538f8a19204220ea5e35b375e6c224f40cf4de717b",
+    "bytes": 866935
+  }
+}

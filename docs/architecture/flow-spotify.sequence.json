@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Coucou Windows — Spotify Connect and Playback",
+    "locale": "en",
+    "output": "docs/architecture/flow-spotify.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
+    },
+    "legend": {
+      "mode": "all",
+      "entries": {
+        "default": { "label": "Normal request / operation" },
+        "emphasis": { "label": "Playback state change" },
+        "security": { "label": "OAuth / credential exchange" },
+        "dashed": { "label": "Periodic status polling" },
+        "return": { "label": "Status / token / result" }
+      }
+    }
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "User", "sublabel": "signs in · controls", "sources": [{ "path": "windows/src/settings/main.ts", "line": 595 }] },
+    { "id": "settings", "type": "frontend", "label": "Settings / island", "sublabel": "connect and playback controls", "sources": [{ "path": "windows/src/settings/main.ts", "line": 595 }, { "path": "windows/src/views/integrations.ts", "line": 1 }] },
+    { "id": "rust", "type": "backend", "label": "Spotify Rust module", "sublabel": "OAuth · refresh · control", "sources": [{ "path": "windows/src-tauri/src/spotify.rs", "line": 65 }, { "path": "windows/src-tauri/src/spotify.rs", "line": 229 }] },
+    { "id": "credentials", "type": "security", "label": "Credential Manager", "sublabel": "client ID / refresh token", "sources": [{ "path": "windows/src-tauri/src/secrets.rs", "line": 25 }] },
+    { "id": "browser", "type": "external", "label": "System browser", "sublabel": "Spotify sign-in page", "sources": [{ "path": "windows/src-tauri/src/spotify.rs", "line": 22 }] },
+    { "id": "spotify", "type": "cloud", "label": "Spotify Web API", "sublabel": "OAuth · playback", "sources": [{ "path": "windows/src-tauri/src/spotify.rs", "line": 22 }, { "path": "windows/src-tauri/src/spotify.rs", "line": 24 }] }
+  ],
+  "messages": [
+    { "from": "user", "to": "settings", "y": 160, "label": "save client ID, click Connect Spotify" },
+    { "from": "settings", "to": "rust", "y": 205, "label": "spotify_connect()" },
+    { "from": "rust", "to": "credentials", "y": 250, "label": "read client ID" , "variant": "security" },
+    { "from": "rust", "to": "spotify", "y": 295, "label": "build OAuth PKCE authorization URL" },
+    { "from": "settings", "to": "browser", "y": 340, "label": "open sign-in URL" },
+    { "from": "browser", "to": "spotify", "y": 385, "label": "user authorizes scopes", "variant": "security" },
+    { "from": "spotify", "to": "rust", "y": 430, "label": "redirect to loopback callback :43821" , "variant": "return" },
+    { "from": "rust", "to": "spotify", "y": 475, "label": "exchange code for tokens" , "variant": "security" },
+    { "from": "rust", "to": "credentials", "y": 520, "label": "store OAuth token" , "variant": "security" },
+    { "from": "rust", "to": "spotify", "y": 565, "label": "poll current player every 4 seconds" , "variant": "dashed" },
+    { "from": "spotify", "to": "rust", "y": 610, "label": "playback / track / queue snapshot" , "variant": "return" },
+    { "from": "rust", "to": "settings", "y": 655, "label": "spotify-update event" , "variant": "return" },
+    { "from": "user", "to": "settings", "y": 700, "label": "play / pause / next / seek" , "variant": "emphasis" },
+    { "from": "settings", "to": "rust", "y": 745, "label": "spotify_control(action)" },
+    { "from": "rust", "to": "spotify", "y": 790, "label": "player API request with access token" , "variant": "security" }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "Requirements", "items": ["Loopback callback is 127.0.0.1:43821/callback and waits up to five minutes.", "Spotify Premium may be required for playback control; a usable device must be available.", "Tokens are kept in Credential Manager, not settings.json."] }
+  ]
+}

@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "sequence",
+  "quality": "showcase",
+  "startedAt": "2026-10-17T05:30:59.334Z",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.sequence.json",
+    "sha256": "0541de5b4be7f81c314ee75c3f061db491f49367e60de9593b47b0a3d932ba80",
+    "bytes": 4543
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-settings-memory.html"
+  },
+  "stages": {
+    "validate": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": null,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "sequence",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.sequence.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-settings-memory.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "deliver",
+        "receiptId": "15d372b2-4cd3-48e9-b29a-873fe4c90000",
+        "stage": "render",
+        "type": "sequence",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.sequence.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-settings-memory.html",
+        "error": "Sequence layout validation failed:\n- Label \"Chat context builder\" (~136px) is wider than component \"chat\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"reads memory before provider request\" needs ~152px at the 7px minimum that stays readable on this 1085px canvas, but participant \"chat\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Selected model provider\" (~156px) is wider than component \"provider\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"local Ollama or configured cloud model\" needs ~160px at the 7px minimum that stays readable on this 1085px canvas, but participant \"provider\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+        "diagnostics": [
+          {
+            "code": "sequence/participant-label-overflow",
+            "severity": "error",
+            "message": "Label \"Chat context builder\" (~136px) is wider than component \"chat\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "chat",
+              "path": "/participants/6/label"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 96,
+              "text": "Chat context builder",
+              "requiredWidth": 136,
+              "availableWidth": 102
+            },
+            "supportedFixes": [
+              "shorten the participant label while preserving its role"
+            ]
+          },
+          {
+            "code": "sequence/participant-sublabel-overflow",
+            "severity": "error",
+            "message": "Sublabel \"reads memory before provider request\" needs ~152px at the 7px minimum that stays readable on this 1085px canvas, but participant \"chat\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "chat",
+              "path": "/participants/6/sublabel"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 96,
+              "text": "reads memory before provider request",
+              "requiredWidth": 151.2,
+              "availableWidth": 88,
+              "minimumFontPx": 7
+            },
+            "supportedFixes": [
+              "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+            ]
+          },
+          {
+            "code": "sequence/participant-label-overflow",
+            "severity": "error",
+            "message": "Label \"Selected model provider\" (~156px) is wider than component \"provider\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "provider",
+              "path": "/participants/7/label"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 96,
+              "text": "Selected model provider",
+              "requiredWidth": 156.4,
+              "availableWidth": 102
+            },
+            "supportedFixes": [
+              "shorten the participant label while preserving its role"
+            ]
+          },
+          {
+            "code": "sequence/participant-sublabel-overflow",
+            "severity": "error",
+            "message": "Sublabel \"local Ollama or configured cloud model\" needs ~160px at the 7px minimum that stays readable on this 1085px canvas, but participant \"provider\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+            "subject": {
+              "diagramType": "sequence",
+              "nodeId": "provider",
+              "path": "/participants/7/sublabel"
+            },
+            "evidence": {
+              "viewBoxWidth": 1085,
+              "participantWidth": 96,
+              "text": "local Ollama or configured cloud model",
+              "requiredWidth": 159.6,
+              "availableWidth": 88,
+              "minimumFontPx": 7
+            },
+            "supportedFixes": [
+              "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+            ]
+          }
+        ],
+        "provenance": "absent",
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      },
+      "execution": "embedded-in-deliver"
+    },
+    "deliver": {
+      "status": "not-run",
+      "execution": "blocked-by-validate"
+    }
+  },
+  "diagnostics": [
+    {
+      "code": "sequence/participant-label-overflow",
+      "severity": "error",
+      "message": "Label \"Chat context builder\" (~136px) is wider than component \"chat\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "chat",
+        "path": "/participants/6/label"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 96,
+        "text": "Chat context builder",
+        "requiredWidth": 136,
+        "availableWidth": 102
+      },
+      "supportedFixes": [
+        "shorten the participant label while preserving its role"
+      ]
+    },
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"reads memory before provider request\" needs ~152px at the 7px minimum that stays readable on this 1085px canvas, but participant \"chat\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "chat",
+        "path": "/participants/6/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 96,
+        "text": "reads memory before provider request",
+        "requiredWidth": 151.2,
+        "availableWidth": 88,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    },
+    {
+      "code": "sequence/participant-label-overflow",
+      "severity": "error",
+      "message": "Label \"Selected model provider\" (~156px) is wider than component \"provider\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "provider",
+        "path": "/participants/7/label"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 96,
+        "text": "Selected model provider",
+        "requiredWidth": 156.4,
+        "availableWidth": 102
+      },
+      "supportedFixes": [
+        "shorten the participant label while preserving its role"
+      ]
+    },
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"local Ollama or configured cloud model\" needs ~160px at the 7px minimum that stays readable on this 1085px canvas, but participant \"provider\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "provider",
+        "path": "/participants/7/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 96,
+        "text": "local Ollama or configured cloud model",
+        "requiredWidth": 159.6,
+        "availableWidth": 88,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-settings-memory.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-settings-memory.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "validate",
+  "finishedAt": "2026-10-17T05:31:00.246Z",
+  "durationMs": 911,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

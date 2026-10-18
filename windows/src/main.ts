@@ -7,6 +7,7 @@ import { State, type Settings } from "./core/state";
 import { Island } from "./island/island";
 import { registerHookHandlers } from "./island/hooks";
 import { registerIntegrationHandlers, refreshConfigured } from "./island/integrations";
+import { registerNixiHotkeyHandlers } from "./nixi/hotkeys";
 
 async function main() {
   const root = document.getElementById("root");
@@ -102,6 +103,8 @@ async function main() {
   registerIntegrationHandlers(island);
 
   island.launch();
+
+  registerNixiHotkeyHandlers(island, island.statusBar);
 
   // In a plain browser there is no wake strip behind the cursor: make the whole
   // page wake the island so the visuals can be checked with `npm run dev`.

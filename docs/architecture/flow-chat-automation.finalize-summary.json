@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "sequence",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.sequence.json",
+    "sha256": "78c5339de7c8456b83c8e03edd19f0c559da5ec6e15a726796d610ed2648a1c2",
+    "bytes": 4496
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.html"
+  },
+  "gates": {
+    "validate": "fail",
+    "deliver": "not-run",
+    "check": "not-run",
+    "browser-check": "not-run"
+  },
+  "failedStage": "validate",
+  "diagnostics": [
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"history · pending action card\" needs ~122px at the 7px minimum that stays readable on this 1085px canvas, but participant \"ui\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "ui",
+        "path": "/participants/1/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "history · pending action card",
+        "requiredWidth": 121.8,
+        "availableWidth": 105,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    },
+    {
+      "code": "sequence/participant-label-overflow",
+      "severity": "error",
+      "message": "Label \"Claude chat service\" (~129px) is wider than component \"rust\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "rust",
+        "path": "/participants/3/label"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "Claude chat service",
+        "requiredWidth": 129.2,
+        "availableWidth": 119
+      },
+      "supportedFixes": [
+        "shorten the participant label while preserving its role"
+      ]
+    },
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"context · tools · action queue\" needs ~126px at the 7px minimum that stays readable on this 1085px canvas, but participant \"rust\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "rust",
+        "path": "/participants/3/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "context · tools · action queue",
+        "requiredWidth": 126,
+        "availableWidth": 105,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    },
+    {
+      "code": "sequence/participant-label-overflow",
+      "severity": "error",
+      "message": "Label \"Ollama or OpenRouter\" (~136px) is wider than component \"provider\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "provider",
+        "path": "/participants/4/label"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "Ollama or OpenRouter",
+        "requiredWidth": 136,
+        "availableWidth": 119
+      },
+      "supportedFixes": [
+        "shorten the participant label while preserving its role"
+      ]
+    },
+    {
+      "code": "sequence/participant-label-overflow",
+      "severity": "error",
+      "message": "Label \"Automation executor\" (~129px) is wider than component \"action\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "action",
+        "path": "/participants/5/label"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "Automation executor",
+        "requiredWidth": 129.2,
+        "availableWidth": 119
+      },
+      "supportedFixes": [
+        "shorten the participant label while preserving its role"
+      ]
+    },
+    {
+      "code": "sequence/participant-sublabel-overflow",
+      "severity": "error",
+      "message": "Sublabel \"validate then execute action\" needs ~118px at the 7px minimum that stays readable on this 1085px canvas, but participant \"action\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "action",
+        "path": "/participants/5/sublabel"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "validate then execute action",
+        "requiredWidth": 117.6,
+        "availableWidth": 105,
+        "minimumFontPx": 7
+      },
+      "supportedFixes": [
+        "shorten the participant sublabel while preserving its role or protocol; move supplementary detail into a card"
+      ]
+    },
+    {
+      "code": "sequence/participant-label-overflow",
+      "severity": "error",
+      "message": "Label \"Windows / filesystem\" (~136px) is wider than component \"windows\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
+      "subject": {
+        "diagramType": "sequence",
+        "nodeId": "windows",
+        "path": "/participants/6/label"
+      },
+      "evidence": {
+        "viewBoxWidth": 1085,
+        "participantWidth": 113,
+        "text": "Windows / filesystem",
+        "requiredWidth": 136,
+        "availableWidth": 119
+      },
+      "supportedFixes": [
+        "shorten the participant label while preserving its role"
+      ]
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 7,
+    "shown": 7,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.finalize-summary.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 988,
+  "nextAction": {
+    "action": "edit-in-place",
+    "candidate": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.sequence.json",
+    "constraint": "Preserve unaffected semantics and geometry; apply each diagnostic's supportedFixes, or the fix its message names, and do not replace the whole candidate.",
+    "then": "finalize-once"
+  }
+}

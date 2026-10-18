@@ -1,0 +1,247 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-10-17T05:16:58.881Z",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.architecture.json",
+    "sha256": "5636057168b70e8980738a63aa6f5d0228bb8b7538933e4d6b981dc73a88ab30",
+    "bytes": 7125
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.html",
+    "sha256": "99edf8b9dfb6b49d59d2f158747492794ab58178663e586c33e537cc3a7ebe3c",
+    "bytes": 846102
+  },
+  "stages": {
+    "validate": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": null,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "architecture",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.architecture.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "deliver",
+        "receiptId": "5f1d0cfe-b787-4513-9d35-43c38667185c",
+        "stage": "render",
+        "type": "architecture",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.architecture.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.html",
+        "error": "Architecture layout validation failed:\n- Label \"start / stop process\" has only 60px between \"rust\" and \"local_python\"; it needs at least 122px to stay beside its route — increase that clear gap or place the connected nodes on another readable row, preserving the label.\n- [composition/label-route-clearance] showcase architecture label \"start / stop process\" on connections[7] id \"rust-python\" \"rust\" -> \"local_python\" label \"start / stop process\" is 2px from connections[14] id \"rust-integrations\" \"rust\" -> \"integrations\" label \"credential-gated polling\" segment 0 [675, 270] -> [675, 246] (label rect [677, 266, 106, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+        "diagnostics": [
+          {
+            "code": "composition/label-route-clearance",
+            "severity": "error",
+            "message": "[composition/label-route-clearance] showcase architecture label \"start / stop process\" on connections[7] id \"rust-python\" \"rust\" -> \"local_python\" label \"start / stop process\" is 2px from connections[14] id \"rust-integrations\" \"rust\" -> \"integrations\" label \"credential-gated polling\" segment 0 [675, 270] -> [675, 246] (label rect [677, 266, 106, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+            "subject": {
+              "diagramType": "architecture",
+              "collection": "connections",
+              "index": 7,
+              "id": "rust-python",
+              "from": "rust",
+              "to": "local_python"
+            },
+            "evidence": {
+              "label": "start / stop process",
+              "otherRelationship": {
+                "diagramType": "architecture",
+                "collection": "connections",
+                "index": 14,
+                "id": "rust-integrations",
+                "from": "rust",
+                "to": "integrations"
+              },
+              "segmentIndex": 0,
+              "clearancePx": 2,
+              "minimumPx": 4,
+              "labelRect": {
+                "relation": {
+                  "id": "rust-python",
+                  "from": "rust",
+                  "to": "local_python",
+                  "label": "start / stop process"
+                },
+                "relationIndex": 7,
+                "label": "start / stop process",
+                "x": 677,
+                "y": 266,
+                "width": 106,
+                "height": 14,
+                "lx": 730,
+                "ly": 276
+              },
+              "from": [
+                675,
+                270
+              ],
+              "to": [
+                675,
+                246
+              ]
+            },
+            "supportedFixes": [
+              "adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+            ]
+          },
+          {
+            "code": "composition/label-gap",
+            "severity": "error",
+            "message": "Label \"start / stop process\" has only 60px between \"rust\" and \"local_python\"; it needs at least 122px to stay beside its route — increase that clear gap or place the connected nodes on another readable row, preserving the label.",
+            "subject": {
+              "diagramType": "architecture",
+              "collection": "connections",
+              "id": "rust-python",
+              "from": "rust",
+              "to": "local_python"
+            },
+            "evidence": {
+              "clearGapPx": 60,
+              "minimumGapPx": 122,
+              "labelWidthPx": 106,
+              "obstacles": [
+                "rust",
+                "local_python"
+              ]
+            },
+            "supportedFixes": [
+              "increase the clear gap between the connected nodes to at least 122px",
+              "reposition the connected nodes together while preserving the full relationship label"
+            ]
+          }
+        ],
+        "provenance": "failed",
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      },
+      "execution": "embedded-in-deliver"
+    },
+    "deliver": {
+      "status": "not-run",
+      "execution": "blocked-by-validate"
+    }
+  },
+  "diagnostics": [
+    {
+      "code": "composition/label-route-clearance",
+      "severity": "error",
+      "message": "[composition/label-route-clearance] showcase architecture label \"start / stop process\" on connections[7] id \"rust-python\" \"rust\" -> \"local_python\" label \"start / stop process\" is 2px from connections[14] id \"rust-integrations\" \"rust\" -> \"integrations\" label \"credential-gated polling\" segment 0 [675, 270] -> [675, 246] (label rect [677, 266, 106, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
+      "subject": {
+        "diagramType": "architecture",
+        "collection": "connections",
+        "index": 7,
+        "id": "rust-python",
+        "from": "rust",
+        "to": "local_python"
+      },
+      "evidence": {
+        "label": "start / stop process",
+        "otherRelationship": {
+          "diagramType": "architecture",
+          "collection": "connections",
+          "index": 14,
+          "id": "rust-integrations",
+          "from": "rust",
+          "to": "integrations"
+        },
+        "segmentIndex": 0,
+        "clearancePx": 2,
+        "minimumPx": 4,
+        "labelRect": {
+          "relation": {
+            "id": "rust-python",
+            "from": "rust",
+            "to": "local_python",
+            "label": "start / stop process"
+          },
+          "relationIndex": 7,
+          "label": "start / stop process",
+          "x": 677,
+          "y": 266,
+          "width": 106,
+          "height": 14,
+          "lx": 730,
+          "ly": 276
+        },
+        "from": [
+          675,
+          270
+        ],
+        "to": [
+          675,
+          246
+        ]
+      },
+      "supportedFixes": [
+        "adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel"
+      ]
+    },
+    {
+      "code": "composition/label-gap",
+      "severity": "error",
+      "message": "Label \"start / stop process\" has only 60px between \"rust\" and \"local_python\"; it needs at least 122px to stay beside its route — increase that clear gap or place the connected nodes on another readable row, preserving the label.",
+      "subject": {
+        "diagramType": "architecture",
+        "collection": "connections",
+        "id": "rust-python",
+        "from": "rust",
+        "to": "local_python"
+      },
+      "evidence": {
+        "clearGapPx": 60,
+        "minimumGapPx": 122,
+        "labelWidthPx": 106,
+        "obstacles": [
+          "rust",
+          "local_python"
+        ]
+      },
+      "supportedFixes": [
+        "increase the clear gap between the connected nodes to at least 122px",
+        "reposition the connected nodes together while preserving the full relationship label"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.review-2\\system-overview.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.review-2\\system-overview.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "validate",
+  "finishedAt": "2026-10-17T05:17:00.227Z",
+  "durationMs": 1346,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

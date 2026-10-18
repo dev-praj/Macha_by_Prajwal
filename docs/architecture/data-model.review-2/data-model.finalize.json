@@ -1,0 +1,456 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-10-17T05:24:53.327Z",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.architecture.json",
+    "sha256": "9c50ce98550dd60048a5fbf2050653ad49389a595207a836edd9ecbfd8541679",
+    "bytes": 6664
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.html",
+    "sha256": "1f4fa3af3f51c8070b34c067a5bbe1ba62b4a5c4ab2549068992dd31b6f9b7ca",
+    "bytes": 846400
+  },
+  "stages": {
+    "validate": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": null,
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
+        "deliver",
+        "architecture",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.architecture.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "deliver",
+        "receiptId": "85b2084c-4a17-4737-84c4-2a0d3a223cb2",
+        "stage": "check",
+        "type": "architecture",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.architecture.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.html",
+        "error": "Final artifact check failed; the previous artifact was preserved.",
+        "diagnostics": [
+          {
+            "code": "composition/desktop-readability",
+            "severity": "error",
+            "message": "Final artifact failed composition/desktop-readability.",
+            "subject": {
+              "check": "composition",
+              "nodeId": "settings_ui"
+            },
+            "evidence": {
+              "owner": {
+                "kind": "node",
+                "id": "settings_ui"
+              },
+              "viewportWidth": 1440,
+              "viewportHeight": 900,
+              "availableDiagramWidth": 1346,
+              "budgetBasis": "recognized-declared-wide",
+              "readerContract": "declared-wide-v1",
+              "requestedTargetPx": 7.5,
+              "requestedTargetMet": false,
+              "budgetLimit": "viewport-cap",
+              "viewBoxWidth": 1400,
+              "scale": 0.9614285714285714,
+              "text": "preferences · workflows · keys",
+              "detail": "context",
+              "sourceFontPx": 6.2,
+              "projectedFontPx": 5.960857142857143,
+              "minimumProjectedFontPx": 6
+            },
+            "supportedFixes": [
+              "Preserve the semantic text and any supplied coordinates, routes, sides, channels, and labels. Compactly reflow automatic spacing and empty corridors so the complete viewBox width is at most 1390px (current 1400px; 6.2px source text at 1346px desktop budget). If supplied geometry fixes that width, use a renderer-supported semantic text-size setting or renderer-level fix instead. Position-only label controls cannot repair its projection. The declared Reader reports a viewport-cap limit and 1346px actual diagram budget; do not assume an uncapped viewport."
+            ]
+          }
+        ],
+        "provenance": "failed",
+        "checker": {
+          "ok": false,
+          "file": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.html",
+          "artifact": {
+            "sha256": "d03506e0e103f1032020ea9135fbb5efdf27056903edc5ab6a530eac682a7118",
+            "bytes": 844894
+          },
+          "checks": [
+            {
+              "name": "single_svg",
+              "ok": true,
+              "details": [
+                "found 1 <svg> block(s)"
+              ]
+            },
+            {
+              "name": "finite_svg",
+              "ok": true,
+              "details": []
+            },
+            {
+              "name": "orthogonal_arrows",
+              "ok": true,
+              "details": []
+            },
+            {
+              "name": "label_route_clearance",
+              "ok": true,
+              "details": []
+            },
+            {
+              "name": "relationship_crossings",
+              "ok": true,
+              "details": []
+            },
+            {
+              "name": "relationship_corridors",
+              "ok": true,
+              "details": []
+            },
+            {
+              "name": "container_border_runs",
+              "ok": true,
+              "details": []
+            },
+            {
+              "name": "route_rhythm",
+              "ok": true,
+              "details": []
+            },
+            {
+              "name": "legend_clearance",
+              "ok": true,
+              "details": []
+            }
+          ],
+          "composition": {
+            "schemaVersion": 1,
+            "profile": "showcase",
+            "status": "fail",
+            "summary": {
+              "errors": 1,
+              "warnings": 0
+            },
+            "metrics": {
+              "properCrossings": 0,
+              "resolvedCrossovers": 6,
+              "ambiguousCorridors": 0,
+              "arrowheadCollisions": 0,
+              "containerBorderRuns": 0,
+              "labelRouteClearanceIssues": 0,
+              "labelCanvasOverflowIssues": 0,
+              "minLabelRouteClearance": 8.1,
+              "desktopReadabilityIssues": 1,
+              "viewportHeightIssues": 0,
+              "minProjectedNodeTextPx": 5.960857142857143,
+              "maxBends": 4,
+              "routesOverSuggestedBends": 2,
+              "maxStretch": 1.241,
+              "routesOverSuggestedStretch": 0,
+              "minSegmentPx": 24,
+              "minInteriorSegmentPx": 59,
+              "shortSegmentCount": 0,
+              "shortEndpointSegmentCount": 0,
+              "shortInteriorSegmentCount": 0,
+              "microSegmentCount": 0
+            },
+            "suggestedLimits": {
+              "bendsPerRelationship": 2,
+              "stretch": 1.35,
+              "segmentPx": 16,
+              "microSegmentPx": 8
+            },
+            "routeReview": {
+              "crossings": [
+                {
+                  "left": {
+                    "from": "rust",
+                    "to": "workflows_file",
+                    "label": "list / save / archive / delete",
+                    "collectionIndex": 2,
+                    "artifactIndex": 3
+                  },
+                  "right": {
+                    "from": "rust",
+                    "to": "account_meta",
+                    "label": "save OpenRouter names / IDs",
+                    "collectionIndex": 8,
+                    "artifactIndex": 9
+                  },
+                  "point": [
+                    570,
+                    236
+                  ],
+                  "sharedNode": "rust"
+                },
+                {
+                  "left": {
+                    "from": "rust",
+                    "to": "memories_file",
+                    "label": "memory records",
+                    "collectionIndex": 3,
+                    "artifactIndex": 4
+                  },
+                  "right": {
+                    "from": "chat_ui",
+                    "to": "llm_context",
+                    "label": "chat + optional screenshot",
+                    "collectionIndex": 11,
+                    "artifactIndex": 12
+                  },
+                  "point": [
+                    460,
+                    370
+                  ]
+                },
+                {
+                  "left": {
+                    "from": "rust",
+                    "to": "inbox",
+                    "label": "copy / read / sweep",
+                    "collectionIndex": 4,
+                    "artifactIndex": 5
+                  },
+                  "right": {
+                    "from": "chat_ui",
+                    "to": "llm_context",
+                    "label": "chat + optional screenshot",
+                    "collectionIndex": 11,
+                    "artifactIndex": 12
+                  },
+                  "point": [
+                    488,
+                    370
+                  ]
+                },
+                {
+                  "left": {
+                    "from": "rust",
+                    "to": "credential_store",
+                    "label": "get / set / clear",
+                    "collectionIndex": 7,
+                    "artifactIndex": 8
+                  },
+                  "right": {
+                    "from": "chat_ui",
+                    "to": "llm_context",
+                    "label": "chat + optional screenshot",
+                    "collectionIndex": 11,
+                    "artifactIndex": 12
+                  },
+                  "point": [
+                    287,
+                    370
+                  ]
+                },
+                {
+                  "left": {
+                    "from": "rust",
+                    "to": "ephemeral",
+                    "label": "active request and event state",
+                    "collectionIndex": 9,
+                    "artifactIndex": 10
+                  },
+                  "right": {
+                    "from": "chat_ui",
+                    "to": "llm_context",
+                    "label": "chat + optional screenshot",
+                    "collectionIndex": 11,
+                    "artifactIndex": 12
+                  },
+                  "point": [
+                    474,
+                    370
+                  ]
+                },
+                {
+                  "left": {
+                    "from": "rust",
+                    "to": "ephemeral",
+                    "label": "active request and event state",
+                    "collectionIndex": 9,
+                    "artifactIndex": 10
+                  },
+                  "right": {
+                    "from": "memories_file",
+                    "to": "llm_context",
+                    "label": "read saved facts",
+                    "collectionIndex": 13,
+                    "artifactIndex": 14
+                  },
+                  "point": [
+                    617,
+                    490
+                  ]
+                }
+              ],
+              "detours": [
+                {
+                  "relationship": {
+                    "from": "settings_ui",
+                    "to": "credential_store",
+                    "label": "explicit key operations",
+                    "collectionIndex": 6,
+                    "artifactIndex": 7
+                  },
+                  "bends": 3,
+                  "stretch": 1.138
+                },
+                {
+                  "relationship": {
+                    "from": "rust",
+                    "to": "ephemeral",
+                    "label": "active request and event state",
+                    "collectionIndex": 9,
+                    "artifactIndex": 10
+                  },
+                  "bends": 4,
+                  "stretch": 1
+                }
+              ]
+            },
+            "leadingSpace": {
+              "measured": true,
+              "emptyTopPx": 60,
+              "emptyTopRatio": 0.084,
+              "occupiedTop": 60,
+              "viewBoxTop": 0,
+              "canvasHeight": 714,
+              "typicalNodeHeight": 60,
+              "reviewSuggested": false
+            },
+            "desktopReadability": {
+              "budgetBasis": "recognized-declared-wide",
+              "readerContract": "declared-wide-v1",
+              "availableDiagramWidth": 1346,
+              "actualBudgetPx": 1346,
+              "actualReaderWidth": 1376,
+              "desiredReaderWidth": 1430,
+              "viewportCap": 1376,
+              "limit": "viewport-cap",
+              "requestedTargetPx": 7.5,
+              "requestedTargetMet": false,
+              "hardFloorPx": 6,
+              "hardFloorMet": false,
+              "minimumOwner": {
+                "kind": "node",
+                "id": "settings_ui"
+              },
+              "minimumSourceTextPx": 6.2,
+              "minimumProjectedTextPx": 5.960857142857143,
+              "semanticTextCount": 44
+            },
+            "issues": [
+              {
+                "severity": "error",
+                "code": "composition/desktop-readability",
+                "nodeId": "settings_ui",
+                "owner": {
+                  "kind": "node",
+                  "id": "settings_ui"
+                },
+                "viewportWidth": 1440,
+                "viewportHeight": 900,
+                "availableDiagramWidth": 1346,
+                "budgetBasis": "recognized-declared-wide",
+                "readerContract": "declared-wide-v1",
+                "requestedTargetPx": 7.5,
+                "requestedTargetMet": false,
+                "budgetLimit": "viewport-cap",
+                "viewBoxWidth": 1400,
+                "scale": 0.9614285714285714,
+                "text": "preferences · workflows · keys",
+                "detail": "context",
+                "sourceFontPx": 6.2,
+                "projectedFontPx": 5.960857142857143,
+                "minimumProjectedFontPx": 6
+              }
+            ]
+          }
+        },
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      },
+      "execution": "embedded-in-deliver"
+    },
+    "deliver": {
+      "status": "not-run",
+      "execution": "blocked-by-validate"
+    }
+  },
+  "diagnostics": [
+    {
+      "code": "composition/desktop-readability",
+      "severity": "error",
+      "message": "Final artifact failed composition/desktop-readability.",
+      "subject": {
+        "check": "composition",
+        "nodeId": "settings_ui"
+      },
+      "evidence": {
+        "owner": {
+          "kind": "node",
+          "id": "settings_ui"
+        },
+        "viewportWidth": 1440,
+        "viewportHeight": 900,
+        "availableDiagramWidth": 1346,
+        "budgetBasis": "recognized-declared-wide",
+        "readerContract": "declared-wide-v1",
+        "requestedTargetPx": 7.5,
+        "requestedTargetMet": false,
+        "budgetLimit": "viewport-cap",
+        "viewBoxWidth": 1400,
+        "scale": 0.9614285714285714,
+        "text": "preferences · workflows · keys",
+        "detail": "context",
+        "sourceFontPx": 6.2,
+        "projectedFontPx": 5.960857142857143,
+        "minimumProjectedFontPx": 6
+      },
+      "supportedFixes": [
+        "Preserve the semantic text and any supplied coordinates, routes, sides, channels, and labels. Compactly reflow automatic spacing and empty corridors so the complete viewBox width is at most 1390px (current 1400px; 6.2px source text at 1346px desktop budget). If supplied geometry fixes that width, use a renderer-supported semantic text-size setting or renderer-level fix instead. Position-only label controls cannot repair its projection. The declared Reader reports a viewport-cap limit and 1346px actual diagram budget; do not assume an uncapped viewport."
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.review-2\\data-model.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.review-2\\data-model.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "validate",
+  "finishedAt": "2026-10-17T05:24:55.052Z",
+  "durationMs": 1725,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

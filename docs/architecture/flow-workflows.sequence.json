@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Coucou Windows — Saved Workflow Observe / Act / Verify",
+    "locale": "en",
+    "output": "docs/architecture/flow-workflows.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
+    },
+    "legend": {
+      "mode": "all",
+      "entries": {
+        "default": { "label": "Normal request / operation" },
+        "emphasis": { "label": "State-changing action" },
+        "security": { "label": "Screen / permission boundary" },
+        "dashed": { "label": "Retry / optional work" },
+        "return": { "label": "Verification / result" }
+      }
+    }
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "User", "sublabel": "saves and starts workflow", "sources": [{ "path": "windows/src/settings/main.ts", "line": 1009 }] },
+    { "id": "settings", "type": "frontend", "label": "Settings WebView", "sublabel": "workflow editor / Run", "sources": [{ "path": "windows/src/settings/main.ts", "line": 1009 }] },
+    { "id": "store", "type": "database", "label": "workflows.json", "sublabel": "name · prompt · archive", "sources": [{ "path": "windows/src-tauri/src/workflows.rs", "line": 14 }, { "path": "windows/src-tauri/src/workflows.rs", "line": 35 }] },
+    { "id": "chat", "type": "frontend", "label": "Workflow loop", "sublabel": "screen · retries", "sources": [{ "path": "windows/src/views/chat.ts", "line": 1297 }] },
+    { "id": "provider", "type": "cloud", "label": "Model service", "sublabel": "plan · act · verify", "sources": [{ "path": "windows/src-tauri/src/claude.rs", "line": 239 }, { "path": "windows/src-tauri/src/llm_client.rs", "line": 94 }] },
+    { "id": "screen", "type": "external", "label": "Shared desktop", "sublabel": "fresh screenshot", "sources": [{ "path": "windows/src/views/chat.ts", "line": 193 }] },
+    { "id": "automation", "type": "backend", "label": "Automation", "sublabel": "one action at a time", "sources": [{ "path": "windows/src-tauri/src/claude.rs", "line": 885 }, { "path": "windows/src-tauri/src/automation.rs", "line": 502 }] }
+  ],
+  "messages": [
+    { "from": "user", "to": "settings", "y": 160, "label": "save workflow prompt / click Run" },
+    { "from": "settings", "to": "store", "y": 205, "label": "persist or load workflow" },
+    { "from": "store", "to": "settings", "y": 250, "label": "workflow record", "variant": "return" },
+    { "from": "settings", "to": "chat", "y": 295, "label": "workflow-run event with saved prompt" },
+    { "from": "chat", "to": "screen", "y": 340, "label": "request screen sharing and capture frame", "variant": "security" },
+    { "from": "chat", "to": "provider", "y": 385, "label": "verbatim workflow + screenshot → ordered checkpoints" },
+    { "from": "provider", "to": "chat", "y": 430, "label": "checkpoint list / stop signal", "variant": "return" },
+    { "from": "chat", "to": "screen", "y": 475, "label": "capture current screen before next action" },
+    { "from": "chat", "to": "provider", "y": 520, "label": "current step + criteria + completed steps + frame" },
+    { "from": "provider", "to": "chat", "y": 565, "label": "one action or explicit terminal signal", "variant": "return" },
+    { "from": "chat", "to": "automation", "y": 610, "label": "execute only first allowed action", "variant": "emphasis" },
+    { "from": "automation", "to": "screen", "y": 655, "label": "operate desktop" },
+    { "from": "chat", "to": "screen", "y": 700, "label": "settle, then capture a new frame" },
+    { "from": "chat", "to": "provider", "y": 745, "label": "verify visible success criteria" },
+    { "from": "provider", "to": "chat", "y": 790, "label": "VERIFIED / NOT_VERIFIED / STOPPED", "variant": "return" },
+    { "from": "chat", "to": "provider", "y": 835, "label": "retry same step with fresh image (up to 2 retries)", "variant": "dashed" },
+    { "from": "chat", "to": "user", "y": 880, "label": "COMPLETE only after final-state check; otherwise STOPPED or FAILED", "variant": "return" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Safety limits", "items": ["60-iteration cap; 3 attempts per checkpoint; default 1.5 s settle, 5 s after app/website launch.", "Action tools are restricted to open_app, windows_click, windows_type, windows_shortcut, and windows_scroll.", "Screenshots are in-memory and may be sent to a cloud model provider."] },
+    { "dot": "rose", "title": "Explicit completion", "items": ["A text-only or unclear response is not success.", "A final COMPLETE requires the configured visible final-state criterion; failures identify a step."] }
+  ]
+}

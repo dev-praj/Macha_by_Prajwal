@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "7f60af98-919f-425d-a755-a1271c0c8fe7",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.sequence.json",
+  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\repaired\\flow-chat-automation.html",
+  "specification": {
+    "sha256": "6a002df316d195d534467652975b226c8e2dbb1e71c675d94fe02f940e51d591",
+    "bytes": 4420
+  },
+  "artifact": {
+    "sha256": "7491febe1f2cf659209f5b1bd06226d1fcb99d521d781eb9eb997d81691e9cdb",
+    "bytes": 820964
+  }
+}

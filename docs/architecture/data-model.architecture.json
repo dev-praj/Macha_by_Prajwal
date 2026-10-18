@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Coucou Windows — Data and Persistence Model",
+    "locale": "en",
+    "output": "docs/architecture/data-model.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
+    },
+    "legend": {
+      "mode": "all",
+      "entries": {
+        "frontend": { "label": "Frontend / WebView state" },
+        "backend": { "label": "Read/write logic" },
+        "database": { "label": "Local durable or volatile store" },
+        "cloud": { "label": "Model provider" },
+        "security": { "label": "Credential-protected store" },
+        "messagebus": { "label": "Transient event/data path" },
+        "external": { "label": "External app / runtime" }
+      }
+    }
+  },
+  "components": [
+    { "id": "settings_ui", "type": "frontend", "label": "Settings UI", "sublabel": "preferences · workflows · keys", "pos": [40, 100], "sources": [{ "path": "windows/src/settings/main.ts", "line": 1348 }] },
+    { "id": "chat_ui", "type": "frontend", "label": "Chat WebView", "sublabel": "messages · chat · files", "pos": [40, 280], "sources": [{ "path": "windows/src/core/state.ts", "line": 8 }, { "path": "windows/src/core/state.ts", "line": 58 }] },
+    { "id": "rust", "type": "backend", "label": "Rust data layer", "sublabel": "validate · load · save", "pos": [260, 180], "sources": [{ "path": "windows/src-tauri/src/lib.rs", "line": 82 }, { "path": "windows/src-tauri/src/lib.rs", "line": 454 }] },
+    { "id": "settings_file", "type": "database", "label": "settings.json", "sublabel": "sound · provider · voice", "pos": [500, 60], "sources": [{ "path": "windows/src-tauri/src/settings.rs", "line": 9 }, { "path": "windows/src-tauri/src/settings.rs", "line": 104 }] },
+    { "id": "workflows_file", "type": "database", "label": "workflows.json", "sublabel": "name · prompt · status", "pos": [500, 140], "sources": [{ "path": "windows/src-tauri/src/workflows.rs", "line": 14 }, { "path": "windows/src-tauri/src/workflows.rs", "line": 35 }] },
+    { "id": "memories_file", "type": "database", "label": "memories.json", "sublabel": "category · text", "pos": [500, 220], "sources": [{ "path": "windows/src-tauri/src/memory.rs", "line": 13 }, { "path": "windows/src-tauri/src/memory.rs", "line": 19 }] },
+    { "id": "inbox", "type": "database", "label": "Local inbox files", "sublabel": "copied bytes · 7-day sweep", "pos": [500, 300], "sources": [{ "path": "windows/src-tauri/src/files.rs", "line": 13 }, { "path": "windows/src-tauri/src/files.rs", "line": 26 }] },
+    { "id": "conversations", "type": "database", "label": "Conversations", "sublabel": "WebView localStorage", "pos": [260, 390], "sources": [{ "path": "windows/src/core/state.ts", "line": 31 }, { "path": "windows/src/core/state.ts", "line": 58 }] },
+    { "id": "account_meta", "type": "database", "label": "Account metadata", "sublabel": "OpenRouter IDs · names", "pos": [500, 390], "sources": [{ "path": "windows/src-tauri/src/secrets.rs", "line": 11 }, { "path": "windows/src-tauri/src/secrets.rs", "line": 34 }] },
+    { "id": "credential_store", "type": "security", "label": "Credentials", "sublabel": "Windows · API keys", "pos": [500, 490], "sources": [{ "path": "windows/src-tauri/src/secrets.rs", "line": 17 }, { "path": "windows/src-tauri/src/secrets.rs", "line": 200 }] },
+    { "id": "ephemeral", "type": "database", "label": "Process memory", "sublabel": "chat tools · tasks · events", "pos": [260, 590], "sources": [{ "path": "windows/src-tauri/src/claude.rs", "line": 63 }, { "path": "windows/src/core/state.ts", "line": 170 }, { "path": "windows/src-tauri/src/messages.rs", "line": 25 }] },
+    { "id": "claude_config", "type": "external", "label": "Claude settings", "sublabel": "settings.json · dated backups", "pos": [500, 590], "sources": [{ "path": "windows/src-tauri/src/hooks.rs", "line": 59 }, { "path": "windows/src-tauri/src/hooks.rs", "line": 213 }] },
+    { "id": "llm_context", "type": "backend", "label": "LLM prompt context", "sublabel": "history · file · memory", "pos": [820, 300], "sources": [{ "path": "windows/src-tauri/src/claude.rs", "line": 239 }, { "path": "windows/src-tauri/src/claude.rs", "line": 281 }] },
+    { "id": "provider", "type": "cloud", "label": "Model provider", "sublabel": "Ollama local / OpenRouter", "pos": [1040, 300], "sources": [{ "path": "windows/src-tauri/src/llm_client.rs", "line": 11 }, { "path": "windows/src-tauri/src/llm_client.rs", "line": 12 }] }
+  ],
+  "connections": [
+    { "from": "settings_ui", "to": "rust", "label": "settings commands" },
+    { "from": "rust", "to": "settings_file", "label": "load / save" },
+    { "from": "rust", "to": "workflows_file", "label": "list / save / archive / delete" },
+    { "from": "rust", "to": "memories_file", "label": "memory records" },
+    { "from": "rust", "to": "inbox", "label": "copy / read / sweep" },
+    { "from": "chat_ui", "to": "conversations", "label": "restore / persist" },
+    { "from": "settings_ui", "to": "credential_store", "label": "explicit key operations", "variant": "security" },
+    { "from": "rust", "to": "credential_store", "label": "get / set / clear", "variant": "security" },
+    { "from": "rust", "to": "account_meta", "label": "save OpenRouter names / IDs" },
+    { "from": "rust", "to": "ephemeral", "label": "active request and event state" },
+    { "from": "rust", "to": "claude_config", "label": "preview / backup / confirmed write" },
+    { "from": "chat_ui", "to": "llm_context", "label": "chat + optional screenshot" },
+    { "from": "inbox", "to": "llm_context", "label": "selected file bytes / context" },
+    { "from": "memories_file", "to": "llm_context", "label": "read saved facts" },
+    { "from": "llm_context", "to": "provider", "label": "prompt; cloud path may leave device" },
+    { "from": "credential_store", "to": "provider", "label": "provider credential", "variant": "security" }
+  ],
+  "cards": [
+    { "dot": "slate", "title": "No relational schema", "items": ["The app has no SQL/Firebase database; JSON files and WebView localStorage are the durable data stores.", "Relationships shown are actual read/write/context links, not foreign keys."] },
+    { "dot": "rose", "title": "Privacy boundary", "items": ["Secrets are not written to settings.json.", "Memory and file data are locally stored but can be included in a request to the selected model provider."] }
+  ]
+}

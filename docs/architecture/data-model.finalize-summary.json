@@ -1,0 +1,292 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.architecture.json",
+    "sha256": "93b1e0ef0f41b25b436a94604c956f8a5b83f692337f493bbba81096eb2119e1",
+    "bytes": 6667
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.html",
+    "sha256": "1f4fa3af3f51c8070b34c067a5bbe1ba62b4a5c4ab2549068992dd31b6f9b7ca",
+    "bytes": 846400
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 6595,
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "resolvedCrossovers": 15,
+      "routesOverSuggestedBends": 5,
+      "routesOverSuggestedStretch": 1
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [
+        {
+          "left": {
+            "from": "rust",
+            "to": "settings_file",
+            "label": "load / save",
+            "collectionIndex": 1,
+            "artifactIndex": 2
+          },
+          "right": {
+            "from": "rust",
+            "to": "memories_file",
+            "label": "memory records",
+            "collectionIndex": 3,
+            "artifactIndex": 4
+          },
+          "point": [
+            334,
+            156
+          ],
+          "sharedNode": "rust"
+        },
+        {
+          "left": {
+            "from": "rust",
+            "to": "workflows_file",
+            "label": "list / save / archive / delete",
+            "collectionIndex": 2,
+            "artifactIndex": 3
+          },
+          "right": {
+            "from": "rust",
+            "to": "memories_file",
+            "label": "memory records",
+            "collectionIndex": 3,
+            "artifactIndex": 4
+          },
+          "point": [
+            468,
+            203
+          ],
+          "sharedNode": "rust"
+        },
+        {
+          "left": {
+            "from": "rust",
+            "to": "inbox",
+            "label": "copy / read / sweep",
+            "collectionIndex": 4,
+            "artifactIndex": 5
+          },
+          "right": {
+            "from": "rust",
+            "to": "account_meta",
+            "label": "save OpenRouter names / IDs",
+            "collectionIndex": 8,
+            "artifactIndex": 9
+          },
+          "point": [
+            475.27272727272725,
+            316
+          ],
+          "sharedNode": "rust"
+        },
+        {
+          "left": {
+            "from": "chat_ui",
+            "to": "conversations",
+            "label": "restore / persist",
+            "collectionIndex": 5,
+            "artifactIndex": 6
+          },
+          "right": {
+            "from": "settings_ui",
+            "to": "credential_store",
+            "label": "explicit key operations",
+            "collectionIndex": 6,
+            "artifactIndex": 7
+          },
+          "point": [
+            241,
+            420
+          ]
+        },
+        {
+          "left": {
+            "from": "chat_ui",
+            "to": "conversations",
+            "label": "restore / persist",
+            "collectionIndex": 5,
+            "artifactIndex": 6
+          },
+          "right": {
+            "from": "rust",
+            "to": "credential_store",
+            "label": "get / set / clear",
+            "collectionIndex": 7,
+            "artifactIndex": 8
+          },
+          "point": [
+            249,
+            420
+          ]
+        },
+        {
+          "left": {
+            "from": "chat_ui",
+            "to": "conversations",
+            "label": "restore / persist",
+            "collectionIndex": 5,
+            "artifactIndex": 6
+          },
+          "right": {
+            "from": "rust",
+            "to": "ephemeral",
+            "label": "active request and event state",
+            "collectionIndex": 9,
+            "artifactIndex": 10
+          },
+          "point": [
+            236,
+            420
+          ]
+        },
+        {
+          "left": {
+            "from": "settings_ui",
+            "to": "credential_store",
+            "label": "explicit key operations",
+            "collectionIndex": 6,
+            "artifactIndex": 7
+          },
+          "right": {
+            "from": "rust",
+            "to": "ephemeral",
+            "label": "active request and event state",
+            "collectionIndex": 9,
+            "artifactIndex": 10
+          },
+          "point": [
+            241,
+            210.3846153846154
+          ]
+        },
+        {
+          "left": {
+            "from": "settings_ui",
+            "to": "credential_store",
+            "label": "explicit key operations",
+            "collectionIndex": 6,
+            "artifactIndex": 7
+          },
+          "right": {
+            "from": "rust",
+            "to": "claude_config",
+            "label": "preview / backup / confirmed write",
+            "collectionIndex": 10,
+            "artifactIndex": 11
+          },
+          "point": [
+            484.00000000000006,
+            520
+          ]
+        }
+      ],
+      "detours": [
+        {
+          "relationship": {
+            "from": "rust",
+            "to": "memories_file",
+            "label": "memory records",
+            "collectionIndex": 3,
+            "artifactIndex": 4
+          },
+          "bends": 3,
+          "stretch": 1.192
+        },
+        {
+          "relationship": {
+            "from": "settings_ui",
+            "to": "credential_store",
+            "label": "explicit key operations",
+            "collectionIndex": 6,
+            "artifactIndex": 7
+          },
+          "bends": 6,
+          "stretch": 1.262
+        },
+        {
+          "relationship": {
+            "from": "rust",
+            "to": "credential_store",
+            "label": "get / set / clear",
+            "collectionIndex": 7,
+            "artifactIndex": 8
+          },
+          "bends": 4,
+          "stretch": 1.357
+        },
+        {
+          "relationship": {
+            "from": "rust",
+            "to": "account_meta",
+            "label": "save OpenRouter names / IDs",
+            "collectionIndex": 8,
+            "artifactIndex": 9
+          },
+          "bends": 4,
+          "stretch": 1
+        },
+        {
+          "relationship": {
+            "from": "rust",
+            "to": "claude_config",
+            "label": "preview / backup / confirmed write",
+            "collectionIndex": 10,
+            "artifactIndex": 11
+          },
+          "bends": 4,
+          "stretch": 1
+        }
+      ],
+      "truncated": true
+    },
+    "hints": [
+      "rust has 5 relationships facing its right side, which fits 3 ports: make that side at least 88px, or move some of those neighbours so they face another side of rust.",
+      "rust → settings_file and rust → memories_file cross next to rust: move node settings_file or memories_file so the two reach rust from different sides (for example one level with it, one directly above or below it).",
+      "rust → workflows_file and rust → memories_file cross next to rust: move node workflows_file or memories_file so the two reach rust from different sides (for example one level with it, one directly above or below it).",
+      "rust → inbox and rust → account_meta cross next to rust: move node inbox or account_meta so the two reach rust from different sides (for example one level with it, one directly above or below it).",
+      "chat_ui → conversations crosses settings_ui → credential_store: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "chat_ui → conversations crosses rust → credential_store: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "chat_ui → conversations crosses rust → ephemeral: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "settings_ui → credential_store crosses rust → ephemeral: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor."
+    ],
+    "repair": "Trace these relationships at the desktop viewport. For Architecture, use references/architecture-layout-repair.md: reflow a blocked main path or tangled connected scene, and repair an isolated defect locally only when the surrounding composition is accepted. Preserve all semantic content and user-fixed geometry. Rerun finalize once after the edit."
+  }
+}

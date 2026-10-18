@@ -15,7 +15,7 @@ const VOICE_OLLAMA_MAX_TOKENS: u32 = 256;
 const VOICE_OPENROUTER_MAX_TOKENS: u32 = 256;
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(3);
 const VOICE_OPENROUTER_TIMEOUT: Duration = Duration::from_secs(8);
-const VOICE_OLLAMA_TIMEOUT: Duration = Duration::from_secs(10);
+const VOICE_OLLAMA_TIMEOUT: Duration = Duration::from_secs(45);
 const HEALTH_TIMEOUT: Duration = Duration::from_millis(1500);
 const HEALTH_CACHE_AGE: Duration = Duration::from_secs(15);
 const OLLAMA_START_WAIT: Duration = Duration::from_secs(5);
@@ -1185,6 +1185,9 @@ fn ollama_failure_allows_fallback(status: StatusCode, detail: &str) -> bool {
     status.is_server_error()
         || detail.contains("model not found")
         || (status == StatusCode::NOT_FOUND && detail.contains("model"))
+        || detail.contains("multimodal")
+        || detail.contains("does not support image")
+        || detail.contains("image input")
 }
 
 fn reduced_max_tokens(message: &str, current: u32) -> u32 {

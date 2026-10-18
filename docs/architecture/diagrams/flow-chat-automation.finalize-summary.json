@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "sequence",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.sequence.json",
+    "sha256": "daf88eafb2f317a548fbe845f66b005caa8d9cff01f76469abb12472bed12808",
+    "bytes": 4433
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-chat-automation.html"
+  },
+  "gates": {
+    "validate": "fail",
+    "deliver": "not-run",
+    "check": "not-run",
+    "browser-check": "not-run"
+  },
+  "failedStage": "validate",
+  "diagnostics": [
+    {
+      "code": "composition/label-canvas-containment",
+      "severity": "error",
+      "message": "[composition/label-canvas-containment] showcase sequence label \"open, read/write, mouse, keyboard, or PowerShell\" on messages[10] \"action\" -> \"windows\" extends past the right edge by 2.7px (label rect [706, 590, 329, 18]; viewBox 1032x916) — shorten the label, reorder participants, or enlarge meta.viewBox.",
+      "subject": {
+        "diagramType": "sequence",
+        "collection": "messages",
+        "index": 10,
+        "from": "action",
+        "to": "windows"
+      },
+      "evidence": {
+        "label": "open, read/write, mouse, keyboard, or PowerShell",
+        "labelRect": {
+          "x": 705.9333333333334,
+          "y": 590,
+          "width": 328.79999999999995,
+          "height": 18
+        },
+        "viewBox": [
+          1032,
+          916
+        ],
+        "overflowPx": {
+          "right": 2.7
+        },
+        "tolerancePx": 0.5
+      },
+      "supportedFixes": [
+        "shorten the label, reorder participants, or enlarge meta.viewBox"
+      ]
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 1,
+    "shown": 1,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-chat-automation.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-chat-automation.finalize-summary.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 948,
+  "nextAction": {
+    "action": "edit-in-place",
+    "candidate": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.sequence.json",
+    "constraint": "Preserve unaffected semantics and geometry; apply each diagnostic's supportedFixes, or the fix its message names, and do not replace the whole candidate.",
+    "then": "finalize-once"
+  }
+}

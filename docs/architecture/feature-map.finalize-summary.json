@@ -1,0 +1,412 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
+    "sha256": "9477300a9581d94faa87f907db7f36f3c9227d01cb8230c09e2f23b7f14337a8",
+    "bytes": 8665
+  },
+  "artifact": {
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+    "sha256": "0739a04be6edc69a2da629538f8a19204220ea5e35b375e6c224f40cf4de717b",
+    "bytes": 866935
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-17T05:13:48.115Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 8791,
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "resolvedCrossovers": 32,
+      "routesOverSuggestedBends": 15,
+      "routesOverSuggestedStretch": 2
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [
+        {
+          "left": {
+            "from": "tray",
+            "to": "island",
+            "label": "show / hide / pause",
+            "collectionIndex": 2,
+            "artifactIndex": 3
+          },
+          "right": {
+            "from": "settings",
+            "to": "vision",
+            "label": "start / stop",
+            "collectionIndex": 14,
+            "artifactIndex": 15
+          },
+          "point": [
+            500,
+            57
+          ]
+        },
+        {
+          "left": {
+            "from": "hookrelay",
+            "to": "taskpills",
+            "label": "session events",
+            "collectionIndex": 4,
+            "artifactIndex": 5
+          },
+          "right": {
+            "from": "settings",
+            "to": "pollers",
+            "label": "enable / configure",
+            "collectionIndex": 15,
+            "artifactIndex": 16
+          },
+          "point": [
+            385.4000000000001,
+            170.5
+          ]
+        },
+        {
+          "left": {
+            "from": "hookrelay",
+            "to": "taskpills",
+            "label": "session events",
+            "collectionIndex": 4,
+            "artifactIndex": 5
+          },
+          "right": {
+            "from": "settings",
+            "to": "messages",
+            "label": "request Windows access",
+            "collectionIndex": 16,
+            "artifactIndex": 17
+          },
+          "point": [
+            521,
+            170.5
+          ]
+        },
+        {
+          "left": {
+            "from": "hookrelay",
+            "to": "taskpills",
+            "label": "session events",
+            "collectionIndex": 4,
+            "artifactIndex": 5
+          },
+          "right": {
+            "from": "settings",
+            "to": "spotify",
+            "label": "connect / disconnect",
+            "collectionIndex": 17,
+            "artifactIndex": 18
+          },
+          "point": [
+            535,
+            170.5
+          ]
+        },
+        {
+          "left": {
+            "from": "hookrelay",
+            "to": "taskpills",
+            "label": "session events",
+            "collectionIndex": 4,
+            "artifactIndex": 5
+          },
+          "right": {
+            "from": "settings",
+            "to": "secrets",
+            "label": "store credentials",
+            "collectionIndex": 19,
+            "artifactIndex": 20
+          },
+          "point": [
+            493,
+            170.5
+          ]
+        },
+        {
+          "left": {
+            "from": "hookrelay",
+            "to": "taskpills",
+            "label": "session events",
+            "collectionIndex": 4,
+            "artifactIndex": 5
+          },
+          "right": {
+            "from": "settings",
+            "to": "localstores",
+            "label": "save preferences / workflows",
+            "collectionIndex": 20,
+            "artifactIndex": 21
+          },
+          "point": [
+            637,
+            170.5
+          ]
+        },
+        {
+          "left": {
+            "from": "hookrelay",
+            "to": "approval",
+            "label": "approve",
+            "collectionIndex": 5,
+            "artifactIndex": 6
+          },
+          "right": {
+            "from": "settings",
+            "to": "pollers",
+            "label": "enable / configure",
+            "collectionIndex": 15,
+            "artifactIndex": 16
+          },
+          "point": [
+            385.4000000000001,
+            237
+          ]
+        },
+        {
+          "left": {
+            "from": "hookrelay",
+            "to": "approval",
+            "label": "approve",
+            "collectionIndex": 5,
+            "artifactIndex": 6
+          },
+          "right": {
+            "from": "settings",
+            "to": "secrets",
+            "label": "store credentials",
+            "collectionIndex": 19,
+            "artifactIndex": 20
+          },
+          "point": [
+            363,
+            237
+          ]
+        }
+      ],
+      "detours": [
+        {
+          "relationship": {
+            "from": "user",
+            "to": "settings",
+            "label": "configure",
+            "collectionIndex": 1,
+            "artifactIndex": 2
+          },
+          "bends": 4,
+          "stretch": 1.181,
+          "directCorridorBlockers": [
+            {
+              "id": "island",
+              "label": "Island / Mochi",
+              "box": [
+                240,
+                60,
+                120,
+                60
+              ]
+            }
+          ]
+        },
+        {
+          "relationship": {
+            "from": "tray",
+            "to": "island",
+            "label": "show / hide / pause",
+            "collectionIndex": 2,
+            "artifactIndex": 3
+          },
+          "bends": 4,
+          "stretch": 1.236,
+          "directCorridorBlockers": [
+            {
+              "id": "settings",
+              "label": "Settings window",
+              "box": [
+                440,
+                60,
+                120,
+                60
+              ]
+            }
+          ]
+        },
+        {
+          "relationship": {
+            "from": "hookrelay",
+            "to": "taskpills",
+            "label": "session events",
+            "collectionIndex": 4,
+            "artifactIndex": 5
+          },
+          "bends": 3,
+          "stretch": 1
+        },
+        {
+          "relationship": {
+            "from": "chat",
+            "to": "providers",
+            "label": "ask / stream reply",
+            "collectionIndex": 6,
+            "artifactIndex": 7
+          },
+          "bends": 3,
+          "stretch": 1.356
+        },
+        {
+          "relationship": {
+            "from": "automation",
+            "to": "chat",
+            "label": "result / follow-up",
+            "collectionIndex": 8,
+            "artifactIndex": 9
+          },
+          "bends": 3,
+          "stretch": 1.135,
+          "directCorridorBlockers": [
+            {
+              "id": "providers",
+              "label": "Ollama / OpenRouter",
+              "box": [
+                240,
+                340,
+                120,
+                60
+              ]
+            }
+          ]
+        },
+        {
+          "relationship": {
+            "from": "workflows",
+            "to": "chat",
+            "label": "single action + verify",
+            "collectionIndex": 9,
+            "artifactIndex": 10
+          },
+          "bends": 3,
+          "stretch": 1.172,
+          "directCorridorBlockers": [
+            {
+              "id": "providers",
+              "label": "Ollama / OpenRouter",
+              "box": [
+                240,
+                340,
+                120,
+                60
+              ]
+            },
+            {
+              "id": "automation",
+              "label": "Automation",
+              "box": [
+                440,
+                340,
+                120,
+                60
+              ]
+            }
+          ]
+        },
+        {
+          "relationship": {
+            "from": "files",
+            "to": "chat",
+            "label": "file context",
+            "collectionIndex": 10,
+            "artifactIndex": 11
+          },
+          "bends": 3,
+          "stretch": 1.063,
+          "directCorridorBlockers": [
+            {
+              "id": "providers",
+              "label": "Ollama / OpenRouter",
+              "box": [
+                240,
+                340,
+                120,
+                60
+              ]
+            },
+            {
+              "id": "automation",
+              "label": "Automation",
+              "box": [
+                440,
+                340,
+                120,
+                60
+              ]
+            },
+            {
+              "id": "workflows",
+              "label": "Saved workflows",
+              "box": [
+                640,
+                340,
+                120,
+                60
+              ]
+            }
+          ]
+        },
+        {
+          "relationship": {
+            "from": "settings",
+            "to": "vision",
+            "label": "start / stop",
+            "collectionIndex": 14,
+            "artifactIndex": 15
+          },
+          "bends": 3,
+          "stretch": 1.091
+        }
+      ],
+      "truncated": true
+    },
+    "hints": [
+      "chat has 5 relationships facing its right side, which fits 3 ports: make that side at least 88px, or move some of those neighbours so they face another side of chat.",
+      "tray → island crosses settings → vision: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "hookrelay → taskpills crosses settings → pollers: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "hookrelay → taskpills crosses settings → messages: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "hookrelay → taskpills crosses settings → spotify: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "hookrelay → taskpills crosses settings → secrets: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "hookrelay → taskpills crosses settings → localstores: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "hookrelay → approval crosses settings → pollers: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor."
+    ],
+    "repair": "Trace these relationships at the desktop viewport. For Architecture, use references/architecture-layout-repair.md: reflow a blocked main path or tangled connected scene, and repair an isolated defect locally only when the surrounding composition is accepted. Preserve all semantic content and user-fixed geometry. Rerun finalize once after the edit."
+  }
+}
