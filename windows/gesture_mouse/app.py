@@ -167,6 +167,14 @@ class AppState:
         self.rotate_filtered_angle = None
         self.rotate_drag_active = False
         self.rotate_drag_position_x = None
+        self.hand_mouse_active = True
+        self.fist_gesture_since = None
+        self.fist_last_seen = None
+        self.fist_release_since = None
+        self.fist_toggle_armed = True
+        self.fist_hold_progress = 0.0
+        self.fist_cooldown_until = 0.0
+        self.fist_output_blocked = False
 
         # Scroll constants
         self.SCROLL_SMOOTHING = 0.3
@@ -202,6 +210,13 @@ PALM_TRACKING_GRACE = 0.18
 GESTURE_TRACKING_GRACE = 0.12
 GESTURE_POSE_CONFIRMATION = 0.08
 ROTATE_DRAG_SENSITIVITY = 240
+FIST_HOLD_MS = 1000
+FIST_TRACKING_GRACE_MS = 200
+FIST_RELEASE_COOLDOWN_MS = 500
+FIST_MIN_HAND_SIZE = 1e-6
+FIST_FINGER_TIP_MCP_MAX_RATIO = 0.65
+FIST_THUMB_BASE_MAX_RATIO = 0.45
+FIST_THUMB_PALM_MAX_RATIO = 0.8
 
 # ── MediaPipe hand connections (for drawing) ──────────────────────────────────
 # New Tasks API: connections are frozensets of (start_idx, end_idx) tuples
@@ -336,6 +351,154 @@ def update_palm_hold(palm_open, now):
         return hold_completed, palm_effective, state.cursor_locked
 
 
+def is_closed_fist(landmarks):
+    """Recognize a scale-normalized fist from palm-relative landmark distances."""
+    hand_size = dist(landmarks[0], landmarks[9])
+    if hand_size <= FIST_MIN_HAND_SIZE:
+        return False
+
+    wrist = landmarks[0]
+    for tip, pip, mcp in (
+        (8, 6, 5),
+        (12, 10, 9),
+        (16, 14, 13),
+        (20, 18, 17),
+    ):
+        if (
+            dist(landmarks[tip], wrist) >= dist(landmarks[pip], wrist)
+            or dist(landmarks[tip], landmarks[mcp])
+            >= hand_size * FIST_FINGER_TIP_MCP_MAX_RATIO
+        ):
+            return False
+
+    thumb_to_index_mcp = dist(landmarks[4], landmarks[5])
+    thumb_to_middle_mcp = dist(landmarks[4], landmarks[9])
+    thumb_tucked = min(thumb_to_index_mcp, thumb_to_middle_mcp) < (
+        hand_size * FIST_THUMB_BASE_MAX_RATIO
+    )
+    thumb_not_extended = thumb_to_middle_mcp < hand_size * FIST_THUMB_PALM_MAX_RATIO
+    return thumb_tucked and thumb_not_extended
+
+
+def update_fist_hold(fist_detected, hand_present, now):
+    """Update the fist timer, pause state, and output-suppression state."""
+    with state.pointer_lock, state.lock:
+        was_blocked = state.fist_output_blocked
+        was_active = state.hand_mouse_active
+        toggled = False
+
+        if fist_detected and hand_present:
+            state.fist_last_seen = now
+            state.fist_release_since = None
+            state.fist_output_blocked = True
+            if state.fist_toggle_armed:
+                if (
+                    state.fist_gesture_since is None
+                    and now >= state.fist_cooldown_until
+                ):
+                    state.fist_gesture_since = now
+                if state.fist_gesture_since is not None:
+                    elapsed = now - state.fist_gesture_since
+                    state.fist_hold_progress = min(
+                        elapsed / (FIST_HOLD_MS / 1000.0), 1.0
+                    )
+                    if elapsed >= FIST_HOLD_MS / 1000.0:
+                        state.hand_mouse_active = not state.hand_mouse_active
+                        state.fist_toggle_armed = False
+                        state.fist_hold_progress = 1.0
+                        toggled = True
+            else:
+                state.fist_hold_progress = 1.0
+        elif not hand_present:
+            released = (
+                state.fist_last_seen is not None
+                or state.fist_gesture_since is not None
+                or not state.fist_toggle_armed
+            )
+            state.fist_gesture_since = None
+            state.fist_last_seen = None
+            state.fist_release_since = None
+            state.fist_hold_progress = 0.0
+            state.fist_output_blocked = False
+            state.fist_toggle_armed = True
+            if released:
+                state.fist_cooldown_until = (
+                    now + FIST_RELEASE_COOLDOWN_MS / 1000.0
+                )
+        elif (
+            state.fist_last_seen is not None
+            and now - state.fist_last_seen <= FIST_TRACKING_GRACE_MS / 1000.0
+        ):
+            state.fist_output_blocked = True
+            if state.fist_release_since is None:
+                state.fist_release_since = now
+            if state.fist_gesture_since is not None and state.fist_toggle_armed:
+                state.fist_hold_progress = min(
+                    (now - state.fist_gesture_since) / (FIST_HOLD_MS / 1000.0),
+                    0.999,
+                )
+        else:
+            released = (
+                state.fist_last_seen is not None
+                or state.fist_gesture_since is not None
+                or not state.fist_toggle_armed
+            )
+            state.fist_gesture_since = None
+            cooldown_start = state.fist_release_since or now
+            state.fist_last_seen = None
+            state.fist_release_since = None
+            state.fist_hold_progress = 0.0
+            state.fist_output_blocked = False
+            state.fist_toggle_armed = True
+            if released:
+                state.fist_cooldown_until = (
+                    cooldown_start + FIST_RELEASE_COOLDOWN_MS / 1000.0
+                )
+
+        release_mouse = (
+            state.fist_output_blocked and not was_blocked
+        ) or (was_active and not state.hand_mouse_active)
+        return (
+            toggled,
+            state.hand_mouse_active,
+            state.fist_output_blocked,
+            state.fist_hold_progress,
+            release_mouse,
+        )
+
+
+def release_held_mouse_button():
+    """Release an active click or drag before fist suppression takes effect."""
+    with state.pointer_lock:
+        with state.lock:
+            release = state.mouse_button_down
+        if release:
+            failsafe = pyautogui.FAILSAFE
+            pyautogui.FAILSAFE = False
+            try:
+                pyautogui.mouseUp()
+            finally:
+                pyautogui.FAILSAFE = failsafe
+        with state.lock:
+            state.mouse_button_down = False
+            state.rotate_drag_active = False
+            state.rotate_drag_position_x = None
+            state.rotate_pose_active = False
+            state.rotate_pose_since = None
+            state.rotate_pose_last_seen = None
+            state.last_locked_scroll_point = None
+            state.locked_scroll_origin_point = None
+            state.locked_scroll_motion_started = False
+            state.locked_scroll_pose_active = False
+            state.locked_scroll_pose_since = None
+            state.locked_scroll_pose_last_seen = None
+
+
+def mouse_output_enabled():
+    with state.lock:
+        return state.hand_mouse_active and not state.fist_output_blocked
+
+
 def is_locked_scroll_pose(fingers, landmarks, palm_width):
     thumb, index, middle, ring, pinky = fingers[:5]
     fingertips_together = dist(landmarks[8], landmarks[12]) < palm_width * 0.7
@@ -381,7 +544,7 @@ def draw_rounded_rect(img, pt1, pt2, color, radius=10, thickness=-1, alpha=0.6):
 def draw_overlay(
     frame, hand_detected, is_left, is_right, is_scroll, is_locked_scroll,
     is_rotate, cursor_locked, palm_hold_progress, palm_completion_locked,
-    palm_feedback_age, landmarks, fps,
+    palm_feedback_age, landmarks, fps, hand_mouse_active, fist_hold_progress,
 ):
     """Draw HUD overlay on the camera frame."""
     h, w = frame.shape[:2]
@@ -449,6 +612,30 @@ def draw_overlay(
     fps_text = f"FPS: {fps}"
     cv2.putText(frame, fps_text, (w - 80, 24),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (136, 136, 168), 1, cv2.LINE_AA)
+
+    # Keep the hand-mouse state and fist hold visible without changing its controls.
+    mouse_status = "ACTIVE" if hand_mouse_active else "PAUSED"
+    mouse_status_color = (0, 220, 180) if hand_mouse_active else (0, 120, 255)
+    cv2.putText(
+        frame, mouse_status, (w - 94, 48),
+        cv2.FONT_HERSHEY_SIMPLEX, 0.4, mouse_status_color, 1, cv2.LINE_AA,
+    )
+    progress_left = w - 94
+    progress_top = 54
+    progress_width = 82
+    cv2.rectangle(
+        frame, (progress_left, progress_top),
+        (progress_left + progress_width, progress_top + 5), (60, 60, 80), -1,
+    )
+    if fist_hold_progress > 0:
+        cv2.rectangle(
+            frame, (progress_left, progress_top),
+            (
+                progress_left + int(progress_width * fist_hold_progress),
+                progress_top + 5,
+            ),
+            (0, 210, 255), -1,
+        )
 
     # Hand status badge
     if hand_detected:
@@ -561,10 +748,32 @@ def hand_detection_thread():
             cursor_locked = False
             palm_completion_locked = False
             palm_feedback_age = None
+            fist_hold_progress = 0.0
+            with state.lock:
+                hand_mouse_active = state.hand_mouse_active
+                fist_output_blocked = state.fist_output_blocked
             landmarks = None
             if result.hand_landmarks:
                 hand_detected = True
                 landmarks = result.hand_landmarks[0]  # list of NormalizedLandmark
+                fist_detected = is_closed_fist(landmarks)
+                (
+                    _,
+                    hand_mouse_active,
+                    fist_output_blocked,
+                    fist_hold_progress,
+                    release_mouse,
+                ) = update_fist_hold(fist_detected, True, palm_now)
+                if release_mouse:
+                    try:
+                        release_held_mouse_button()
+                    except pyautogui.FailSafeException:
+                        with state.lock:
+                            state.running = False
+                        print(
+                            "PyAutoGUI emergency fail-safe triggered while pausing hand control."
+                        )
+                        break
 
                 with state.lock:
                     thresh = state.pinch_threshold
@@ -628,14 +837,29 @@ def hand_detection_thread():
                 d_mid = dist(thumb_tip, mid_tip)
                 d_pnk = dist(thumb_tip, pnk_tip)
 
-                is_left = not cursor_locked and not palm_effective and d_idx < thresh
-                is_right = not cursor_locked and not palm_effective and d_mid < thresh
-                is_scroll = not cursor_locked and not palm_effective and d_pnk < thresh
-                scroll_pose = cursor_locked and is_locked_scroll_pose(
-                    fingers, landmarks, fingers[5]
+                is_left = (
+                    hand_mouse_active and not fist_output_blocked
+                    and not cursor_locked and not palm_effective and d_idx < thresh
                 )
-                rotate_pose = cursor_locked and is_rotate_pose(
-                    fingers, landmarks, fingers[5]
+                is_right = (
+                    hand_mouse_active and not fist_output_blocked
+                    and not cursor_locked and not palm_effective and d_mid < thresh
+                )
+                is_scroll = (
+                    hand_mouse_active and not fist_output_blocked
+                    and not cursor_locked and not palm_effective and d_pnk < thresh
+                )
+                scroll_pose = (
+                    hand_mouse_active and not fist_output_blocked and cursor_locked
+                    and is_locked_scroll_pose(
+                        fingers, landmarks, fingers[5]
+                    )
+                )
+                rotate_pose = (
+                    hand_mouse_active and not fist_output_blocked and cursor_locked
+                    and is_rotate_pose(
+                        fingers, landmarks, fingers[5]
+                    )
                 )
                 with state.lock:
                     if scroll_pose:
@@ -658,7 +882,10 @@ def hand_detection_thread():
                         state.locked_scroll_pose_since = None
                         state.locked_scroll_pose_last_seen = None
                     is_locked_scroll = (
-                        cursor_locked and state.locked_scroll_pose_active
+                        hand_mouse_active
+                        and not fist_output_blocked
+                        and cursor_locked
+                        and state.locked_scroll_pose_active
                     )
 
                     if rotate_pose:
@@ -684,7 +911,12 @@ def hand_detection_thread():
                         state.rotate_pose_active = False
                         state.rotate_pose_since = None
                         state.rotate_pose_last_seen = None
-                    is_rotate = cursor_locked and state.rotate_pose_active
+                    is_rotate = (
+                        hand_mouse_active
+                        and not fist_output_blocked
+                        and cursor_locked
+                        and state.rotate_pose_active
+                    )
 
                 # Draw skeleton
                 draw_hand_skeleton(frame, landmarks)
@@ -730,7 +962,9 @@ def hand_detection_thread():
                         )
                         if abs(delta) > state.SCROLL_DEAD_ZONE:
                             try:
-                                pyautogui.scroll(int(delta))
+                                with state.pointer_lock:
+                                    if mouse_output_enabled():
+                                        pyautogui.scroll(int(delta))
                             except pyautogui.FailSafeException:
                                 with state.lock:
                                     state.running = False
@@ -785,10 +1019,12 @@ def hand_detection_thread():
                                 state.locked_scroll_remainder_y,
                             )
                         try:
-                            if horizontal:
-                                pyautogui.hscroll(horizontal)
-                            if vertical:
-                                pyautogui.scroll(vertical)
+                            with state.pointer_lock:
+                                if mouse_output_enabled():
+                                    if horizontal:
+                                        pyautogui.hscroll(horizontal)
+                                    if vertical:
+                                        pyautogui.scroll(vertical)
                         except pyautogui.FailSafeException:
                             with state.lock:
                                 state.running = False
@@ -857,12 +1093,12 @@ def hand_detection_thread():
                     drag_x = clamp_cursor(anchor_x + state.rotate_drag_offset, screen_width)
                     with state.pointer_lock:
                         try:
-                            if not drag_active:
+                            if mouse_output_enabled() and not drag_active:
                                 pyautogui.moveTo(int(anchor_x), int(anchor_y))
                                 pyautogui.mouseDown()
                                 with state.lock:
                                     state.mouse_button_down = True
-                            if abs(drag_x - previous_drag_x) >= 1:
+                            if mouse_output_enabled() and abs(drag_x - previous_drag_x) >= 1:
                                 pyautogui.moveTo(int(drag_x), int(anchor_y))
                                 with state.lock:
                                     state.rotate_drag_position_x = drag_x
@@ -888,13 +1124,16 @@ def hand_detection_thread():
                     if release_rotate_drag:
                         with state.pointer_lock:
                             try:
-                                pyautogui.mouseUp()
                                 with state.lock:
+                                    release_mouse = state.mouse_button_down
                                     state.mouse_button_down = False
-                                pyautogui.moveTo(
-                                    int(clamp_cursor(anchor_x, screen_width)),
-                                    int(clamp_cursor(anchor_y, screen_height)),
-                                )
+                                if release_mouse:
+                                    pyautogui.mouseUp()
+                                if mouse_output_enabled():
+                                    pyautogui.moveTo(
+                                        int(clamp_cursor(anchor_x, screen_width)),
+                                        int(clamp_cursor(anchor_y, screen_height)),
+                                    )
                             except pyautogui.FailSafeException:
                                 with state.lock:
                                     state.running = False
@@ -922,6 +1161,23 @@ def hand_detection_thread():
                     state.gesture_rotate = is_rotate
 
             else:
+                (
+                    _,
+                    hand_mouse_active,
+                    fist_output_blocked,
+                    fist_hold_progress,
+                    release_mouse,
+                ) = update_fist_hold(False, False, palm_now)
+                if release_mouse:
+                    try:
+                        release_held_mouse_button()
+                    except pyautogui.FailSafeException:
+                        with state.lock:
+                            state.running = False
+                        print(
+                            "PyAutoGUI emergency fail-safe triggered while pausing hand control."
+                        )
+                        break
                 with state.lock:
                     was_left = state.last_left
                     state.last_left = state.last_right = state.last_scroll = False
@@ -930,7 +1186,12 @@ def hand_detection_thread():
                         and state.locked_scroll_pose_last_seen is not None
                         and palm_now - state.locked_scroll_pose_last_seen <= GESTURE_TRACKING_GRACE
                     )
-                    is_locked_scroll = state.cursor_locked and keep_scroll_pose
+                    is_locked_scroll = (
+                        state.hand_mouse_active
+                        and not state.fist_output_blocked
+                        and state.cursor_locked
+                        and keep_scroll_pose
+                    )
                     state.gesture_locked_scroll = is_locked_scroll
                     state.smooth_scroll_y = None
                     if not keep_scroll_pose:
@@ -943,7 +1204,9 @@ def hand_detection_thread():
                         state.locked_scroll_pose_since = None
                         state.locked_scroll_pose_last_seen = None
                     keep_rotate_drag = (
-                        state.rotate_drag_active
+                        state.hand_mouse_active
+                        and not state.fist_output_blocked
+                        and state.rotate_drag_active
                         and state.rotate_pose_last_seen is not None
                         and palm_now - state.rotate_pose_last_seen <= GESTURE_TRACKING_GRACE
                     )
@@ -981,19 +1244,28 @@ def hand_detection_thread():
                     if state.palm_completion_time is not None:
                         palm_feedback_age = palm_now - state.palm_completion_time
                 if was_left:
-                    pyautogui.mouseUp()
-                if was_rotating:
                     with state.pointer_lock:
-                        try:
+                        with state.lock:
+                            release_mouse = state.mouse_button_down
+                        if release_mouse:
                             pyautogui.mouseUp()
                             with state.lock:
                                 state.mouse_button_down = False
+                if was_rotating:
+                    with state.pointer_lock:
+                        try:
+                            with state.lock:
+                                release_mouse = state.mouse_button_down
+                                state.mouse_button_down = False
                                 anchor_x = state.locked_x
                                 anchor_y = state.locked_y
-                            pyautogui.moveTo(
-                                int(clamp_cursor(anchor_x, screen_width)),
-                                int(clamp_cursor(anchor_y, screen_height)),
-                            )
+                            if release_mouse:
+                                pyautogui.mouseUp()
+                            if mouse_output_enabled():
+                                pyautogui.moveTo(
+                                    int(clamp_cursor(anchor_x, screen_width)),
+                                    int(clamp_cursor(anchor_y, screen_height)),
+                                )
                         except pyautogui.FailSafeException:
                             with state.lock:
                                 state.running = False
@@ -1016,6 +1288,7 @@ def hand_detection_thread():
                 frame, hand_detected, is_left, is_right, is_scroll,
                 is_locked_scroll, is_rotate, cursor_locked, palm_hold_progress,
                 palm_completion_locked, palm_feedback_age, landmarks, fps,
+                hand_mouse_active, fist_hold_progress,
             )
 
             # Push frame to queue (drop old frame if full)
@@ -1076,8 +1349,13 @@ def _cursor_update_loop():
             smoothing = state.smoothing
             cursor_locked = state.cursor_locked
             palm_active = state.palm_gesture_active
+            hand_mouse_active = state.hand_mouse_active
+            fist_output_blocked = state.fist_output_blocked
 
-        if hand and not is_scroll and not cursor_locked and not palm_active:
+        if (
+            hand and hand_mouse_active and not fist_output_blocked
+            and not is_scroll and not cursor_locked and not palm_active
+        ):
             # Update filter min_cutoff from smoothing slider
             # smoothing 0.05→0.5 maps to min_cutoff 3.0→0.3 (lower = smoother)
             mc = max(0.3, 3.0 - smoothing * 6.0)
@@ -1096,30 +1374,45 @@ def _cursor_update_loop():
             with state.pointer_lock:
                 with state.lock:
                     can_move_cursor = (
-                        not state.cursor_locked and not state.palm_gesture_active
+                        state.hand_mouse_active
+                        and not state.fist_output_blocked
+                        and not state.cursor_locked
+                        and not state.palm_gesture_active
                     )
                 if can_move_cursor:
                     pyautogui.moveTo(int(fx), int(fy))
 
             if is_left and not prev_left:
-                pyautogui.mouseDown()
-                with state.lock:
-                    state.mouse_button_down = True
+                with state.pointer_lock:
+                    if mouse_output_enabled():
+                        pyautogui.mouseDown()
+                        with state.lock:
+                            state.mouse_button_down = True
             elif not is_left and prev_left:
-                pyautogui.mouseUp()
-                with state.lock:
-                    state.mouse_button_down = False
+                with state.pointer_lock:
+                    with state.lock:
+                        release_mouse = state.mouse_button_down
+                    if release_mouse:
+                        pyautogui.mouseUp()
+                        with state.lock:
+                            state.mouse_button_down = False
 
             if is_right and not prev_right:
-                pyautogui.click(button="right")
+                with state.pointer_lock:
+                    if mouse_output_enabled():
+                        pyautogui.click(button="right")
 
             prev_left = is_left
             prev_right = is_right
         else:
             if prev_left:
-                pyautogui.mouseUp()
-                with state.lock:
-                    state.mouse_button_down = False
+                with state.pointer_lock:
+                    with state.lock:
+                        release_mouse = state.mouse_button_down
+                    if release_mouse:
+                        pyautogui.mouseUp()
+                        with state.lock:
+                            state.mouse_button_down = False
             prev_left = False
             prev_right = False
             filter_x.reset()
@@ -1690,9 +1983,16 @@ async def websocket_handler(request):
 
     with state.lock:
         state.ws_clients.add(ws)
+        settings_payload = {
+            "type": "settings",
+            "pinch_threshold": state.pinch_threshold,
+            "smoothing": state.smoothing,
+            "sensitivity": state.sensitivity,
+        }
     print("Dashboard client connected.")
 
     try:
+        await ws.send_str(json.dumps(settings_payload))
         async for msg in ws:
             if msg.type == web.WSMsgType.TEXT:
                 try:
@@ -1745,6 +2045,17 @@ async def broadcast_status():
                 "locked_scroll": state.gesture_locked_scroll,
                 "rotate": state.gesture_rotate,
                 "palm_hold_progress": state.palm_hold_progress,
+                "hand_mouse_active": state.hand_mouse_active,
+                "fist_hold_progress": state.fist_hold_progress,
+                "fist_hold_remaining": max(
+                    0.0,
+                    FIST_HOLD_MS / 1000.0
+                    - (time.monotonic() - state.fist_gesture_since),
+                )
+                if state.fist_gesture_since is not None and state.fist_toggle_armed
+                else FIST_HOLD_MS / 1000.0,
+                "fist_output_blocked": state.fist_output_blocked,
+                "fist_toggle_armed": state.fist_toggle_armed,
                 "fps": state.fps,
                 "gesture_count": state.gesture_count,
             })

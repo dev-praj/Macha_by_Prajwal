@@ -645,7 +645,7 @@ pub fn run() {
     let loaded = settings::load();
     let gate = Arc::new(PollGate::new(loaded.auto_hide));
 
-    tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
@@ -658,10 +658,15 @@ pub fn run() {
                     }
                 })
                 .build(),
-        )
-        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
-            let _ = app.emit_to(island::WINDOW_LABEL, "tray", "open".to_string());
-        }))
+        );
+
+    // Keep a running release instance from absorbing a development launch.
+    #[cfg(not(debug_assertions))]
+    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+        let _ = app.emit_to(island::WINDOW_LABEL, "tray", "open".to_string());
+    }));
+
+    builder
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
             None,

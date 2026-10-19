@@ -661,34 +661,193 @@ function gestureMouseSection(): HTMLElement {
   let running = false;
   let busy = false;
   let stopRequested = false;
+  let socket: WebSocket | null = null;
+  let reconnectTimer: number | undefined;
+  let reconnects = 0;
   const status = h("div", { class: "hint", text: "Checking Vision Mode…" });
   const feedback = h("div", { class: "hint" });
+  const liveStatus = h("div", { class: "gesture-live-status" });
   const start = h("button", { text: "Start Vision Mode" });
   const stop = h("button", { text: "Stop Vision Mode" });
-  const dashboard = h("iframe", {
-    class: "gesture-dashboard",
-    title: "Vision Mode live dashboard",
-    loading: "lazy",
-    referrerpolicy: "no-referrer",
-    style: "display:none",
-  }) as HTMLIFrameElement;
+  const pinchSlider = h("input", {
+    type: "range", min: "0.02", max: "0.15", step: "0.01", value: "0.05",
+  }) as HTMLInputElement;
+  const smoothingSlider = h("input", {
+    type: "range", min: "0.05", max: "0.5", step: "0.05", value: "0.3",
+  }) as HTMLInputElement;
+  const sensitivitySlider = h("input", {
+    type: "range", min: "0.5", max: "2.5", step: "0.1", value: "1.0",
+  }) as HTMLInputElement;
+  const pinchValue = h("output", { text: "0.05" });
+  const smoothingValue = h("output", { text: "0.30" });
+  const sensitivityValue = h("output", { text: "1.00" });
+  const controls = h(
+    "fieldset",
+    { class: "gesture-controls", disabled: true },
+    h("legend", { text: "Controls" }),
+    gestureControl("Pinch Threshold", pinchSlider, pinchValue),
+    gestureControl("Smoothing", smoothingSlider, smoothingValue),
+    gestureControl("Sensitivity", sensitivitySlider, sensitivityValue),
+  ) as HTMLFieldSetElement;
 
-  function showDashboard(on: boolean) {
-    dashboard.style.display = on ? "block" : "none";
-    if (on && dashboard.src !== "http://127.0.0.1:8765/") {
-      dashboard.src = "http://127.0.0.1:8765/";
-    } else if (!on && dashboard.hasAttribute("src")) {
-      dashboard.removeAttribute("src");
+  const gestureRows = [
+    ["left", "Left Click", "Thumb + Index"],
+    ["right", "Right Click", "Thumb + Middle"],
+    ["scroll", "Scroll", "Thumb + Pinky"],
+    ["lock", "Cursor Lock", "Open palm · 5 seconds"],
+    ["locked-scroll", "Directional Scroll", "Index + middle together"],
+    ["rotate", "3D Rotate", "Thumb + index · turn wrist"],
+  ] as const;
+  const gestureList = h(
+    "div",
+    { class: "gesture-live-list" },
+    ...gestureRows.map(([id, label, key]) =>
+      h(
+        "div",
+        { class: "gesture-live-item", id: `gesture-${id}` },
+        h("span", { class: "gesture-live-dot" }),
+        h("span", { text: label }),
+        h("span", { class: "gesture-live-key", text: key }),
+      ),
+    ),
+  );
+  const gestureCount = h("strong", { text: "0" });
+  const handStatus = h("strong", { text: "—" });
+  const fpsStatus = h("strong", { text: "—" });
+  const handMouseStatus = h("strong", { text: "—" });
+  const fistProgress = h("progress", { max: "1", value: "0" }) as HTMLProgressElement;
+  const fistTimer = h("output", { class: "gesture-fist-timer", text: "1.0s" });
+
+  function resetLiveStatus() {
+    for (const [id] of gestureRows) {
+      document.getElementById(`gesture-${id}`)?.classList.remove("on");
     }
+    gestureCount.textContent = "0";
+    handStatus.textContent = "—";
+    fpsStatus.textContent = "—";
+    handMouseStatus.textContent = "—";
+    fistProgress.value = 0;
+    fistTimer.textContent = "1.0s";
   }
 
   function update() {
     start.disabled = busy || running;
     stop.disabled = busy || !running;
-    showDashboard(running);
+    controls.disabled = !running;
     status.textContent = running
-      ? "Vision Mode is running. Close the camera preview or stop it here."
+      ? "Vision Mode is running. The camera preview remains available while these controls stay in Settings."
       : "Vision Mode is stopped.";
+    if (!running) {
+      closeSocket();
+      resetLiveStatus();
+      liveStatus.textContent = "Live status is available while Vision Mode is running.";
+    } else {
+      connectSocket();
+    }
+  }
+
+  function closeSocket() {
+    if (reconnectTimer !== undefined) {
+      window.clearTimeout(reconnectTimer);
+      reconnectTimer = undefined;
+    }
+    const current = socket;
+    socket = null;
+    current?.close();
+  }
+
+  function updateControlValues(values: {
+    pinch_threshold: number;
+    smoothing: number;
+    sensitivity: number;
+  }) {
+    pinchSlider.value = String(values.pinch_threshold);
+    smoothingSlider.value = String(values.smoothing);
+    sensitivitySlider.value = String(values.sensitivity);
+    pinchValue.textContent = Number(pinchSlider.value).toFixed(2);
+    smoothingValue.textContent = Number(smoothingSlider.value).toFixed(2);
+    sensitivityValue.textContent = Number(sensitivitySlider.value).toFixed(2);
+  }
+
+  function sendSettings() {
+    if (socket?.readyState !== WebSocket.OPEN) return;
+    socket.send(JSON.stringify({
+      type: "settings",
+      pinch_threshold: Number(pinchSlider.value),
+      smoothing: Number(smoothingSlider.value),
+      sensitivity: Number(sensitivitySlider.value),
+    }));
+  }
+
+  function connectSocket() {
+    if (!running || socket) return;
+    const nextSocket = new WebSocket("ws://127.0.0.1:8765/ws");
+    socket = nextSocket;
+    nextSocket.addEventListener("open", () => {
+      if (socket !== nextSocket) return;
+      reconnects = 0;
+      liveStatus.textContent = "Connected to live gesture status.";
+    });
+    nextSocket.addEventListener("message", (event: MessageEvent<string>) => {
+      if (socket !== nextSocket) return;
+      try {
+        const data = JSON.parse(event.data) as Record<string, unknown>;
+        if (data.type === "settings") {
+          const pinch = Number(data.pinch_threshold);
+          const smoothing = Number(data.smoothing);
+          const sensitivity = Number(data.sensitivity);
+          if ([pinch, smoothing, sensitivity].every(Number.isFinite)) {
+            updateControlValues({
+              pinch_threshold: pinch,
+              smoothing,
+              sensitivity,
+            });
+          }
+        } else if (data.type === "status") {
+          const activeGestures: Record<string, unknown> = {
+            left: data.left,
+            right: data.right,
+            scroll: data.scroll,
+            lock: data.cursor_locked,
+            "locked-scroll": data.locked_scroll,
+            rotate: data.rotate,
+          };
+          for (const [id, active] of Object.entries(activeGestures)) {
+            document.getElementById(`gesture-${id}`)?.classList.toggle("on", active === true);
+          }
+          gestureCount.textContent = String(data.gesture_count ?? 0);
+          handStatus.textContent = data.hand === true ? "Detected" : "Not detected";
+          fpsStatus.textContent = String(data.fps ?? "—");
+          handMouseStatus.textContent = data.hand_mouse_active === true ? "Active" : "Paused";
+          fistProgress.value = Number(data.fist_hold_progress) || 0;
+          if (data.fist_toggle_armed === false) {
+            fistTimer.textContent = "Release fist";
+          } else {
+            const remaining = Number(data.fist_hold_remaining);
+            fistTimer.textContent = Number.isFinite(remaining)
+              ? `${Math.max(0, remaining).toFixed(1)}s`
+              : "1.0s";
+          }
+        }
+      } catch (error) {
+        console.error("[coucou] invalid Vision Mode live update", error);
+      }
+    });
+    nextSocket.addEventListener("close", () => {
+      if (socket !== nextSocket) return;
+      socket = null;
+      if (running) {
+        liveStatus.textContent = "Live controls disconnected. Reconnecting…";
+        const delay = Math.min(1000 * (2 ** Math.min(reconnects, 5)), 30000);
+        reconnects += 1;
+        reconnectTimer = window.setTimeout(connectSocket, delay);
+      }
+    });
+    nextSocket.addEventListener("error", () => {
+      if (socket === nextSocket) {
+        liveStatus.textContent = "Could not connect to live gesture controls.";
+      }
+    });
   }
 
   async function refresh() {
@@ -712,7 +871,7 @@ function gestureMouseSection(): HTMLElement {
     update();
     try {
       await Bridge.gestureMouseStart();
-      feedback.textContent = "Starting camera preview and embedded dashboard…";
+      feedback.textContent = "Starting camera preview and live controls…";
     } catch (error) {
       feedback.textContent = `Could not start Vision Mode: ${String(error).replace(/^Error:\s*/, "")}`;
     } finally {
@@ -740,18 +899,67 @@ function gestureMouseSection(): HTMLElement {
 
   void refresh();
   window.setInterval(() => void refresh(), 1500);
+  for (const slider of [pinchSlider, smoothingSlider, sensitivitySlider]) {
+    slider.addEventListener("input", () => {
+      updateControlValues({
+        pinch_threshold: Number(pinchSlider.value),
+        smoothing: Number(smoothingSlider.value),
+        sensitivity: Number(sensitivitySlider.value),
+      });
+      sendSettings();
+    });
+  }
   return h(
     "section",
     {},
     h("h2", {}, h("span", { text: "Vision Mode" })),
     h("div", {
       class: "hint",
-      text: "Control the Windows cursor with your webcam: move your wrist to move, pinch thumb + index to click and hold, thumb + middle to right-click, and thumb + pinky to scroll. Hold an open palm steady for five seconds to lock or unlock the cursor; the camera preview shows a progress ring and confirms when it is done. To rotate a 3D view that supports mouse dragging, place the pointer over the model before locking, then hold thumb and index together or extend them, curl the other fingers, and turn your wrist clockwise or anticlockwise. While locked, move joined index and middle fingers to scroll in any direction. Start Vision Mode to open the camera preview and live dashboard here. You can also say “activate vision mode” while Hey Macha is listening.",
+      text: "Control the Windows cursor with your webcam: move your wrist to move, pinch thumb + index to click and hold, thumb + middle to right-click, and thumb + pinky to scroll. Hold an open palm steady for five seconds to lock or unlock the cursor; the camera preview shows a progress ring and confirms when it is done. To rotate a 3D view that supports mouse dragging, place the pointer over the model before locking, then hold thumb and index together or extend them, curl the other fingers, and turn your wrist clockwise or anticlockwise. While locked, move joined index and middle fingers to scroll in any direction. Start Vision Mode to open the camera preview and use its live controls here in Settings. You can also say “activate vision mode” while Hey Macha is listening.",
     }),
     status,
     h("div", { class: "row" }, start, stop),
     feedback,
-    dashboard,
+    liveStatus,
+    h("div", { class: "gesture-live-section" },
+      h("h3", { text: "Active Gestures" }),
+      gestureList,
+    ),
+    h("div", { class: "gesture-live-stats" },
+      liveStat("Gestures", gestureCount),
+      liveStat("Hand", handStatus),
+      liveStat("Frames / sec", fpsStatus),
+      liveStat("Hand Mouse", handMouseStatus),
+    ),
+    h("div", { class: "gesture-fist-progress" },
+      h("label", { text: "Fist hold to pause or resume" }),
+      fistTimer,
+      fistProgress,
+    ),
+    controls,
+  );
+}
+
+function gestureControl(
+  label: string,
+  input: HTMLInputElement,
+  value: HTMLOutputElement,
+): HTMLElement {
+  return h(
+    "label",
+    { class: "gesture-control" },
+    h("span", { text: label }),
+    value,
+    input,
+  );
+}
+
+function liveStat(label: string, value: HTMLElement): HTMLElement {
+  return h(
+    "div",
+    { class: "gesture-live-stat" },
+    value,
+    h("span", { text: label }),
   );
 }
 

@@ -214,13 +214,176 @@ select:focus {
   border-color: rgba(255, 255, 255, 0.28);
 }
 
-.gesture-dashboard {
-  width: 100%;
-  height: min(860px, 75vh);
-  min-height: 520px;
+.gesture-live-status {
+  font: 400 12px var(--font);
+  color: var(--dim);
+}
+
+.gesture-live-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gesture-live-section h3,
+.gesture-controls legend {
+  color: var(--dim);
+  font: 600 11px var(--font);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gesture-live-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.gesture-live-item {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+  padding: 9px 10px;
   border: 1px solid var(--hairline);
-  border-radius: 10px;
-  background: #08080c;
+  border-radius: 9px;
+  color: var(--dim);
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 0.14s, background 0.14s;
+}
+
+.gesture-live-item.on {
+  border-color: rgba(124, 108, 240, 0.55);
+  color: var(--ink);
+  background: rgba(124, 108, 240, 0.1);
+}
+
+.gesture-live-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #6b7079;
+}
+
+.gesture-live-item.on .gesture-live-dot {
+  background: #7c6cf0;
+  box-shadow: 0 0 8px rgba(124, 108, 240, 0.65);
+}
+
+.gesture-live-key {
+  margin-left: auto;
+  color: var(--dim-2);
+  font-size: 10px;
+  text-align: right;
+}
+
+.gesture-live-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.gesture-live-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 6px;
+  border: 1px solid var(--hairline);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.gesture-live-stat strong {
+  color: var(--ink);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.gesture-live-stat span {
+  color: var(--dim);
+  font-size: 10px;
+  text-align: center;
+}
+
+.gesture-fist-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gesture-fist-progress label {
+  min-width: 180px;
+  color: var(--dim);
+  font-size: 12px;
+}
+
+.gesture-fist-progress progress {
+  width: 100%;
+  height: 7px;
+  accent-color: var(--green);
+}
+
+.gesture-fist-timer {
+  min-width: 58px;
+  color: var(--ink);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.gesture-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.gesture-controls legend {
+  grid-column: 1 / -1;
+  margin-bottom: 2px;
+}
+
+.gesture-control {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 6px 10px;
+  color: var(--dim);
+  font-size: 12px;
+}
+
+.gesture-control output {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.gesture-control input {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .gesture-live-list {
+    grid-template-columns: 1fr;
+  }
+
+  .gesture-live-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gesture-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .gesture-fist-progress {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 6px;
+  }
 }
 
 /* The popup is drawn by the OS: give it an explicit pair of colours rather than
