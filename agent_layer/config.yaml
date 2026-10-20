@@ -1,0 +1,69 @@
+ollama:
+  base_url: http://127.0.0.1:11434
+  timeout_seconds: 180
+
+profiles:
+  fast:
+    keep_alive: -1
+    models:
+      router: llama3.2:3b
+      voice: llama3.2:3b
+      summarize: llama3.2:3b
+      chat: qwen2.5:7b
+      automation: qwen2.5:7b
+      code: qwen2.5:7b
+  heavy:
+    keep_alive: 2m
+    model: gpt-oss:20b
+    think: low
+    planner_think: medium
+
+agents:
+  chat:
+    profile: fast
+    model_key: chat
+    temperature: 0.4
+    num_predict: 256
+    num_ctx: 4096
+    system: "Answer helpfully and accurately. Be concise unless detail is requested."
+  voice:
+    profile: fast
+    model_key: voice
+    temperature: 0.4
+    num_predict: 96
+    num_ctx: 2048
+    system: "Reply in one to three short sentences. Do not use markdown."
+  automation:
+    profile: fast
+    model_key: automation
+    temperature: 0.1
+    num_predict: 256
+    num_ctx: 4096
+    system: "Return only a valid JSON object matching the supplied schema."
+  code:
+    profile: fast
+    model_key: code
+    temperature: 0.2
+    num_predict: 384
+    num_ctx: 4096
+    system: "Help solve the coding task. Be precise and show only necessary code."
+  summarize:
+    profile: fast
+    model_key: summarize
+    temperature: 0.2
+    num_predict: 160
+    num_ctx: 2048
+    system: "Summarize the supplied material accurately and concisely."
+  complex:
+    profile: heavy
+    model_key: model
+    temperature: 0.2
+    num_predict: 512
+    num_ctx: 8192
+    system: "Reason carefully and provide a clear, grounded answer."
+
+benchmark:
+  baseline_model_key: profiles.fast.models.chat
+  optimized_agent: chat
+  timeout_seconds: 300
+  report_path: benchmark-report.md
