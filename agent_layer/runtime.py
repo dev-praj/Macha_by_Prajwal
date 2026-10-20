@@ -36,7 +36,7 @@ def _model_name(model: dict[str, Any]) -> str:
 
 
 def _warmup_prompt(config: dict[str, Any], model_name: str) -> tuple[str, int]:
-    for agent_name, agent in config.get("agents", {}).items():
+    for agent in config.get("agents", {}).values():
         profile = config["profiles"][agent["profile"]]
         model_key = agent["model_key"]
         configured_model = (
