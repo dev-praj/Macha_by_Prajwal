@@ -76,6 +76,7 @@ class OllamaClient:
         options: dict[str, Any] | None = None,
         keep_alive: str | int | None = None,
         response_format: dict[str, Any] | str | None = None,
+        think: str | bool | None = None,
     ) -> StreamResult:
         client = self._require_client()
         payload: dict[str, Any] = {
@@ -89,6 +90,8 @@ class OllamaClient:
             payload["keep_alive"] = keep_alive
         if response_format is not None:
             payload["format"] = response_format
+        if think is not None:
+            payload["think"] = think
 
         start = time.perf_counter()
         first_token_at: float | None = None
@@ -151,6 +154,7 @@ class OllamaClient:
         options: dict[str, Any] | None = None,
         keep_alive: str | int | None = None,
         response_format: dict[str, Any] | str | None = None,
+        think: str | bool | None = None,
     ) -> AsyncIterator[str]:
         client = self._require_client()
         payload: dict[str, Any] = {
@@ -164,6 +168,8 @@ class OllamaClient:
             payload["keep_alive"] = keep_alive
         if response_format is not None:
             payload["format"] = response_format
+        if think is not None:
+            payload["think"] = think
         try:
             async with client.stream(
                 "POST", f"{self.base_url}/api/chat", json=payload

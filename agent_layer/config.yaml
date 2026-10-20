@@ -2,6 +2,12 @@ ollama:
   base_url: http://127.0.0.1:11434
   timeout_seconds: 180
 
+optimizations:
+  keep_alive: true
+  startup_warmup: true
+  memory_guard: true
+  memory_budget_gb: 16
+
 profiles:
   fast:
     keep_alive: -1

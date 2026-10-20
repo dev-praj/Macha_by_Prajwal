@@ -63,6 +63,11 @@ class TaskRouter:
                     {"role": "user", "content": text},
                 ],
                 options={"temperature": 0, "num_predict": 32, "num_ctx": 1024},
+                keep_alive=(
+                    self.config["profiles"]["fast"].get("keep_alive")
+                    if self.config.get("optimizations", {}).get("keep_alive", True)
+                    else None
+                ),
                 response_format=ROUTE_SCHEMA,
             )
             parsed = json.loads(result.text)

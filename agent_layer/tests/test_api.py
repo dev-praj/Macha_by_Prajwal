@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 from collections.abc import AsyncIterator
 from typing import Any
+from unittest.mock import patch
 
 import httpx
 
@@ -13,6 +14,9 @@ from agent_layer.orchestrator import StreamEvent
 
 class FakeClient:
     async def list_models(self) -> list[dict[str, Any]]:
+        return []
+
+    async def loaded_models(self) -> list[dict[str, Any]]:
         return []
 
 
@@ -59,6 +63,13 @@ class AgentApiTests(unittest.IsolatedAsyncioTestCase):
         response = await self.client.post("/chat", json={"prompt": "Hello"})
         self.assertIn("event: error", response.text)
         self.assertIn("unavailable", response.text)
+
+    async def test_app_lifespan_runs_runtime_initialization(self) -> None:
+        with patch("agent_layer.runtime._ollama_ps", return_value=([], {})) as ps:
+            async with self.app.router.lifespan_context(self.app):
+                response = await self.client.get("/health")
+        self.assertEqual(response.status_code, 200)
+        ps.assert_awaited_once()
 
 
 if __name__ == "__main__":

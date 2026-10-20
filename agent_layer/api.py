@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 
 from .client import OllamaClient, OllamaError
 from .orchestrator import Orchestrator
+from .runtime import initialize_runtime
 
 ROOT = Path(__file__).resolve().parent
 
@@ -53,8 +54,10 @@ def create_app(
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         if owns_client:
             async with active_client:
+                await initialize_runtime(loaded_config, active_client)
                 yield
         else:
+            await initialize_runtime(loaded_config, active_client)
             yield
 
     app = FastAPI(title="Local Agent Layer", version="0.2.0", lifespan=lifespan)

@@ -67,6 +67,29 @@ class OllamaClientTests(unittest.IsolatedAsyncioTestCase):
                         messages=[{"role": "user", "content": "Hi"}],
                     )
 
+    async def test_stream_chat_sends_keep_alive_and_think_parameters(self) -> None:
+        seen: dict[str, object] = {}
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            seen.update(json.loads(request.content))
+            return httpx.Response(
+                200,
+                content=json.dumps({"message": {"content": "ok"}, "done": True}),
+            )
+
+        transport = httpx.MockTransport(handler)
+        async with httpx.AsyncClient(transport=transport) as http:
+            async with OllamaClient("http://ollama.test", client=http) as ollama:
+                await ollama.stream_chat(
+                    model="configured-model",
+                    messages=[{"role": "user", "content": "Hi"}],
+                    keep_alive=-1,
+                    think="low",
+                )
+
+        self.assertEqual(seen["keep_alive"], -1)
+        self.assertEqual(seen["think"], "low")
+
     async def test_chat_stream_yields_tokens_and_rejects_server_error(self) -> None:
         async def handler(request: httpx.Request) -> httpx.Response:
             if request.url.path.endswith("/error/api/chat"):

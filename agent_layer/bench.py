@@ -194,16 +194,16 @@ def build_report(
     ]
     missing_models = sorted(set(configured_models) - set(installed_models))
     lines = [
-        "# Phase 1 Ollama benchmark",
+        "# Ollama benchmark",
         "",
         f"- Model: `{model}`",
         f"- Installed models: {', '.join(f'`{item}`' for item in installed_models) or 'none reported'}",
         f"- Loaded models before benchmark: {', '.join(f'`{item}`' for item in loaded_models) or 'none'}",
         f"- `ollama ps` PROCESSOR: `{processor}`",
         f"- Prompts: {len(PROMPTS)} fixed; both paths stream and use the same model and prompt.",
-        "- Baseline omits `keep_alive`; layer uses the configured profile `keep_alive` value. No warm-up, model swapping, prompt rewriting, or output cap is applied in Phase 1.",
+        "- Baseline omits `keep_alive`; layer uses the configured profile `keep_alive` value. The request loops apply no additional warm-up, model swapping, prompt rewriting, or output cap.",
         "- To reduce exact-prompt KV-cache order bias, the baseline runs in fixed order and the layer runs in reverse order.",
-        "- All 20 prompts use the configured benchmark model to keep comparisons apples-to-apples; Phase 1 does not test agent-specific model routing.",
+        "- All 20 prompts use the configured benchmark model to keep comparisons apples-to-apples; this harness does not test agent-specific model routing.",
         f"- Configured profile models missing from `ollama list`: {', '.join(f'`{name}`' for name in missing_models) or 'none'}.",
         f"- Wall-clock benchmark duration: {elapsed:.1f}s.",
         "",
@@ -244,8 +244,8 @@ def build_report(
         "",
         "- GPU/CPU split is reported from `ollama ps`; it reflects the loaded benchmark model, not models that were not loaded.",
         "- This harness does not load or unload the heavy profile. Heavy-model JSON/tool-call and GPU-offload checks remain pending explicit approval to swap the heavy model.",
-        "- FAST profile models absent from `ollama list` are not benchmarked in Phase 1; the benchmark uses the configured `fast.chat` model for all task categories as a safe baseline.",
-        "- Optimization verdict: compare aggregate table. If latency or throughput is not better, keep-alive did not demonstrate a speedup in this run.",
+        "- FAST profile models absent from `ollama list` are not benchmarked; the benchmark uses the configured `fast.chat` model for all task categories as a safe baseline.",
+        "- Optimization verdict: report each aggregate metric separately. A single run with mixed results is not evidence of a general speedup.",
     ])
     return "\n".join(lines) + "\n"
 

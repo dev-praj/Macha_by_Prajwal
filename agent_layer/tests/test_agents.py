@@ -77,6 +77,9 @@ class AgentLayerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(first[0]["content"], config["agents"]["chat"]["system"])
         self.assertEqual(agent.model_name(), config["profiles"]["fast"]["models"]["chat"])
         self.assertEqual(agent.options()["num_ctx"], config["agents"]["chat"]["num_ctx"])
+        self.assertEqual(agent.keep_alive(), -1)
+        self.assertEqual(agents["complex"].keep_alive(), "2m")
+        self.assertEqual(agents["complex"].think_level(), "low")
 
     async def test_voice_agent_yields_sentences_as_the_stream_arrives(self) -> None:
         config = load_config()

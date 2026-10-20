@@ -9,6 +9,7 @@ import sys
 from .api import load_config
 from .client import OllamaClient, OllamaError
 from .orchestrator import Orchestrator
+from .runtime import initialize_runtime
 
 
 async def run(prompt: str, task: str | None) -> int:
@@ -17,6 +18,7 @@ async def run(prompt: str, task: str | None) -> int:
         str(config["ollama"]["base_url"]),
         float(config["ollama"].get("timeout_seconds", 180)),
     ) as client:
+        await initialize_runtime(config, client)
         orchestrator = Orchestrator(config, client)
         try:
             async for event in orchestrator.stream(prompt, task=task):

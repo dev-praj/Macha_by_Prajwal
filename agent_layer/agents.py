@@ -36,6 +36,16 @@ class Agent:
             "num_ctx": int(agent["num_ctx"]),
         }
 
+    def keep_alive(self) -> str | int | None:
+        if not self.config.get("optimizations", {}).get("keep_alive", True):
+            return None
+        profile = self.config["profiles"][self.config["agents"][self.name]["profile"]]
+        return profile.get("keep_alive")
+
+    def think_level(self) -> str | bool | None:
+        profile = self.config["profiles"][self.config["agents"][self.name]["profile"]]
+        return profile.get("think")
+
     def messages(
         self,
         prompt: str,
@@ -55,6 +65,8 @@ class Agent:
             model=self.model_name(),
             messages=self.messages(prompt, history or []),
             options=self.options(),
+            keep_alive=self.keep_alive(),
+            think=self.think_level(),
         ):
             yield chunk
 
@@ -72,6 +84,8 @@ class VoiceAgent(Agent):
             model=self.model_name(),
             messages=self.messages(prompt, history or []),
             options=self.options(),
+            keep_alive=self.keep_alive(),
+            think=self.think_level(),
         ):
             buffer += chunk
             while match := re.search(r".*?[.!?](?:\s+|$)", buffer, re.S):
@@ -105,7 +119,9 @@ class AutomationAgent(Agent):
                 model=self.model_name(),
                 messages=messages,
                 options=self.options(),
+                keep_alive=self.keep_alive(),
                 response_format=schema,
+                think=self.think_level(),
             )
             try:
                 value = json.loads(result.text)
