@@ -5,8 +5,8 @@ import unittest
 
 import httpx
 
-from bench import parse_cli_table
-from client import OllamaClient, OllamaError
+from agent_layer.bench import parse_cli_table
+from agent_layer.client import OllamaClient, OllamaError
 
 
 class OllamaClientTests(unittest.IsolatedAsyncioTestCase):

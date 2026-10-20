@@ -14,7 +14,7 @@ from typing import Any
 
 import yaml
 
-from client import OllamaClient, OllamaError, StreamResult
+from .client import OllamaClient, OllamaError, StreamResult
 
 ROOT = Path(__file__).resolve().parent
 AUTOMATION_SCHEMA: dict[str, Any] = {
