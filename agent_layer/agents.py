@@ -28,13 +28,23 @@ class Agent:
         model_key = self.config["agents"][self.name]["model_key"]
         return str(profile["models"][model_key] if "models" in profile else profile[model_key])
 
-    def options(self) -> dict[str, Any]:
+    def options(self, overrides: dict[str, Any] | None = None) -> dict[str, Any]:
         agent = self.config["agents"][self.name]
-        return {
+        options = {
             "temperature": float(agent["temperature"]),
             "num_predict": int(agent["num_predict"]),
             "num_ctx": int(agent["num_ctx"]),
         }
+        if overrides:
+            options.update({
+                key: value for key, value in overrides.items() if key != "num_predict"
+            })
+            if "num_predict" in overrides:
+                options["num_predict"] = min(
+                    int(overrides["num_predict"]),
+                    int(agent["num_predict"]),
+                )
+        return options
 
     def keep_alive(self) -> str | int | None:
         if not self.config.get("optimizations", {}).get("keep_alive", True):
@@ -44,6 +54,8 @@ class Agent:
 
     def think_level(self) -> str | bool | None:
         profile = self.config["profiles"][self.config["agents"][self.name]["profile"]]
+        if self.name == "complex":
+            return profile.get("planner_think", profile.get("think"))
         return profile.get("think")
 
     def messages(
@@ -60,11 +72,12 @@ class Agent:
         self,
         prompt: str,
         history: list[dict[str, Any]] | None = None,
+        options: dict[str, Any] | None = None,
     ) -> AsyncIterator[str]:
         async for chunk in self.client.chat_stream(
             model=self.model_name(),
             messages=self.messages(prompt, history or []),
-            options=self.options(),
+            options=self.options(options),
             keep_alive=self.keep_alive(),
             think=self.think_level(),
         ):
@@ -78,12 +91,13 @@ class VoiceAgent(Agent):
         self,
         prompt: str,
         history: list[dict[str, Any]] | None = None,
+        options: dict[str, Any] | None = None,
     ) -> AsyncIterator[str]:
         buffer = ""
         async for chunk in self.client.chat_stream(
             model=self.model_name(),
             messages=self.messages(prompt, history or []),
-            options=self.options(),
+            options=self.options(options),
             keep_alive=self.keep_alive(),
             think=self.think_level(),
         ):
@@ -102,6 +116,7 @@ class AutomationAgent(Agent):
         prompt: str,
         schema: dict[str, Any],
         history: list[dict[str, Any]] | None = None,
+        options: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         messages = self.messages(prompt, history or [])
         messages[0] = {
@@ -118,7 +133,7 @@ class AutomationAgent(Agent):
             result = await self.client.stream_chat(
                 model=self.model_name(),
                 messages=messages,
-                options=self.options(),
+                options=self.options(options),
                 keep_alive=self.keep_alive(),
                 response_format=schema,
                 think=self.think_level(),
@@ -147,14 +162,15 @@ class HeavyAgent(Agent):
         self,
         prompt: str,
         history: list[dict[str, Any]] | None = None,
+        options: dict[str, Any] | None = None,
     ) -> AsyncIterator[str]:
         loaded = await self.client.loaded_models()
         if not any(item.get("name") == self.model_name() for item in loaded):
             raise OllamaError(
-                "Heavy model is not already loaded; Phase 2 will not swap models. "
+                "Heavy model is not already loaded; the agent layer will not swap models. "
                 "Retry with the fast profile or authorize heavy-model loading."
             )
-        async for chunk in super().stream(prompt, history):
+        async for chunk in super().stream(prompt, history, options):
             yield chunk
 
 

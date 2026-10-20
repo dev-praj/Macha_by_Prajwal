@@ -8,6 +8,26 @@ optimizations:
   memory_guard: true
   memory_budget_gb: 16
 
+planner:
+  enabled: true
+  max_subtasks: 4
+  max_concurrency: 2
+
+memory:
+  enabled: false
+  last_n_turns: 8
+  token_budget: 3072
+  max_conversations: 128
+
+response_cache:
+  enabled: false
+  ttl_seconds: 300
+  max_entries: 256
+  sqlite_path: null
+  deterministic_agents:
+    - automation
+    - summarize
+
 profiles:
   fast:
     keep_alive: -1

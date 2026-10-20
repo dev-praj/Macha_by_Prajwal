@@ -49,13 +49,13 @@ class TaskRouter:
             if pattern.search(text):
                 return TaskRoute(task, "rules")
 
-        # Conflicting or unclear requests are sent to the small router only if
-        # the configured model is installed; no model pulls or tier swaps occur.
+        # The router only uses a model that is already resident; routing never
+        # implicitly loads a model or changes model tiers.
         try:
             router_model = self._router_model()
-            installed = {item.get("name") for item in await self.client.list_models()}
-            if router_model not in installed:
-                return TaskRoute("chat", "rules-fallback-router-model-missing")
+            loaded = {item.get("name") for item in await self.client.loaded_models()}
+            if router_model not in loaded:
+                return TaskRoute("chat", "rules-fallback-router-model-not-loaded")
             result = await self.client.stream_chat(
                 model=router_model,
                 messages=[
