@@ -6,12 +6,12 @@
   "type": "sequence",
   "quality": "showcase",
   "specification": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.sequence.json",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-settings-memory.sequence.json",
     "sha256": "1ca1b30f9496f9f4d1dc5310e78112b5a3d38498ffa6dee246afdf03a54f97db",
     "bytes": 4659
   },
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.html"
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-settings-memory.html"
   },
   "gates": {
     "validate": "fail",
@@ -197,8 +197,8 @@
     }
   },
   "evidence": {
-    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.finalize.json",
-    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.finalize-summary.json"
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-settings-memory.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-settings-memory.finalize-summary.json"
   },
   "update": {
     "status": "current",
@@ -214,7 +214,7 @@
   "durationMs": 1202,
   "nextAction": {
     "action": "edit-in-place",
-    "candidate": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.sequence.json",
+    "candidate": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-settings-memory.sequence.json",
     "constraint": "Preserve unaffected semantics and geometry; apply each diagnostic's supportedFixes, or the fix its message names, and do not replace the whole candidate.",
     "then": "finalize-once"
   }

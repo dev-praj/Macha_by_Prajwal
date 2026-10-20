@@ -10,6 +10,14 @@ use crate::secrets;
 
 const OLLAMA_BASE: &str = "http://127.0.0.1:11434";
 const OPENROUTER_BASE: &str = "https://openrouter.ai/api/v1";
+const ANTHROPIC_BASE: &str = "https://api.anthropic.com/v1";
+const OPENAI_BASE: &str = "https://api.openai.com/v1";
+const GEMINI_OPENAI_BASE: &str = "https://generativelanguage.googleapis.com/v1beta/openai";
+const GROK_BASE: &str = "https://api.x.ai/v1";
+const CLAUDE_MODEL: &str = "claude-sonnet-5-5";
+const OPENAI_MODEL: &str = "gpt-4.1-mini";
+const GEMINI_MODEL: &str = "gemini-3.8-flash";
+const GROK_MODEL: &str = "grok-4.7";
 const OPENROUTER_MAX_TOKENS: u32 = 1024;
 const VOICE_OLLAMA_MAX_TOKENS: u32 = 256;
 const VOICE_OPENROUTER_MAX_TOKENS: u32 = 256;
@@ -47,6 +55,10 @@ enum ProviderMode {
     VoiceAuto,
     OllamaOnly,
     OpenRouterOnly,
+    GrokOnly,
+    ClaudeOnly,
+    OpenAiOnly,
+    GeminiOnly,
 }
 
 impl ProviderMode {
@@ -55,6 +67,10 @@ impl ProviderMode {
             "voiceAuto" => Self::VoiceAuto,
             "ollamaOnly" => Self::OllamaOnly,
             "openRouterOnly" => Self::OpenRouterOnly,
+            "grokOnly" => Self::GrokOnly,
+            "claudeOnly" => Self::ClaudeOnly,
+            "openAiOnly" => Self::OpenAiOnly,
+            "geminiOnly" => Self::GeminiOnly,
             _ => Self::Auto,
         }
     }
@@ -96,6 +112,17 @@ pub async fn chat(
     cancel: &mut watch::Receiver<bool>,
 ) -> Result<ChatReply, String> {
     let mode = ProviderMode::parse(mode);
+    if is_direct_provider(mode) {
+        let (provider, response, actual_model) =
+            direct_completion(mode, messages, tools, cancel).await?;
+        crate::log::line(format!("chat provider={provider} model={actual_model}"));
+        return Ok(ChatReply {
+            response,
+            provider,
+            model: actual_model,
+            fallback_notice: None,
+        });
+    }
     if mode == ProviderMode::VoiceAuto {
         let local_result = ollama_completion(
             messages.clone(),
@@ -220,6 +247,24 @@ pub async fn chat_stream(
 ) -> Result<ChatReply, String> {
     let mode = ProviderMode::parse(mode);
     let mut emitted_text = false;
+    if is_direct_provider(mode) {
+        let (provider, response, actual_model) = direct_completion_stream(
+            mode,
+            messages,
+            tools,
+            cancel,
+            deltas,
+            &mut emitted_text,
+        )
+        .await?;
+        crate::log::line(format!("chat provider={provider} model={actual_model}"));
+        return Ok(ChatReply {
+            response,
+            provider,
+            model: actual_model,
+            fallback_notice: None,
+        });
+    }
     if mode == ProviderMode::VoiceAuto {
         let local_result = ollama_completion_stream(
             messages.clone(),
@@ -467,6 +512,382 @@ async fn openrouter_completion(
     .await
 }
 
+fn is_direct_provider(mode: ProviderMode) -> bool {
+    matches!(
+        mode,
+        ProviderMode::GrokOnly
+            | ProviderMode::ClaudeOnly
+            | ProviderMode::OpenAiOnly
+            | ProviderMode::GeminiOnly
+    )
+}
+
+async fn direct_completion(
+    mode: ProviderMode,
+    messages: Vec<Value>,
+    tools: Option<Value>,
+    cancel: &mut watch::Receiver<bool>,
+) -> Result<(String, Value, String), String> {
+    let (provider, response, model) = match mode {
+        ProviderMode::GrokOnly => {
+            let (response, model) = grok_completion(messages, tools, cancel).await?;
+            ("grok", response, model)
+        }
+        ProviderMode::ClaudeOnly => {
+            let (response, model) = claude_completion(messages, tools, cancel).await?;
+            ("claude", response, model)
+        }
+        ProviderMode::OpenAiOnly => {
+            let (response, model) = compatible_provider_completion(
+                "openai",
+                "openai-api-key",
+                OPENAI_BASE,
+                OPENAI_MODEL,
+                messages,
+                tools,
+                cancel,
+            )
+            .await?;
+            ("openai", response, model)
+        }
+        ProviderMode::GeminiOnly => {
+            let (response, model) = compatible_provider_completion(
+                "gemini",
+                "gemini-api-key",
+                GEMINI_OPENAI_BASE,
+                GEMINI_MODEL,
+                messages,
+                tools,
+                cancel,
+            )
+            .await?;
+            ("gemini", response, model)
+        }
+        _ => return Err("The selected provider mode is not a direct provider.".into()),
+    };
+    Ok((provider.to_string(), response, model))
+}
+
+async fn direct_completion_stream(
+    mode: ProviderMode,
+    messages: Vec<Value>,
+    tools: Option<Value>,
+    cancel: &mut watch::Receiver<bool>,
+    deltas: &tokio::sync::mpsc::UnboundedSender<String>,
+    emitted_text: &mut bool,
+) -> Result<(String, Value, String), String> {
+    if mode == ProviderMode::ClaudeOnly {
+        let (response, model) = claude_completion(messages, tools, cancel).await?;
+        let text = response["choices"][0]["message"]["content"]
+            .as_str()
+            .unwrap_or_default();
+        if !text.is_empty() {
+            *emitted_text = true;
+            if !deltas.is_closed() && deltas.send(text.to_string()).is_err() {
+                crate::log::line("voice response listener closed while streaming a reply");
+            }
+        }
+        return Ok(("claude".into(), response, model));
+    }
+    let (provider_name, key_name, endpoint, model) = match mode {
+        ProviderMode::GrokOnly => ("grok", "grok-api-key", GROK_BASE, GROK_MODEL),
+        ProviderMode::OpenAiOnly => ("openai", "openai-api-key", OPENAI_BASE, OPENAI_MODEL),
+        ProviderMode::GeminiOnly => (
+            "gemini",
+            "gemini-api-key",
+            GEMINI_OPENAI_BASE,
+            GEMINI_MODEL,
+        ),
+        _ => return Err("The selected provider mode is not a direct provider.".into()),
+    };
+    let key = secrets::get(key_name)
+        .ok_or_else(|| format!("No {provider_name} API key is configured in the OS credential manager."))?;
+    let client = client(Duration::from_secs(60))
+        .map_err(|error| format!("{provider_name}: {error}"))?;
+    let mut body = compatible_request_body(provider_name, model, messages, tools);
+    body["stream"] = json!(true);
+    let response = send_json_stream(
+        &client,
+        format!("{endpoint}/chat/completions"),
+        &key,
+        provider_name,
+        body,
+        cancel,
+        deltas,
+        emitted_text,
+    )
+    .await
+    .map_err(|error| error.message)?;
+    let actual_model = response_model(&response, model);
+    Ok((provider_name.to_string(), response, actual_model))
+}
+
+async fn grok_completion(
+    messages: Vec<Value>,
+    tools: Option<Value>,
+    cancel: &mut watch::Receiver<bool>,
+) -> Result<(Value, String), String> {
+    compatible_provider_completion(
+        "grok",
+        "grok-api-key",
+        GROK_BASE,
+        GROK_MODEL,
+        messages,
+        tools,
+        cancel,
+    )
+    .await
+}
+
+async fn compatible_provider_completion(
+    provider: &str,
+    key_name: &str,
+    endpoint: &str,
+    model: &str,
+    messages: Vec<Value>,
+    tools: Option<Value>,
+    cancel: &mut watch::Receiver<bool>,
+) -> Result<(Value, String), String> {
+    let key = secrets::get(key_name)
+        .ok_or_else(|| format!("No {provider} API key is configured in the OS credential manager."))?;
+    let client =
+        client(Duration::from_secs(60)).map_err(|error| format!("{provider}: {error}"))?;
+    let body = compatible_request_body(provider, model, messages, tools);
+    let response = send_json(
+        &client,
+        format!("{endpoint}/chat/completions"),
+        &key,
+        provider,
+        body,
+        cancel,
+    )
+    .await
+    .map_err(|error| error.message)?;
+    let actual_model = response_model(&response, model);
+    Ok((response, actual_model))
+}
+
+fn compatible_request_body(
+    provider: &str,
+    model: &str,
+    messages: Vec<Value>,
+    tools: Option<Value>,
+) -> Value {
+    let mut body = request_body(model, messages, tools, Some(OPENROUTER_MAX_TOKENS), false);
+    let object = body.as_object_mut().expect("request body is an object");
+    object.remove("plugins");
+    if matches!(provider, "openai" | "grok") {
+        object.remove("max_tokens");
+        body["max_completion_tokens"] = json!(OPENROUTER_MAX_TOKENS);
+    }
+    body
+}
+
+async fn claude_completion(
+    messages: Vec<Value>,
+    tools: Option<Value>,
+    cancel: &mut watch::Receiver<bool>,
+) -> Result<(Value, String), String> {
+    let key = secrets::get("anthropic-api-key")
+        .ok_or_else(|| "No Claude API key is configured in the OS credential manager.".to_string())?;
+    let client = client(Duration::from_secs(60)).map_err(|error| format!("Claude: {error}"))?;
+    let body = claude_request_body(messages, tools)?;
+    let response = send_json(
+        &client,
+        format!("{ANTHROPIC_BASE}/messages"),
+        &key,
+        "claude",
+        body,
+        cancel,
+    )
+    .await
+    .map_err(|error| error.message)?;
+    let model = response["model"].as_str().unwrap_or(CLAUDE_MODEL).to_string();
+    Ok((normalize_claude_response(response)?, model))
+}
+
+fn claude_request_body(messages: Vec<Value>, tools: Option<Value>) -> Result<Value, String> {
+    let mut system = Vec::new();
+    let mut converted = Vec::new();
+    for message in messages {
+        match message["role"].as_str().unwrap_or_default() {
+            "system" => {
+                if let Some(text) = message["content"].as_str() {
+                    system.push(text.to_string());
+                }
+            }
+            "tool" => {
+                let tool_use_id = message["tool_call_id"]
+                    .as_str()
+                    .ok_or_else(|| "Claude tool result is missing its call ID.".to_string())?;
+                converted.push(json!({
+                    "role": "user",
+                    "content": [{
+                        "type": "tool_result",
+                        "tool_use_id": tool_use_id,
+                        "content": message["content"].as_str().unwrap_or_default(),
+                    }]
+                }));
+            }
+            "user" | "assistant" => {
+                let role = message["role"].as_str().unwrap_or_default();
+                let mut content = anthropic_content_blocks(&message["content"])?;
+                if role == "assistant" {
+                    if let Some(calls) = message["tool_calls"].as_array() {
+                        for call in calls {
+                            let function = &call["function"];
+                            let input = function["arguments"]
+                                .as_str()
+                                .and_then(|args| serde_json::from_str::<Value>(args).ok())
+                                .unwrap_or_else(|| json!({}));
+                            content.push(json!({
+                                "type": "tool_use",
+                                "id": call["id"],
+                                "name": function["name"],
+                                "input": input,
+                            }));
+                        }
+                    }
+                }
+                converted.push(json!({ "role": role, "content": content }));
+            }
+            _ => return Err("Claude received an unsupported message role.".into()),
+        }
+    }
+    let mut body = json!({
+        "model": CLAUDE_MODEL,
+        "max_tokens": OPENROUTER_MAX_TOKENS,
+        "messages": converted,
+    });
+    if !system.is_empty() {
+        body["system"] = json!(system.join("\n\n"));
+    }
+    if let Some(tools) = tools {
+        let anthropic_tools: Vec<Value> = tools
+            .as_array()
+            .into_iter()
+            .flatten()
+            .map(|tool| {
+                let function = &tool["function"];
+                json!({
+                    "name": function["name"],
+                    "description": function["description"],
+                    "input_schema": function["parameters"],
+                })
+            })
+            .collect();
+        if !anthropic_tools.is_empty() {
+            body["tools"] = json!(anthropic_tools);
+        }
+    }
+    Ok(body)
+}
+
+fn anthropic_content_blocks(content: &Value) -> Result<Vec<Value>, String> {
+    if let Some(text) = content.as_str() {
+        if text.is_empty() {
+            return Ok(Vec::new());
+        }
+        return Ok(vec![json!({ "type": "text", "text": text })]);
+    }
+    let Some(blocks) = content.as_array() else {
+        return Ok(Vec::new());
+    };
+    blocks
+        .iter()
+        .map(|block| match block["type"].as_str() {
+            Some("text") => Ok(json!({ "type": "text", "text": block["text"] })),
+            Some("image_url") => {
+                let url = block["image_url"]["url"]
+                    .as_str()
+                    .ok_or_else(|| "Claude image input is missing its data URL.".to_string())?;
+                let (media_type, data) = parse_data_url(url)?;
+                if !matches!(media_type, "image/jpeg" | "image/png" | "image/gif" | "image/webp") {
+                    return Err("Claude image input must be a JPEG, PNG, GIF, or WebP image.".into());
+                }
+                Ok(json!({
+                    "type": "image",
+                    "source": { "type": "base64", "media_type": media_type, "data": data }
+                }))
+            }
+            Some("file") => {
+                let file = &block["file"];
+                let data_url = file["file_data"]
+                    .as_str()
+                    .ok_or_else(|| "Claude document input is missing its data URL.".to_string())?;
+                let (media_type, data) = parse_data_url(data_url)?;
+                if media_type != "application/pdf" {
+                    return Err("Claude document attachments currently support PDF files only.".into());
+                }
+                Ok(json!({
+                    "type": "document",
+                    "source": { "type": "base64", "media_type": media_type, "data": data }
+                }))
+            }
+            Some(other) => Err(format!("Claude does not support this message content: {other}.")),
+            None => Err("Claude received an invalid message content block.".into()),
+        })
+        .collect()
+}
+
+fn parse_data_url(url: &str) -> Result<(&str, &str), String> {
+    let (metadata, data) = url
+        .strip_prefix("data:")
+        .and_then(|rest| rest.split_once(','))
+        .ok_or_else(|| "Expected a base64 data URL.".to_string())?;
+    let media_type = metadata
+        .strip_suffix(";base64")
+        .ok_or_else(|| "Expected a base64-encoded data URL.".to_string())?;
+    if media_type.is_empty() || data.is_empty() {
+        return Err("The data URL is empty.".into());
+    }
+    Ok((media_type, data))
+}
+
+fn normalize_claude_response(response: Value) -> Result<Value, String> {
+    let content = response["content"]
+        .as_array()
+        .ok_or_else(|| "Claude returned an invalid message.".to_string())?;
+    let mut text = String::new();
+    let mut tool_calls = Vec::new();
+    for block in content {
+        match block["type"].as_str() {
+            Some("text") => {
+                if let Some(value) = block["text"].as_str() {
+                    text.push_str(value);
+                }
+            }
+            Some("tool_use") => {
+                let arguments = serde_json::to_string(&block["input"])
+                    .map_err(|error| format!("Could not decode Claude tool arguments: {error}"))?;
+                tool_calls.push(json!({
+                    "id": block["id"],
+                    "type": "function",
+                    "function": { "name": block["name"], "arguments": arguments }
+                }));
+            }
+            Some("thinking" | "redacted_thinking") | None => {}
+            Some(other) => return Err(format!("Claude returned unsupported content: {other}.")),
+        }
+    }
+    let finish_reason = if tool_calls.is_empty() { "stop" } else { "tool_calls" };
+    Ok(json!({
+        "model": response["model"],
+        "choices": [{
+            "message": {
+                "role": "assistant",
+                "content": if text.is_empty() { Value::Null } else { json!(text) },
+                "tool_calls": tool_calls,
+            },
+            "finish_reason": finish_reason,
+        }]
+    }))
+}
+
+fn grok_request_body(messages: Vec<Value>, tools: Option<Value>) -> Value {
+    compatible_request_body("grok", GROK_MODEL, messages, tools)
+}
+
 async fn openrouter_completion_with_timeout(
     messages: Vec<Value>,
     tools: Option<Value>,
@@ -708,11 +1129,17 @@ async fn send_json(
         .json(&body);
     if provider == "ollama" {
         request = request.bearer_auth("ollama");
-    } else {
+    } else if provider == "openrouter" {
         request = request
             .bearer_auth(credential)
-            .header("HTTP-Referer", "https://github.com/Louis-CFM/coucou")
-            .header("X-Title", "Coucou");
+            .header("HTTP-Referer", "https://github.com/Louis-CFM/macha")
+            .header("X-Title", "Macha");
+    } else if provider == "claude" {
+        request = request
+            .header("x-api-key", credential)
+            .header("anthropic-version", "2023-06-01");
+    } else {
+        request = request.bearer_auth(credential);
     }
     let response = tokio::select! {
         response = request.send() => response.map_err(classify_network_error)?,
@@ -754,10 +1181,13 @@ async fn send_json(
         ProviderError::local(
             format!(
                 "Invalid response from {}: {error}",
-                if provider == "ollama" {
-                    "Ollama"
-                } else {
-                    "OpenRouter"
+                match provider {
+                    "ollama" => "Ollama",
+                    "grok" => "Grok",
+                    "claude" => "Claude",
+                    "openai" => "OpenAI",
+                    "gemini" => "Gemini",
+                    _ => "OpenRouter",
                 }
             ),
             false,
@@ -781,11 +1211,17 @@ async fn send_json_stream(
         .json(&body);
     if provider == "ollama" {
         request = request.bearer_auth("ollama");
-    } else {
+    } else if provider == "openrouter" {
         request = request
             .bearer_auth(credential)
-            .header("HTTP-Referer", "https://github.com/Louis-CFM/coucou")
-            .header("X-Title", "Coucou");
+            .header("HTTP-Referer", "https://github.com/Louis-CFM/macha")
+            .header("X-Title", "Macha");
+    } else if provider == "claude" {
+        request = request
+            .header("x-api-key", credential)
+            .header("anthropic-version", "2023-06-01");
+    } else {
+        request = request.bearer_auth(credential);
     }
     let mut response = tokio::select! {
         response = request.send() => response.map_err(classify_network_error)?,
@@ -1213,8 +1649,10 @@ fn affordable_tokens(message: &str) -> Option<u32> {
 #[cfg(test)]
 mod tests {
     use super::{
-        affordable_tokens, append_stream_event, ollama_failure_allows_fallback, openrouter_model,
-        reduced_max_tokens, request_body, send_json, send_openrouter_with_retry_at, ProviderMode,
+        affordable_tokens, anthropic_content_blocks, append_stream_event, claude_request_body,
+        compatible_request_body, grok_request_body, normalize_claude_response,
+        ollama_failure_allows_fallback, openrouter_model, reduced_max_tokens, request_body,
+        send_json, send_openrouter_with_retry_at, ProviderMode,
     };
     use reqwest::{Client, StatusCode};
     use serde_json::Value;
@@ -1231,8 +1669,231 @@ mod tests {
             ProviderMode::parse("openRouterOnly"),
             ProviderMode::OpenRouterOnly
         );
+        assert_eq!(ProviderMode::parse("grokOnly"), ProviderMode::GrokOnly);
+        assert_eq!(ProviderMode::parse("claudeOnly"), ProviderMode::ClaudeOnly);
+        assert_eq!(ProviderMode::parse("openAiOnly"), ProviderMode::OpenAiOnly);
+        assert_eq!(ProviderMode::parse("geminiOnly"), ProviderMode::GeminiOnly);
         assert_eq!(ProviderMode::parse("voiceAuto"), ProviderMode::VoiceAuto);
         assert_eq!(ProviderMode::parse("invalid"), ProviderMode::Auto);
+    }
+
+    #[test]
+    fn grok_request_body_uses_xai_model_and_openai_tool_format_without_openrouter_plugins() {
+        let tools = serde_json::json!([{
+            "type": "function",
+            "function": { "name": "test_tool", "parameters": { "type": "object" } }
+        }]);
+        let body = grok_request_body(
+            vec![serde_json::json!({"role":"user","content":"hello"})],
+            Some(tools.clone()),
+        );
+
+        assert_eq!(body["model"], "grok-4.7");
+        assert_eq!(body["tools"], tools);
+        assert!(body.get("plugins").is_none());
+        assert!(body.get("max_tokens").is_none());
+        assert_eq!(body["max_completion_tokens"], 1024);
+        assert_eq!(body["parallel_tool_calls"], false);
+    }
+
+    #[test]
+    fn direct_openai_compatible_providers_use_supported_models_and_no_openrouter_fields() {
+        let messages = vec![serde_json::json!({"role":"user","content":"hello"})];
+        let openai = compatible_request_body("openai", "gpt-4.1-mini", messages.clone(), None);
+        assert_eq!(openai["model"], "gpt-4.1-mini");
+        assert_eq!(openai["max_completion_tokens"], 1024);
+        assert!(openai.get("max_tokens").is_none());
+        assert!(openai.get("plugins").is_none());
+
+        let gemini = compatible_request_body("gemini", "gemini-3.8-flash", messages, None);
+        assert_eq!(gemini["model"], "gemini-3.8-flash");
+        assert_eq!(gemini["max_tokens"], 1024);
+        assert!(gemini.get("plugins").is_none());
+    }
+
+    #[test]
+    fn claude_request_translates_system_tools_and_tool_results() {
+        let messages = vec![
+            serde_json::json!({"role":"system","content":"Be helpful."}),
+            serde_json::json!({
+                "role":"assistant",
+                "content":"",
+                "tool_calls":[{
+                    "id":"call-1",
+                    "type":"function",
+                    "function":{"name":"open_website","arguments":"{\"url\":\"https://example.com\"}"}
+                }]
+            }),
+            serde_json::json!({
+                "role":"tool",
+                "tool_call_id":"call-1",
+                "content":"Opened."
+            }),
+        ];
+        let tools = serde_json::json!([{
+            "type":"function",
+            "function":{
+                "name":"open_website",
+                "description":"Open a website.",
+                "parameters":{"type":"object","properties":{"url":{"type":"string"}}}
+            }
+        }]);
+        let body = claude_request_body(messages, Some(tools)).unwrap();
+
+        assert_eq!(body["model"], "claude-sonnet-5-5");
+        assert_eq!(body["system"], "Be helpful.");
+        assert_eq!(body["tools"][0]["name"], "open_website");
+        assert_eq!(body["tools"][0]["input_schema"]["type"], "object");
+        assert_eq!(body["messages"][0]["content"][0]["type"], "tool_use");
+        assert_eq!(body["messages"][0]["content"][0]["input"]["url"], "https://example.com");
+        assert_eq!(body["messages"][1]["content"][0]["type"], "tool_result");
+        assert_eq!(body["messages"][1]["content"][0]["tool_use_id"], "call-1");
+    }
+
+    #[test]
+    fn claude_response_translates_text_and_tool_use_to_chat_completion_shape() {
+        let response = normalize_claude_response(serde_json::json!({
+            "model":"claude-sonnet-5-5",
+            "content":[
+                {"type":"text","text":"Opening site."},
+                {"type":"tool_use","id":"tool-1","name":"open_website","input":{"url":"https://example.com"}}
+            ],
+            "stop_reason":"tool_use"
+        })).unwrap();
+        assert_eq!(response["choices"][0]["message"]["content"], "Opening site.");
+        assert_eq!(response["choices"][0]["message"]["tool_calls"][0]["id"], "tool-1");
+        assert_eq!(
+            serde_json::from_str::<Value>(
+                response["choices"][0]["message"]["tool_calls"][0]["function"]["arguments"]
+                    .as_str()
+                    .unwrap()
+            )
+            .unwrap()["url"],
+            "https://example.com"
+        );
+        assert_eq!(response["choices"][0]["finish_reason"], "tool_calls");
+    }
+
+    #[test]
+    fn claude_image_content_is_translated_to_anthropic_base64_source() {
+        let data = anthropic_content_blocks(&serde_json::json!([{
+            "type":"image_url",
+            "image_url":{"url":"data:image/png;base64,aGVsbG8="}
+        }])).unwrap();
+        assert_eq!(data[0]["type"], "image");
+        assert_eq!(data[0]["source"]["media_type"], "image/png");
+        assert_eq!(data[0]["source"]["data"], "aGVsbG8=");
+    }
+
+    #[tokio::test]
+    async fn grok_http_requests_use_bearer_auth_and_decode_chat_completions() {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let endpoint = format!("http://{}/chat/completions", listener.local_addr().unwrap());
+        let server = tokio::spawn(async move {
+            let (mut stream, _) = listener.accept().await.unwrap();
+            let mut bytes = Vec::new();
+            let mut chunk = [0; 1024];
+            let (body_offset, content_length) = loop {
+                let count = stream.read(&mut chunk).await.unwrap();
+                assert!(count > 0, "client closed before sending a complete request");
+                bytes.extend_from_slice(&chunk[..count]);
+                if let Some(offset) = bytes.windows(4).position(|part| part == b"\r\n\r\n") {
+                    let headers = String::from_utf8_lossy(&bytes[..offset]);
+                    let content_length = headers
+                        .lines()
+                        .find_map(|line| {
+                            let (name, value) = line.split_once(':')?;
+                            name.eq_ignore_ascii_case("content-length")
+                                .then(|| value.trim().parse::<usize>().unwrap())
+                        })
+                        .unwrap();
+                    let body_offset = offset + 4;
+                    if bytes.len() >= body_offset + content_length {
+                        break (body_offset, content_length);
+                    }
+                }
+            };
+            let headers = String::from_utf8_lossy(&bytes[..body_offset - 4]).to_ascii_lowercase();
+            let body: Value = serde_json::from_slice(
+                &bytes[body_offset..body_offset + content_length],
+            )
+            .unwrap();
+            let payload = r#"{"model":"grok-4.7","choices":[{"message":{"role":"assistant","content":"hello","tool_calls":[]},"finish_reason":"stop"}]}"#;
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                payload.len(),
+                payload
+            );
+            stream.write_all(response.as_bytes()).await.unwrap();
+            (headers, body)
+        });
+
+        let client = Client::builder().build().unwrap();
+        let (sender, mut cancel) = watch::channel(false);
+        let response = send_json(
+            &client,
+            endpoint,
+            "test-key",
+            "grok",
+            grok_request_body(vec![], None),
+            &mut cancel,
+        )
+        .await
+        .unwrap();
+        drop(sender);
+
+        let (headers, body) = server.await.unwrap();
+        assert!(headers.contains("authorization: bearer test-key"));
+        assert_eq!(body["model"], "grok-4.7");
+        assert_eq!(response["choices"][0]["message"]["content"], "hello");
+    }
+
+    #[tokio::test]
+    async fn claude_http_requests_use_anthropic_headers() {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let endpoint = format!("http://{}/messages", listener.local_addr().unwrap());
+        let server = tokio::spawn(async move {
+            let (mut stream, _) = listener.accept().await.unwrap();
+            let mut bytes = Vec::new();
+            let mut chunk = [0; 1024];
+            let body_offset = loop {
+                let count = stream.read(&mut chunk).await.unwrap();
+                assert!(count > 0, "client closed before sending HTTP headers");
+                bytes.extend_from_slice(&chunk[..count]);
+                if let Some(offset) = bytes.windows(4).position(|part| part == b"\r\n\r\n") {
+                    break offset + 4;
+                }
+            };
+            let headers = String::from_utf8_lossy(&bytes[..body_offset - 4]).to_ascii_lowercase();
+            let payload = r#"{"model":"claude-sonnet-5-5","content":[{"type":"text","text":"hello"}],"stop_reason":"end_turn"}"#;
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                payload.len(),
+                payload
+            );
+            stream.write_all(response.as_bytes()).await.unwrap();
+            headers
+        });
+
+        let client = Client::builder().build().unwrap();
+        let (sender, mut cancel) = watch::channel(false);
+        let response = send_json(
+            &client,
+            endpoint,
+            "test-key",
+            "claude",
+            serde_json::json!({"model":"claude-sonnet-5-5","max_tokens":1024,"messages":[]}),
+            &mut cancel,
+        )
+        .await
+        .unwrap();
+        drop(sender);
+
+        let headers = server.await.unwrap();
+        assert!(headers.contains("x-api-key: test-key"));
+        assert!(headers.contains("anthropic-version: 2023-06-01"));
+        assert!(!headers.contains("authorization:"));
+        assert_eq!(response["model"], "claude-sonnet-5-5");
     }
 
     #[test]

@@ -6,12 +6,12 @@
   "type": "architecture",
   "quality": "showcase",
   "specification": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.architecture.json",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.architecture.json",
     "sha256": "5636057168b70e8980738a63aa6f5d0228bb8b7538933e4d6b981dc73a88ab30",
     "bytes": 7125
   },
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.html",
     "sha256": "99edf8b9dfb6b49d59d2f158747492794ab58178663e586c33e537cc3a7ebe3c",
     "bytes": 846102
   },
@@ -109,8 +109,8 @@
     "truncated": false
   },
   "evidence": {
-    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.review-2\\system-overview.finalize.json",
-    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.review-2\\system-overview.finalize-summary.json"
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.review-2\\system-overview.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.review-2\\system-overview.finalize-summary.json"
   },
   "update": {
     "status": "current",
@@ -126,7 +126,7 @@
   "durationMs": 1346,
   "nextAction": {
     "action": "edit-in-place",
-    "candidate": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.architecture.json",
+    "candidate": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.architecture.json",
     "constraint": "Preserve unaffected semantics and geometry; apply each diagnostic's supportedFixes, or the fix its message names, and do not replace the whole candidate.",
     "then": "finalize-once"
   }

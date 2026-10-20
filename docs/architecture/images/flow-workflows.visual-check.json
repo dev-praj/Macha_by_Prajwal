@@ -8,7 +8,7 @@
   "provenance": "current",
   "deliveryReceiptId": "b285e6c3-4997-4346-9d0f-13cd293e3f17",
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-workflows.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-workflows.html",
     "sha256": "c13214a13b2fb0323c8095ed7f6193d750bdb8b9c7a2c07a2712cf43554958fd",
     "bytes": 821781
   },
@@ -896,7 +896,7 @@
     "contactSheet": "flow-workflows.visual-check.html"
   },
   "sidecars": {
-    "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\images",
+    "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\images",
     "receipt": "flow-workflows.visual-check.json",
     "contactSheet": "flow-workflows.visual-check.html",
     "files": [

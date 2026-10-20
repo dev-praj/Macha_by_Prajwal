@@ -189,10 +189,10 @@ export function registerNixiHotkeyHandlers(
     })();
   };
 
-  window.addEventListener("coucou-nixi-ptt-start", onPttStart);
-  window.addEventListener("coucou-nixi-ptt-stop", onPttStop);
-  window.addEventListener("coucou-nixi-dictate-start", onDictateStart);
-  window.addEventListener("coucou-nixi-dictate-stop", onDictateStop);
+  window.addEventListener("macha-nixi-ptt-start", onPttStart);
+  window.addEventListener("macha-nixi-ptt-stop", onPttStop);
+  window.addEventListener("macha-nixi-dictate-start", onDictateStart);
+  window.addEventListener("macha-nixi-dictate-stop", onDictateStop);
 
   const unlistenFns: Array<() => void> = [];
 
@@ -200,9 +200,9 @@ export function registerNixiHotkeyHandlers(
     try {
       void onNixiPttStart(() => {
         try {
-          window.dispatchEvent(new CustomEvent("coucou-nixi-ptt-start"));
+          window.dispatchEvent(new CustomEvent("macha-nixi-ptt-start"));
         } catch (err) {
-          void Bridge.log(`[nixi] error dispatching coucou-nixi-ptt-start: ${String(err)}`);
+          void Bridge.log(`[nixi] error dispatching macha-nixi-ptt-start: ${String(err)}`);
         }
       })
         .then((unlisten) => {
@@ -218,9 +218,9 @@ export function registerNixiHotkeyHandlers(
     try {
       void onNixiPttStop(() => {
         try {
-          window.dispatchEvent(new CustomEvent("coucou-nixi-ptt-stop"));
+          window.dispatchEvent(new CustomEvent("macha-nixi-ptt-stop"));
         } catch (err) {
-          void Bridge.log(`[nixi] error dispatching coucou-nixi-ptt-stop: ${String(err)}`);
+          void Bridge.log(`[nixi] error dispatching macha-nixi-ptt-stop: ${String(err)}`);
         }
       })
         .then((unlisten) => {
@@ -236,9 +236,9 @@ export function registerNixiHotkeyHandlers(
     try {
       void onNixiDictateStart(() => {
         try {
-          window.dispatchEvent(new CustomEvent("coucou-nixi-dictate-start"));
+          window.dispatchEvent(new CustomEvent("macha-nixi-dictate-start"));
         } catch (err) {
-          void Bridge.log(`[nixi] error dispatching coucou-nixi-dictate-start: ${String(err)}`);
+          void Bridge.log(`[nixi] error dispatching macha-nixi-dictate-start: ${String(err)}`);
         }
       })
         .then((unlisten) => {
@@ -254,9 +254,9 @@ export function registerNixiHotkeyHandlers(
     try {
       void onNixiDictateStop(() => {
         try {
-          window.dispatchEvent(new CustomEvent("coucou-nixi-dictate-stop"));
+          window.dispatchEvent(new CustomEvent("macha-nixi-dictate-stop"));
         } catch (err) {
-          void Bridge.log(`[nixi] error dispatching coucou-nixi-dictate-stop: ${String(err)}`);
+          void Bridge.log(`[nixi] error dispatching macha-nixi-dictate-stop: ${String(err)}`);
         }
       })
         .then((unlisten) => {
@@ -272,10 +272,10 @@ export function registerNixiHotkeyHandlers(
 
   return () => {
     recorder.destroy();
-    window.removeEventListener("coucou-nixi-ptt-start", onPttStart);
-    window.removeEventListener("coucou-nixi-ptt-stop", onPttStop);
-    window.removeEventListener("coucou-nixi-dictate-start", onDictateStart);
-    window.removeEventListener("coucou-nixi-dictate-stop", onDictateStop);
+    window.removeEventListener("macha-nixi-ptt-start", onPttStart);
+    window.removeEventListener("macha-nixi-ptt-stop", onPttStop);
+    window.removeEventListener("macha-nixi-dictate-start", onDictateStart);
+    window.removeEventListener("macha-nixi-dictate-stop", onDictateStop);
     for (const unlisten of unlistenFns) {
       unlisten();
     }

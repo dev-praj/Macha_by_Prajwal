@@ -7,7 +7,7 @@ use tauri::{AppHandle, Emitter};
 use crate::island::WINDOW_LABEL;
 
 pub fn build(app: &AppHandle) -> tauri::Result<()> {
-    let open = MenuItem::with_id(app, "open", "Open Coucou", true, None::<&str>)?;
+    let open = MenuItem::with_id(app, "open", "Open Macha", true, None::<&str>)?;
     let settings = MenuItem::with_id(app, "settings", "Settings…", true, None::<&str>)?;
     let pause = MenuItem::with_id(app, "pause", "Pause", true, None::<&str>)?;
     let auto_hide = MenuItem::with_id(app, "auto-hide", "Toggle Auto-hide", true, None::<&str>)?;
@@ -23,8 +23,8 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
         ],
     )?;
 
-    let mut builder = TrayIconBuilder::with_id("coucou")
-        .tooltip("Coucou")
+    let mut builder = TrayIconBuilder::with_id("macha")
+        .tooltip("Macha")
         .menu(&menu)
         .on_menu_event(|app: &AppHandle, event| match event.id.as_ref() {
             "quit" => app.exit(0),

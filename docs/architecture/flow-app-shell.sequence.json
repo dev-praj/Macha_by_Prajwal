@@ -2,12 +2,12 @@
   "schema_version": 1,
   "diagram_type": "sequence",
   "meta": {
-    "title": "Coucou Windows — Launch and Island Navigation",
+    "title": "Macha Windows — Launch and Island Navigation",
     "locale": "en",
     "output": "docs/architecture/flow-app-shell.html",
     "quality_profile": "showcase",
     "repository": {
-      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "url": "https://github.com/vemalaprajwal8200-a11y/macha-customised.git",
       "provider": "github",
       "link_mode": "web",
       "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
@@ -27,12 +27,12 @@
     { "id": "user", "type": "external", "label": "User", "sublabel": "launches or interacts", "sources": [{ "path": "windows/src/main.ts", "line": 43 }] },
     { "id": "runtime", "type": "backend", "label": "Tauri runtime", "sublabel": "plugins · boot · lifecycle", "sources": [{ "path": "windows/src-tauri/src/lib.rs", "line": 623 }] },
     { "id": "settings", "type": "frontend", "label": "Settings WebView", "sublabel": "created hidden before island", "sources": [{ "path": "windows/src-tauri/src/lib.rs", "line": 582 }] },
-    { "id": "island", "type": "frontend", "label": "Island WebView", "sublabel": "tabs · views · Mochi", "sources": [{ "path": "windows/src/main.ts", "line": 11 }, { "path": "windows/src/views/views.ts", "line": 81 }] },
+    { "id": "island", "type": "frontend", "label": "Island WebView", "sublabel": "tabs · views · Macha", "sources": [{ "path": "windows/src/main.ts", "line": 11 }, { "path": "windows/src/views/views.ts", "line": 81 }] },
     { "id": "bridge", "type": "messagebus", "label": "Tauri bridge", "sublabel": "commands and events", "sources": [{ "path": "windows/src/core/bridge.ts", "line": 1 }, { "path": "windows/src/core/bridge.ts", "line": 313 }] },
     { "id": "os", "type": "external", "label": "Windows desktop", "sublabel": "cursor · display · tray", "sources": [{ "path": "windows/src-tauri/src/platform/windows.rs", "line": 1 }, { "path": "windows/src-tauri/src/island.rs", "line": 560 }] }
   ],
   "messages": [
-    { "from": "user", "to": "runtime", "y": 160, "label": "launch Coucou" },
+    { "from": "user", "to": "runtime", "y": 160, "label": "launch Macha" },
     { "from": "runtime", "to": "os", "y": 205, "label": "register tray, shortcut, optional autostart", "variant": "dashed" },
     { "from": "runtime", "to": "settings", "y": 250, "label": "create hidden Settings window" },
     { "from": "runtime", "to": "island", "y": 295, "label": "create and show island window" },

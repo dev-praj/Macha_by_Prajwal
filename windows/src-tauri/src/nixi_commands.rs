@@ -681,7 +681,7 @@ pub async fn execute_intent(app: &AppHandle, intent: NixiIntent) -> Result<NixiC
         NixiIntent::ReadScreen => {
             let summary = "Reading screen content...".to_string();
             emit_status(app, &summary, Some("Analyzing active window"));
-            let _ = app.emit_to(island::WINDOW_LABEL, "coucou-read-screen", ());
+            let _ = app.emit_to(island::WINDOW_LABEL, "macha-read-screen", ());
             Ok(NixiCommandResult {
                 success: true,
                 intent_name: "read_screen".into(),

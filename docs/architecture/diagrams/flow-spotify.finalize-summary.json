@@ -6,12 +6,12 @@
   "type": "sequence",
   "quality": "showcase",
   "specification": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-spotify.sequence.json",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-spotify.sequence.json",
     "sha256": "5df17629ab99cb6fd857c062299c9b9be3c4b2fbe4f0d91d914e340f5e39f191",
     "bytes": 4121
   },
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-spotify.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-spotify.html",
     "sha256": "b254d0717eae917a0bb7f8511630d113f96b24f4de9044454737b2fe6c683d60",
     "bytes": 818184
   },
@@ -28,9 +28,9 @@
     "truncated": false
   },
   "evidence": {
-    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-spotify.finalize.json",
-    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-spotify.finalize-summary.json",
-    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-spotify.browser-check.json"
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-spotify.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-spotify.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-spotify.browser-check.json"
   },
   "update": {
     "status": "current",

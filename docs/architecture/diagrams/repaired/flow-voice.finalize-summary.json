@@ -6,12 +6,12 @@
   "type": "sequence",
   "quality": "showcase",
   "specification": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-voice.sequence.json",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-voice.sequence.json",
     "sha256": "975cd2a6a974eeee8c062275747c619d1fa29ffdb0851782b06fa4911f6f208e",
     "bytes": 4265
   },
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\repaired\\flow-voice.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\repaired\\flow-voice.html",
     "sha256": "4cdd0f669d30b85807f7aed59ea9eba8d2791a0baa6d6d159a6739963006a885",
     "bytes": 820343
   },
@@ -28,9 +28,9 @@
     "truncated": false
   },
   "evidence": {
-    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\repaired\\flow-voice.finalize.json",
-    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\repaired\\flow-voice.finalize-summary.json",
-    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\repaired\\flow-voice.browser-check.json"
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\repaired\\flow-voice.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\repaired\\flow-voice.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\repaired\\flow-voice.browser-check.json"
   },
   "update": {
     "status": "current",

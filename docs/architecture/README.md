@@ -1,4 +1,4 @@
-# Coucou Windows architecture
+# Macha Windows architecture
 
 ## Index
 
@@ -12,7 +12,7 @@
 The diagrams distinguish the WebView UI, Rust application logic, local data and
 services, Windows facilities, and remote providers. Arrows mean a real
 call, event, read/write, or dependency found in the repository; they do not
-imply a relational database or a hosted Coucou backend. A dotted or labeled
+imply a relational database or a hosted Macha backend. A dotted or labeled
 boundary marks work that is optional, user-configured, or not confirmed as
 active. File paths in this guide are repository-relative. “Uncertain” means
 the code or wiring does not establish the behavior conclusively.
@@ -39,7 +39,7 @@ evidence that mail sending or a separate search/results screen is implemented.
 
 | Feature | Files | Depends on |
 |---|---|---|
-| Claude Code hook preview, install, backup, and removal | `windows/src/settings/main.ts`, `windows/src-tauri/src/hooks.rs`, `windows/src-tauri/src/lib.rs`, `windows/hook/src/main.rs` | User confirmation, `%USERPROFILE%\\.claude\\settings.json`, packaged `coucou-hook.exe` |
+| Claude Code hook preview, install, backup, and removal | `windows/src/settings/main.ts`, `windows/src-tauri/src/hooks.rs`, `windows/src-tauri/src/lib.rs`, `windows/hook/src/main.rs` | User confirmation, `%USERPROFILE%\\.claude\\settings.json`, packaged `macha-hook.exe` |
 | Claude Code session activity and task pills | `windows/hook/src/main.rs`, `windows/src-tauri/src/pipe.rs`, `windows/src/island/hooks.ts`, `windows/src/core/state.ts` | Claude Code hook events, Windows named pipe, island event listener |
 | Permission requests and user decisions | `windows/src-tauri/src/pipe.rs`, `windows/src-tauri/src/hooks.rs`, `windows/src-tauri/src/lib.rs`, `windows/src/island/hooks.ts`, `windows/src/views/views.ts` | PermissionRequest hook, visible approval card, Claude Code fallback on timeout/decline |
 | Conversational assistant and conversation management | `windows/src/views/chat.ts`, `windows/src/core/bridge.ts`, `windows/src/core/state.ts`, `windows/src-tauri/src/claude.rs`, `windows/src-tauri/src/lib.rs` | Provider configuration, local Rust state, `localStorage`, optional memories/files |
@@ -82,20 +82,20 @@ not as working integrations.
 
 | Feature | Files | Depends on |
 |---|---|---|
-| Settings window and user preferences | `windows/src/settings/main.ts`, `windows/src/core/state.ts`, `windows/src-tauri/src/settings.rs`, `windows/src-tauri/src/lib.rs` | Settings WebView, Tauri commands, `%APPDATA%\\Coucou\\settings.json` |
-| API credential and OpenRouter account management | `windows/src/settings/main.ts`, `windows/src-tauri/src/secrets.rs`, `windows/src-tauri/src/lib.rs` | Windows Credential Manager; account names/IDs in `%APPDATA%\\Coucou\\openrouter-accounts.json` |
-| Durable assistant memories | `windows/src/settings/main.ts`, `windows/src-tauri/src/memory.rs`, `windows/src-tauri/src/claude.rs` | `%LOCALAPPDATA%\\Coucou\\memories.json`; chat context |
+| Settings window and user preferences | `windows/src/settings/main.ts`, `windows/src/core/state.ts`, `windows/src-tauri/src/settings.rs`, `windows/src-tauri/src/lib.rs` | Settings WebView, Tauri commands, `%APPDATA%\\Macha\\settings.json` |
+| API credential and OpenRouter account management | `windows/src/settings/main.ts`, `windows/src-tauri/src/secrets.rs`, `windows/src-tauri/src/lib.rs` | Windows Credential Manager; account names/IDs in `%APPDATA%\\Macha\\openrouter-accounts.json` |
+| Durable assistant memories | `windows/src/settings/main.ts`, `windows/src-tauri/src/memory.rs`, `windows/src-tauri/src/claude.rs` | `%LOCALAPPDATA%\\Macha\\memories.json`; chat context |
 | Conversation and task state | `windows/src/core/state.ts`, `windows/src-tauri/src/claude.rs`, `windows/src-tauri/src/integrations.rs` | Browser `localStorage` for conversation history; in-memory Rust/frontend state for active tasks |
 | Logging, background service startup, and shutdown | `windows/src-tauri/src/lib.rs`, `windows/src-tauri/src/log.rs`, `windows/src-tauri/src/voice.rs`, `windows/src-tauri/src/integrations.rs`, `windows/src-tauri/src/messages.rs`, `windows/src-tauri/src/spotify.rs` | Per-user local directories, child processes, timers |
 | Build, install, and packaging | `windows/package.json`, `windows/vite.config.ts`, `windows/src-tauri/tauri.conf.json`, `windows/src-tauri/Cargo.toml`, `windows/src-tauri/capabilities/default.json`, `windows/scripts/pack.mjs`, `windows/scripts/pack-msix.ps1`, `requirements.txt`, `windows/gesture_mouse/requirements.txt` | Node.js, Rust, WebView2, Python speech/gesture dependencies, Windows packaging tools |
 
 ## Data, services, permissions, and configuration inventory
 
-- **Database:** no SQL, Firebase, or hosted Coucou database was found. The app
+- **Database:** no SQL, Firebase, or hosted Macha database was found. The app
   uses JSON files, browser `localStorage`, process memory, inbox files, and the
   Windows Credential Manager. See [features](./features.md) for fields and
   ownership.
-- **Auth and roles:** no Coucou account/login or application role model was
+- **Auth and roles:** no Macha account/login or application role model was
   found. The application runs in the current Windows user context. Claude Code
   tool approval is an action-level permission decision, not an app role.
 - **Local service routes:** STT Flask service exposes `GET /health` and

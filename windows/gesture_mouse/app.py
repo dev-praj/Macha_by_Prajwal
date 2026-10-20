@@ -11,6 +11,7 @@ Usage: python app.py
 
 import argparse
 import asyncio
+import ctypes
 import json
 import os
 import sys
@@ -31,6 +32,12 @@ from mediapipe.tasks.python.vision import (
 import pyautogui
 from aiohttp import web
 
+if getattr(sys, "frozen", False):
+    try:
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    except (AttributeError, OSError):
+        pass
+
 # ── PyAutoGUI config ──────────────────────────────────────────────────────────
 pyautogui.FAILSAFE = True
 pyautogui.PAUSE = 0
@@ -42,19 +49,31 @@ CURSOR_MARGIN = 8
 # ── Model path ────────────────────────────────────────────────────────────────
 APP_DATA_DIR = os.path.join(
     os.environ.get("LOCALAPPDATA") or os.path.expanduser("~"),
-    "Coucou",
+    "Macha",
     "gesture_mouse",
 )
 os.makedirs(APP_DATA_DIR, exist_ok=True)
-MODEL_PATH = os.path.join(APP_DATA_DIR, "hand_landmarker.task")
-if not os.path.exists(MODEL_PATH):
-    print("Downloading hand_landmarker.task model...")
-    import urllib.request
-    urllib.request.urlretrieve(
-        "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
-        MODEL_PATH
-    )
-    print("Model downloaded.")
+
+
+def resource_path(relative):
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative)
+
+
+if getattr(sys, "frozen", False):
+    MODEL_PATH = resource_path("hand_landmarker.task")
+    if not os.path.isfile(MODEL_PATH):
+        raise FileNotFoundError(f"Bundled hand model was not found: {MODEL_PATH}")
+else:
+    MODEL_PATH = os.path.join(APP_DATA_DIR, "hand_landmarker.task")
+    if not os.path.exists(MODEL_PATH):
+        print("Downloading hand_landmarker.task model...")
+        import urllib.request
+        urllib.request.urlretrieve(
+            "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+            MODEL_PATH
+        )
+        print("Model downloaded.")
 
 # ── One Euro Filter (jitter removal) ─────────────────────────────────────────
 class LowPassFilter:
@@ -183,6 +202,7 @@ class AppState:
         self.LOCKED_SCROLL_SENSITIVITY = 100
 
         # Status for dashboard
+        self.camera_ready = False
         self.hand_detected = False
         self.gesture_left = False
         self.gesture_right = False
@@ -685,11 +705,31 @@ def draw_hand_skeleton(frame, landmarks):
 
 # ── Hand detection thread ─────────────────────────────────────────────────────
 def hand_detection_thread():
-    cap = cv2.VideoCapture(0)
+    cap = None
+    try:
+        cap = cv2.VideoCapture(0)
+        _hand_detection_loop(cap)
+    except Exception as error:
+        with state.lock:
+            state.camera_ready = False
+            state.running = False
+        print(f"ERROR: Hand detection workflow stopped: {error}")
+    finally:
+        try:
+            if cap is not None:
+                cap.release()
+        except Exception as error:
+            with state.lock:
+                state.running = False
+            print(f"ERROR: Could not release camera: {error}")
+        finally:
+            with state.lock:
+                state.camera_ready = False
+
+
+def _hand_detection_loop(cap):
     if not cap.isOpened():
-        print("ERROR: Could not open camera!")
-        state.running = False
-        return
+        raise RuntimeError("Could not open camera.")
 
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
@@ -715,6 +755,8 @@ def hand_detection_thread():
             ret, frame = cap.read()
             if not ret:
                 fail_count += 1
+                with state.lock:
+                    state.camera_ready = False
                 if fail_count > 60:
                     print("ERROR: Camera disconnected or unavailable!")
                     state.running = False
@@ -736,10 +778,11 @@ def hand_detection_thread():
             # Flip for mirror view
             frame = cv2.flip(frame, 1)
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            # VIDEO mode requires a monotonically increasing timestamp in milliseconds
-            timestamp_ms = int(time.time() * 1000)
+            timestamp_ms = time.monotonic_ns() // 1_000_000
             mp_img = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
             result = detector.detect_for_video(mp_img, timestamp_ms)
+            with state.lock:
+                state.camera_ready = True
 
             hand_detected = False
             is_left = is_right = is_scroll = False
@@ -1302,9 +1345,6 @@ def hand_detection_thread():
             except queue.Full:
                 pass
 
-    cap.release()
-
-
 # ── 60fps cursor update thread ────────────────────────────────────────────────
 def cursor_update_thread():
     try:
@@ -1313,6 +1353,10 @@ def cursor_update_thread():
         with state.lock:
             state.running = False
         print("PyAutoGUI fail-safe triggered; stopping gesture control.")
+    except Exception as error:
+        with state.lock:
+            state.running = False
+        print(f"ERROR: Cursor control stopped: {error}")
     finally:
         with state.lock:
             release_mouse = state.mouse_button_down
@@ -1322,6 +1366,8 @@ def cursor_update_thread():
             pyautogui.FAILSAFE = False
             try:
                 pyautogui.mouseUp()
+            except Exception as error:
+                print(f"ERROR: Could not release mouse button: {error}")
             finally:
                 pyautogui.FAILSAFE = failsafe
 
@@ -2025,6 +2071,10 @@ async def index(request):
 
 
 async def health(request):
+    with state.lock:
+        ready = state.running and state.camera_ready
+    if not ready:
+        return web.Response(status=503, text='camera_not_ready')
     return web.Response(text='ok')
 
 
@@ -2119,7 +2169,7 @@ if __name__ == "__main__":
     parser.add_argument('--no-browser', action='store_true',
                         help='Do not auto-open the dashboard in the browser')
     parser.add_argument('--managed', action='store_true',
-                        help='Accept a stop command from the Coucou process manager')
+                        help='Accept a stop command from the Macha process manager')
     args = parser.parse_args()
 
     print("=" * 52)

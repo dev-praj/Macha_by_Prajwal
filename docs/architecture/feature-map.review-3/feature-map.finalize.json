@@ -7,12 +7,12 @@
   "quality": "showcase",
   "startedAt": "2026-10-17T05:21:02.261Z",
   "specification": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.architecture.json",
     "sha256": "9477300a9581d94faa87f907db7f36f3c9227d01cb8230c09e2f23b7f14337a8",
     "bytes": 8665
   },
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.html",
     "sha256": "0739a04be6edc69a2da629538f8a19204220ea5e35b375e6c224f40cf4de717b",
     "bytes": 866935
   },
@@ -27,12 +27,12 @@
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "deliver",
         "architecture",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.architecture.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.html",
         "--quality",
         "showcase",
         "--repo-root",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha",
         "--json"
       ],
       "receipt": {
@@ -62,12 +62,12 @@
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "deliver",
         "architecture",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.architecture.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.html",
         "--quality",
         "showcase",
         "--repo-root",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha",
         "--json"
       ],
       "receipt": {
@@ -76,8 +76,8 @@
         "ok": true,
         "command": "deliver",
         "type": "architecture",
-        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
-        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.architecture.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.html",
         "specification": {
           "sha256": "9477300a9581d94faa87f907db7f36f3c9227d01cb8230c09e2f23b7f14337a8",
           "bytes": 8665
@@ -96,7 +96,7 @@
         },
         "evidence": {
           "verified": true,
-          "repository": "https://github.com/vemalaprajwal8200-a11y/coucou-customised",
+          "repository": "https://github.com/vemalaprajwal8200-a11y/macha-customised",
           "revision": "bd05b4a680a5876221544934fa776d1963bb28cf",
           "references": 44
         },
@@ -121,12 +121,12 @@
         "C:\\Program Files\\nodejs\\node.exe",
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "check",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.html",
         "--require-provenance"
       ],
       "receipt": {
         "ok": true,
-        "file": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+        "file": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.html",
         "artifact": {
           "sha256": "0739a04be6edc69a2da629538f8a19204220ea5e35b375e6c224f40cf4de717b",
           "bytes": 866935
@@ -889,7 +889,7 @@
                 "directCorridorBlockers": [
                   {
                     "id": "island",
-                    "label": "Island / Mochi",
+                    "label": "Island / Macha",
                     "box": [
                       240,
                       60,
@@ -1271,11 +1271,11 @@
         "C:\\Program Files\\nodejs\\node.exe",
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "browser-check",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.html",
         "--json",
         "--require-provenance",
         "--out-dir",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.review-3"
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.review-3"
       ],
       "execution": "in-process",
       "receipt": {
@@ -1288,7 +1288,7 @@
         "provenance": "current",
         "deliveryReceiptId": "62407959-2915-48a4-bd6e-80e4287ecc96",
         "artifact": {
-          "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+          "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.html",
           "sha256": "0739a04be6edc69a2da629538f8a19204220ea5e35b375e6c224f40cf4de717b",
           "bytes": 866935
         },
@@ -1971,7 +1971,7 @@
           "contactSheet": null
         },
         "sidecars": {
-          "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.review-3",
+          "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.review-3",
           "receipt": "feature-map.browser-check.json",
           "files": []
         }
@@ -1980,9 +1980,9 @@
   },
   "diagnostics": [],
   "evidence": {
-    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.review-3\\feature-map.finalize.json",
-    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.review-3\\feature-map.finalize-summary.json",
-    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.review-3\\feature-map.browser-check.json"
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.review-3\\feature-map.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.review-3\\feature-map.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.review-3\\feature-map.browser-check.json"
   },
   "visualReview": "not-requested",
   "finishedAt": "2026-10-17T05:21:10.739Z",

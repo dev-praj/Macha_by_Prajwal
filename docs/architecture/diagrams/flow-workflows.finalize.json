@@ -7,12 +7,12 @@
   "quality": "showcase",
   "startedAt": "2026-10-17T05:30:23.450Z",
   "specification": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.sequence.json",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-workflows.sequence.json",
     "sha256": "c37088b58262482192bf5792a89834093bef3ef2a59fcb7fd07225fe52ae480d",
     "bytes": 4843
   },
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-workflows.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-workflows.html",
     "sha256": "c13214a13b2fb0323c8095ed7f6193d750bdb8b9c7a2c07a2712cf43554958fd",
     "bytes": 821781
   },
@@ -27,12 +27,12 @@
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "deliver",
         "sequence",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.sequence.json",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-workflows.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-workflows.sequence.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-workflows.html",
         "--quality",
         "showcase",
         "--repo-root",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha",
         "--json"
       ],
       "receipt": {
@@ -62,12 +62,12 @@
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "deliver",
         "sequence",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.sequence.json",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-workflows.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-workflows.sequence.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-workflows.html",
         "--quality",
         "showcase",
         "--repo-root",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha",
         "--json"
       ],
       "receipt": {
@@ -76,8 +76,8 @@
         "ok": true,
         "command": "deliver",
         "type": "sequence",
-        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.sequence.json",
-        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-workflows.html",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-workflows.sequence.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-workflows.html",
         "specification": {
           "sha256": "c37088b58262482192bf5792a89834093bef3ef2a59fcb7fd07225fe52ae480d",
           "bytes": 4843
@@ -96,7 +96,7 @@
         },
         "evidence": {
           "verified": true,
-          "repository": "https://github.com/vemalaprajwal8200-a11y/coucou-customised",
+          "repository": "https://github.com/vemalaprajwal8200-a11y/macha-customised",
           "revision": "bd05b4a680a5876221544934fa776d1963bb28cf",
           "references": 10
         },
@@ -121,12 +121,12 @@
         "C:\\Program Files\\nodejs\\node.exe",
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "check",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-workflows.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-workflows.html",
         "--require-provenance"
       ],
       "receipt": {
         "ok": true,
-        "file": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-workflows.html",
+        "file": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-workflows.html",
         "artifact": {
           "sha256": "c13214a13b2fb0323c8095ed7f6193d750bdb8b9c7a2c07a2712cf43554958fd",
           "bytes": 821781
@@ -269,7 +269,7 @@
         "C:\\Program Files\\nodejs\\node.exe",
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "browser-check",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-workflows.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-workflows.html",
         "--json",
         "--require-provenance"
       ],
@@ -284,7 +284,7 @@
         "provenance": "current",
         "deliveryReceiptId": "b285e6c3-4997-4346-9d0f-13cd293e3f17",
         "artifact": {
-          "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-workflows.html",
+          "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-workflows.html",
           "sha256": "c13214a13b2fb0323c8095ed7f6193d750bdb8b9c7a2c07a2712cf43554958fd",
           "bytes": 821781
         },
@@ -975,9 +975,9 @@
   },
   "diagnostics": [],
   "evidence": {
-    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-workflows.finalize.json",
-    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-workflows.finalize-summary.json",
-    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-workflows.browser-check.json"
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-workflows.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-workflows.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-workflows.browser-check.json"
   },
   "visualReview": "not-requested",
   "finishedAt": "2026-10-17T05:30:28.857Z",

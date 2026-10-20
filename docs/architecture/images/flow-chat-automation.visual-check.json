@@ -8,7 +8,7 @@
   "provenance": "current",
   "deliveryReceiptId": "7f60af98-919f-425d-a755-a1271c0c8fe7",
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\repaired\\flow-chat-automation.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\repaired\\flow-chat-automation.html",
     "sha256": "7491febe1f2cf659209f5b1bd06226d1fcb99d521d781eb9eb997d81691e9cdb",
     "bytes": 820964
   },
@@ -896,7 +896,7 @@
     "contactSheet": "flow-chat-automation.visual-check.html"
   },
   "sidecars": {
-    "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\images",
+    "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\images",
     "receipt": "flow-chat-automation.visual-check.json",
     "contactSheet": "flow-chat-automation.visual-check.html",
     "files": [

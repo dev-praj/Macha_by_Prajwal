@@ -6,12 +6,12 @@
   "type": "sequence",
   "quality": "showcase",
   "specification": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.sequence.json",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-settings-memory.sequence.json",
     "sha256": "4732c78f8ce6965d3d8a05b30ff15686c4f5aaeb597d638d911213cc9deb3bf1",
     "bytes": 4476
   },
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\repaired\\flow-settings-memory.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\repaired\\flow-settings-memory.html",
     "sha256": "fd5a3573962c6ecb854d0f4f8694ed0f7d22394a061f538de3acc56654669f94",
     "bytes": 821471
   },
@@ -28,9 +28,9 @@
     "truncated": false
   },
   "evidence": {
-    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\repaired\\flow-settings-memory.finalize.json",
-    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\repaired\\flow-settings-memory.finalize-summary.json",
-    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\repaired\\flow-settings-memory.browser-check.json"
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\repaired\\flow-settings-memory.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\repaired\\flow-settings-memory.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\repaired\\flow-settings-memory.browser-check.json"
   },
   "update": {
     "status": "current",

@@ -8,7 +8,7 @@
   "provenance": "current",
   "deliveryReceiptId": "1854eff3-7024-4b34-bf97-55d2d775bb17",
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\data-model.html",
     "sha256": "1f4fa3af3f51c8070b34c067a5bbe1ba62b4a5c4ab2549068992dd31b6f9b7ca",
     "bytes": 846400
   },
@@ -691,7 +691,7 @@
     "contactSheet": null
   },
   "sidecars": {
-    "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.review-3",
+    "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\data-model.review-3",
     "receipt": "data-model.browser-check.json",
     "files": []
   }

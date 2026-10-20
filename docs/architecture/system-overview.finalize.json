@@ -7,12 +7,12 @@
   "quality": "showcase",
   "startedAt": "2026-10-17T05:16:02.846Z",
   "specification": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.architecture.json",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.architecture.json",
     "sha256": "9379c3fcd98e4fdb75aa9ca90c486427fac079b38ae3eccd409dc6bf40e1eee7",
     "bytes": 7128
   },
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.html",
     "sha256": "99edf8b9dfb6b49d59d2f158747492794ab58178663e586c33e537cc3a7ebe3c",
     "bytes": 846102
   },
@@ -27,12 +27,12 @@
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "deliver",
         "architecture",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.architecture.json",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.architecture.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.html",
         "--quality",
         "showcase",
         "--repo-root",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha",
         "--json"
       ],
       "receipt": {
@@ -62,12 +62,12 @@
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "deliver",
         "architecture",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.architecture.json",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.architecture.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.html",
         "--quality",
         "showcase",
         "--repo-root",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha",
         "--json"
       ],
       "receipt": {
@@ -76,8 +76,8 @@
         "ok": true,
         "command": "deliver",
         "type": "architecture",
-        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.architecture.json",
-        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.html",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.architecture.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.html",
         "specification": {
           "sha256": "9379c3fcd98e4fdb75aa9ca90c486427fac079b38ae3eccd409dc6bf40e1eee7",
           "bytes": 7128
@@ -96,7 +96,7 @@
         },
         "evidence": {
           "verified": true,
-          "repository": "https://github.com/vemalaprajwal8200-a11y/coucou-customised",
+          "repository": "https://github.com/vemalaprajwal8200-a11y/macha-customised",
           "revision": "bd05b4a680a5876221544934fa776d1963bb28cf",
           "references": 28
         },
@@ -121,12 +121,12 @@
         "C:\\Program Files\\nodejs\\node.exe",
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "check",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.html",
         "--require-provenance"
       ],
       "receipt": {
         "ok": true,
-        "file": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.html",
+        "file": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.html",
         "artifact": {
           "sha256": "99edf8b9dfb6b49d59d2f158747492794ab58178663e586c33e537cc3a7ebe3c",
           "bytes": 846102
@@ -358,7 +358,7 @@
         "C:\\Program Files\\nodejs\\node.exe",
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "browser-check",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.html",
         "--json",
         "--require-provenance"
       ],
@@ -373,7 +373,7 @@
         "provenance": "current",
         "deliveryReceiptId": "555851cb-2f00-416f-a5a9-6718560ff5a2",
         "artifact": {
-          "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.html",
+          "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.html",
           "sha256": "99edf8b9dfb6b49d59d2f158747492794ab58178663e586c33e537cc3a7ebe3c",
           "bytes": 846102
         },
@@ -1064,9 +1064,9 @@
   },
   "diagnostics": [],
   "evidence": {
-    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.finalize.json",
-    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.finalize-summary.json",
-    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.browser-check.json"
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.browser-check.json"
   },
   "visualReview": "not-requested",
   "finishedAt": "2026-10-17T05:16:10.452Z",

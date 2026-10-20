@@ -6,12 +6,12 @@
   "type": "sequence",
   "quality": "showcase",
   "specification": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.sequence.json",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-chat-automation.sequence.json",
     "sha256": "78c5339de7c8456b83c8e03edd19f0c559da5ec6e15a726796d610ed2648a1c2",
     "bytes": 4496
   },
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.html"
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-chat-automation.html"
   },
   "gates": {
     "validate": "fail",
@@ -171,8 +171,8 @@
     "truncated": false
   },
   "evidence": {
-    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.finalize.json",
-    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.finalize-summary.json"
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-chat-automation.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-chat-automation.finalize-summary.json"
   },
   "update": {
     "status": "current",
@@ -188,7 +188,7 @@
   "durationMs": 988,
   "nextAction": {
     "action": "edit-in-place",
-    "candidate": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.sequence.json",
+    "candidate": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-chat-automation.sequence.json",
     "constraint": "Preserve unaffected semantics and geometry; apply each diagnostic's supportedFixes, or the fix its message names, and do not replace the whole candidate.",
     "then": "finalize-once"
   }

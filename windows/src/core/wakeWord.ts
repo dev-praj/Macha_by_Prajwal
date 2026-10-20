@@ -15,14 +15,13 @@ const FILLER_WORDS = new Set(["um", "uh", "oh", "ah", "er", "okay", "ok", "so", 
 const GREETINGS = new Set(["hey", "hay", "hai", "hi"]);
 const NAMES = new Set([
   "macha", "matcha", "masha", "machaa", "maacha", "maccha", "macho", "mocha",
-  "marcha", "mascha", "matcher", "macher", "mochi",
+  "marcha", "mascha", "matcher", "macher",
 ]);
 const SPLIT_NAMES: readonly (readonly [string, string])[] = [
   ["ma", "cha"],
   ["my", "cha"],
-  ["mo", "chi"],
 ];
-const PARTIAL_NAMES = new Set(["ma", "my", "mo", "mach", "mat", "mash"]);
+const PARTIAL_NAMES = new Set(["ma", "my", "mach", "mat", "mash"]);
 const WAKE_MIN_CONFIDENCE = -1.5;
 const WAKE_MAX_NO_SPEECH = 0.5;
 const WAKE_MAX_COMPRESSION = 2.4;
@@ -31,7 +30,7 @@ const VOICE_MAX_NO_SPEECH = 0.6;
 
 export class SpeechServiceUnavailableError extends Error {
   constructor() {
-    super("Local speech service is not ready. Start Coucou with the voice service running.");
+    super("Local speech service is not ready. Start Macha with the voice service running.");
     this.name = "SpeechServiceUnavailableError";
   }
 }
@@ -419,7 +418,7 @@ export async function recordWakePronunciation(): Promise<WakeWordCalibration> {
     mutedOutput?.disconnect();
     if (context) {
       await context.close().catch((error: unknown) => {
-        console.error("[coucou] could not close pronunciation recording context", error);
+        console.error("[macha] could not close pronunciation recording context", error);
       });
     }
     stream.getTracks().forEach((track) => track.stop());
@@ -560,7 +559,7 @@ export function createWakeWordListener(): WakeWordListener {
     source?.disconnect();
     mutedOutput?.disconnect();
     void context?.close().catch((error: unknown) => {
-      console.error("[coucou] could not close wake-word audio context", error);
+      console.error("[macha] could not close wake-word audio context", error);
     });
     stream?.getTracks().forEach((track) => track.stop());
     processor = null;
@@ -626,12 +625,12 @@ export function createWakeWordListener(): WakeWordListener {
         mutedOutput.gain.value = 0;
         context.addEventListener("statechange", () => {
           if (generation !== run || !active || context?.state === "running") return;
-          console.warn(`[coucou] Hey Macha audio context ${context?.state}; reconnecting`);
+          console.warn(`[macha] Hey Macha audio context ${context?.state}; reconnecting`);
           failCurrentRun("Microphone audio was interrupted.");
         });
         for (const track of stream.getAudioTracks()) {
           track.addEventListener("ended", () => {
-            console.warn("[coucou] Hey Macha microphone track ended; reconnecting");
+            console.warn("[macha] Hey Macha microphone track ended; reconnecting");
             failCurrentRun("The microphone disconnected.");
           }, { once: true });
         }
@@ -658,7 +657,7 @@ export function createWakeWordListener(): WakeWordListener {
               speechSilenceMs = 0;
               if (!wakeActivityReported) {
                 wakeActivityReported = true;
-                console.info("[coucou] Hey Macha listener heard speech", {
+                console.info("[macha] Hey Macha listener heard speech", {
                   level: Number(level.toFixed(4)),
                 });
                 onWakeActivity?.();
@@ -693,7 +692,7 @@ export function createWakeWordListener(): WakeWordListener {
         source.connect(processor);
         processor.connect(mutedOutput);
         mutedOutput.connect(context.destination);
-        console.info("[coucou] Hey Macha wake listener started", {
+        console.info("[macha] Hey Macha wake listener started", {
           sampleRate,
           threshold: Number(threshold.toFixed(4)),
         });

@@ -6,12 +6,12 @@
   "type": "sequence",
   "quality": "showcase",
   "specification": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-voice.sequence.json",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-voice.sequence.json",
     "sha256": "9ebcdf406f787725ae2e1fa43e081dea75e268ab551f849fdb0d9e3b74884e24",
     "bytes": 4320
   },
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-voice.html"
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-voice.html"
   },
   "gates": {
     "validate": "fail",
@@ -152,8 +152,8 @@
     "truncated": false
   },
   "evidence": {
-    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-voice.finalize.json",
-    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-voice.finalize-summary.json"
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-voice.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-voice.finalize-summary.json"
   },
   "update": {
     "status": "current",
@@ -169,7 +169,7 @@
   "durationMs": 846,
   "nextAction": {
     "action": "edit-in-place",
-    "candidate": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-voice.sequence.json",
+    "candidate": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-voice.sequence.json",
     "constraint": "Preserve unaffected semantics and geometry; apply each diagnostic's supportedFixes, or the fix its message names, and do not replace the whole candidate.",
     "then": "finalize-once"
   }

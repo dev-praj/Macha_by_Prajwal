@@ -8,7 +8,7 @@
   "provenance": "current",
   "deliveryReceiptId": "c9e712da-697d-4cbc-9bca-af1e69df52a9",
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-windows-notifications.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-windows-notifications.html",
     "sha256": "415b0da184688602257215d0d80ce5a6e4caf84d7401db608ed8fc8840f4afa5",
     "bytes": 813804
   },
@@ -896,7 +896,7 @@
     "contactSheet": "flow-windows-notifications.visual-check.html"
   },
   "sidecars": {
-    "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\images",
+    "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\images",
     "receipt": "flow-windows-notifications.visual-check.json",
     "contactSheet": "flow-windows-notifications.visual-check.html",
     "files": [

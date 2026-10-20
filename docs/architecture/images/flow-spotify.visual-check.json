@@ -8,7 +8,7 @@
   "provenance": "current",
   "deliveryReceiptId": "d2141178-7b19-4933-86c9-8428f38d51e6",
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-spotify.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-spotify.html",
     "sha256": "b254d0717eae917a0bb7f8511630d113f96b24f4de9044454737b2fe6c683d60",
     "bytes": 818184
   },
@@ -896,7 +896,7 @@
     "contactSheet": "flow-spotify.visual-check.html"
   },
   "sidecars": {
-    "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\images",
+    "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\images",
     "receipt": "flow-spotify.visual-check.json",
     "contactSheet": "flow-spotify.visual-check.html",
     "files": [

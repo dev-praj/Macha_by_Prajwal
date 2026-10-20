@@ -7,12 +7,12 @@
   "quality": "showcase",
   "startedAt": "2026-10-17T05:26:46.315Z",
   "specification": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.sequence.json",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-settings-memory.sequence.json",
     "sha256": "1ca1b30f9496f9f4d1dc5310e78112b5a3d38498ffa6dee246afdf03a54f97db",
     "bytes": 4659
   },
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.html"
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-settings-memory.html"
   },
   "stages": {
     "validate": {
@@ -24,12 +24,12 @@
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "deliver",
         "sequence",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.sequence.json",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-settings-memory.sequence.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-settings-memory.html",
         "--quality",
         "showcase",
         "--repo-root",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha",
         "--json"
       ],
       "receipt": {
@@ -39,8 +39,8 @@
         "receiptId": "99b17003-47de-4cc5-9e57-bf3c86d1cadc",
         "stage": "render",
         "type": "sequence",
-        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.sequence.json",
-        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.html",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-settings-memory.sequence.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-settings-memory.html",
         "error": "Sequence layout validation failed:\n- Sublabel \"changes preferences / memory\" needs ~118px at the 7px minimum that stays readable on this 1085px canvas, but participant \"user\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Settings WebView\" (~109px) is wider than component \"settings\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"forms · validation feedback\" needs ~114px at the 7px minimum that stays readable on this 1085px canvas, but participant \"settings\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"save_settings / secrets / memories\" needs ~143px at the 7px minimum that stays readable on this 1085px canvas, but participant \"bridge\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Settings / memory commands\" (~177px) is wider than component \"rust\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"serde validation and storage logic\" needs ~143px at the 7px minimum that stays readable on this 1085px canvas, but participant \"rust\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Local JSON files\" (~109px) is wider than component \"files\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"settings.json · memories.json\" needs ~122px at the 7px minimum that stays readable on this 1085px canvas, but participant \"files\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Windows Credential Manager\" (~177px) is wider than component \"keys\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"allowlisted values only\" needs ~97px at the 7px minimum that stays readable on this 1085px canvas, but participant \"keys\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Chat context builder\" (~136px) is wider than component \"chat\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"reads memory before provider request\" needs ~152px at the 7px minimum that stays readable on this 1085px canvas, but participant \"chat\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Selected model provider\" (~156px) is wider than component \"provider\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"local Ollama or configured cloud model\" needs ~160px at the 7px minimum that stays readable on this 1085px canvas, but participant \"provider\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
         "diagnostics": [
           {
@@ -643,8 +643,8 @@
     }
   ],
   "evidence": {
-    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.finalize.json",
-    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-settings-memory.finalize-summary.json"
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-settings-memory.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-settings-memory.finalize-summary.json"
   },
   "visualReview": "not-requested",
   "failedStage": "validate",

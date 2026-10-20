@@ -1,4 +1,4 @@
-# Install or manage Coucou's per-user Windows logon task.
+# Install or manage Macha's per-user Windows logon task.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
@@ -10,16 +10,16 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
-$appPath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "target\release\coucou.exe"))
+$appPath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "target\release\macha.exe"))
 $runnerPath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "start-app.ps1"))
-$settingsPath = Join-Path $env:APPDATA "Coucou\settings.json"
-$logDirectory = Join-Path $env:LOCALAPPDATA "Coucou"
+$settingsPath = Join-Path $env:APPDATA "Macha\settings.json"
+$logDirectory = Join-Path $env:LOCALAPPDATA "Macha"
 $logPath = Join-Path $logDirectory "startup.log"
 $statePath = Join-Path $logDirectory "startup-task-state.json"
 $runKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
-$runName = "Coucou"
-$taskName = "Coucou Auto Start"
-$taskFolder = "\Coucou\"
+$runName = "Macha"
+$taskName = "Macha Auto Start"
+$taskFolder = "\Macha\"
 $powerShellPath = Join-Path $env:SystemRoot "System32\WindowsPowerShell\v1.0\powershell.exe"
 $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 
@@ -49,7 +49,7 @@ function Set-AutostartPreference {
     param([Parameter(Mandatory = $true)][bool]$Enabled)
 
     if (-not (Test-Path -LiteralPath $settingsPath -PathType Leaf)) {
-        throw "Coucou settings were not found at '$settingsPath'. Launch Coucou once to create its settings before installing the task."
+        throw "Macha settings were not found at '$settingsPath'. Launch Macha once to create its settings before installing the task."
     }
 
     $settings = [System.IO.File]::ReadAllText($settingsPath)
@@ -96,7 +96,7 @@ function Restore-PreviousStartup {
         if ($null -eq $currentRunValue) {
             New-Item -Path $runKey -Force | Out-Null
             Set-ItemProperty -Path $runKey -Name $runName -Value ([string]$State.registryCommand)
-            Write-StartupLog "Restored the previous Coucou logon registration."
+            Write-StartupLog "Restored the previous Macha logon registration."
         }
         elseif ($currentRunValue -cne [string]$State.registryCommand) {
             Write-StartupLog "WARNING: A different '$runName' logon value now exists; it was left unchanged."
@@ -104,7 +104,7 @@ function Restore-PreviousStartup {
     }
     elseif ($null -ne $currentRunValue) {
         $currentExe = Get-AppRunExecutable -CommandLine $currentRunValue
-        if ($currentExe -and [System.IO.Path]::GetFullPath($currentExe) -match '(?i)\\windows\\target\\(debug|release)\\coucou\.exe$') {
+        if ($currentExe -and [System.IO.Path]::GetFullPath($currentExe) -match '(?i)\\windows\\target\\(debug|release)\\macha\.exe$') {
             Remove-ItemProperty -Path $runKey -Name $runName
             Write-StartupLog "Removed the app-managed logon registration created after installation."
         }
@@ -121,8 +121,8 @@ function Install-StartupTask {
     if (-not (Test-Path -LiteralPath $powerShellPath -PathType Leaf)) {
         throw "Windows PowerShell was not found at the expected path: $powerShellPath."
     }
-    if ($null -ne (Get-CoucouProcess)) {
-        throw "Close Coucou before installing or replacing its logon registration, then run this command again."
+    if ($null -ne (Get-MachaProcess)) {
+        throw "Close Macha before installing or replacing its logon registration, then run this command again."
     }
 
     $existingTask = Get-ScheduledTask -TaskName $taskName -TaskPath $taskFolder -ErrorAction SilentlyContinue
@@ -136,7 +136,7 @@ function Install-StartupTask {
     }
     else {
         if (-not (Test-Path -LiteralPath $settingsPath -PathType Leaf)) {
-            throw "Coucou settings were not found at '$settingsPath'. Launch Coucou once to create its settings before installing the task."
+            throw "Macha settings were not found at '$settingsPath'. Launch Macha once to create its settings before installing the task."
         }
         $settings = [System.IO.File]::ReadAllText($settingsPath) | ConvertFrom-Json
         $autostartProperty = $settings.PSObject.Properties["autostart"]
@@ -148,11 +148,11 @@ function Install-StartupTask {
         if ($null -ne $previousRunValue) {
             $previousExe = Get-AppRunExecutable -CommandLine $previousRunValue
             $expectedExecutables = @(
-                [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "target\debug\coucou.exe")),
+                [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "target\debug\macha.exe")),
                 $appPath
             )
             if (-not $previousExe -or $expectedExecutables -notcontains [System.IO.Path]::GetFullPath($previousExe)) {
-                throw "The existing '$runName' logon registration does not point to a known Coucou build. It was left unchanged."
+                throw "The existing '$runName' logon registration does not point to a known Macha build. It was left unchanged."
             }
         }
 
@@ -191,7 +191,7 @@ function Install-StartupTask {
             -Trigger $trigger `
             -Settings $taskSettings `
             -Principal $principal `
-            -Description "Starts Coucou at logon and supervises bounded crash restarts." `
+            -Description "Starts Macha at logon and supervises bounded crash restarts." `
             -ErrorAction Stop `
             -Force | Out-Null
 
@@ -217,8 +217,8 @@ function Install-StartupTask {
     }
 }
 
-function Get-CoucouProcess {
-    Get-Process -Name "coucou" -ErrorAction SilentlyContinue | Select-Object -First 1
+function Get-MachaProcess {
+    Get-Process -Name "macha" -ErrorAction SilentlyContinue | Select-Object -First 1
 }
 
 try {

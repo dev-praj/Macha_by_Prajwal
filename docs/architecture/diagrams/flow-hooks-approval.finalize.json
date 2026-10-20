@@ -7,12 +7,12 @@
   "quality": "showcase",
   "startedAt": "2026-10-17T05:30:14.702Z",
   "specification": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-hooks-approval.sequence.json",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-hooks-approval.sequence.json",
     "sha256": "e80ec7fdb2fd68762f96f097491629ea9829c581bbb0c290a1f954f0740a2148",
     "bytes": 4120
   },
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-hooks-approval.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-hooks-approval.html",
     "sha256": "04105f65cc8d071c0877e9ca01c1e4951f58c0d9c25e9e11588957dab77fbbc1",
     "bytes": 817237
   },
@@ -27,12 +27,12 @@
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "deliver",
         "sequence",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-hooks-approval.sequence.json",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-hooks-approval.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-hooks-approval.sequence.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-hooks-approval.html",
         "--quality",
         "showcase",
         "--repo-root",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha",
         "--json"
       ],
       "receipt": {
@@ -62,12 +62,12 @@
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "deliver",
         "sequence",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-hooks-approval.sequence.json",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-hooks-approval.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-hooks-approval.sequence.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-hooks-approval.html",
         "--quality",
         "showcase",
         "--repo-root",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha",
         "--json"
       ],
       "receipt": {
@@ -76,8 +76,8 @@
         "ok": true,
         "command": "deliver",
         "type": "sequence",
-        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-hooks-approval.sequence.json",
-        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-hooks-approval.html",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-hooks-approval.sequence.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-hooks-approval.html",
         "specification": {
           "sha256": "e80ec7fdb2fd68762f96f097491629ea9829c581bbb0c290a1f954f0740a2148",
           "bytes": 4120
@@ -96,7 +96,7 @@
         },
         "evidence": {
           "verified": true,
-          "repository": "https://github.com/vemalaprajwal8200-a11y/coucou-customised",
+          "repository": "https://github.com/vemalaprajwal8200-a11y/macha-customised",
           "revision": "bd05b4a680a5876221544934fa776d1963bb28cf",
           "references": 10
         },
@@ -121,12 +121,12 @@
         "C:\\Program Files\\nodejs\\node.exe",
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "check",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-hooks-approval.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-hooks-approval.html",
         "--require-provenance"
       ],
       "receipt": {
         "ok": true,
-        "file": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-hooks-approval.html",
+        "file": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-hooks-approval.html",
         "artifact": {
           "sha256": "04105f65cc8d071c0877e9ca01c1e4951f58c0d9c25e9e11588957dab77fbbc1",
           "bytes": 817237
@@ -269,7 +269,7 @@
         "C:\\Program Files\\nodejs\\node.exe",
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "browser-check",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-hooks-approval.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-hooks-approval.html",
         "--json",
         "--require-provenance"
       ],
@@ -284,7 +284,7 @@
         "provenance": "current",
         "deliveryReceiptId": "821b0888-e246-403b-b7b2-d9b220ffaef8",
         "artifact": {
-          "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-hooks-approval.html",
+          "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-hooks-approval.html",
           "sha256": "04105f65cc8d071c0877e9ca01c1e4951f58c0d9c25e9e11588957dab77fbbc1",
           "bytes": 817237
         },
@@ -975,9 +975,9 @@
   },
   "diagnostics": [],
   "evidence": {
-    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-hooks-approval.finalize.json",
-    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-hooks-approval.finalize-summary.json",
-    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-hooks-approval.browser-check.json"
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-hooks-approval.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-hooks-approval.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-hooks-approval.browser-check.json"
   },
   "visualReview": "not-requested",
   "finishedAt": "2026-10-17T05:30:21.286Z",

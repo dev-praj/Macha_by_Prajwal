@@ -7,12 +7,12 @@
   "quality": "showcase",
   "startedAt": "2026-10-17T05:26:34.381Z",
   "specification": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.sequence.json",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-workflows.sequence.json",
     "sha256": "887d381e34698f10a0cd0a16d75940c69c54b1991c4be06042f66437b7d1cd39",
     "bytes": 4914
   },
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.html"
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-workflows.html"
   },
   "stages": {
     "validate": {
@@ -24,12 +24,12 @@
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "deliver",
         "sequence",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.sequence.json",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-workflows.sequence.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-workflows.html",
         "--quality",
         "showcase",
         "--repo-root",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha",
         "--json"
       ],
       "receipt": {
@@ -39,8 +39,8 @@
         "receiptId": "ff03598c-6ee2-46fd-b655-2560ca2ebb93",
         "stage": "render",
         "type": "sequence",
-        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.sequence.json",
-        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.html",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-workflows.sequence.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-workflows.html",
         "error": "Sequence layout validation failed:\n- Sublabel \"prompt/name/archive/timestamps\" needs ~126px at the 7px minimum that stays readable on this 1085px canvas, but participant \"store\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Chat workflow loop\" (~122px) is wider than component \"chat\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"screenshot · checkpoint · retry\" needs ~131px at the 7px minimum that stays readable on this 1085px canvas, but participant \"chat\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Selected model provider\" (~156px) is wider than component \"provider\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"plan / action / verify phases\" needs ~122px at the 7px minimum that stays readable on this 1085px canvas, but participant \"provider\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"fresh screenshot per phase\" needs ~110px at the 7px minimum that stays readable on this 1085px canvas, but participant \"screen\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Automation executor\" (~129px) is wider than component \"automation\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"one visible action at a time\" needs ~118px at the 7px minimum that stays readable on this 1085px canvas, but participant \"automation\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
         "diagnostics": [
           {
@@ -397,8 +397,8 @@
     }
   ],
   "evidence": {
-    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.finalize.json",
-    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-workflows.finalize-summary.json"
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-workflows.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-workflows.finalize-summary.json"
   },
   "visualReview": "not-requested",
   "failedStage": "validate",

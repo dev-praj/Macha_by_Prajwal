@@ -7,12 +7,12 @@
   "quality": "showcase",
   "startedAt": "2026-10-17T05:26:38.072Z",
   "specification": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-voice.sequence.json",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-voice.sequence.json",
     "sha256": "9b6c61ec6a08a267569151019ef1ca8644830b8db0c332de1ee6204820c47a24",
     "bytes": 4395
   },
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-voice.html"
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-voice.html"
   },
   "stages": {
     "validate": {
@@ -24,12 +24,12 @@
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "deliver",
         "sequence",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-voice.sequence.json",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-voice.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-voice.sequence.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-voice.html",
         "--quality",
         "showcase",
         "--repo-root",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha",
         "--json"
       ],
       "receipt": {
@@ -39,8 +39,8 @@
         "receiptId": "0638412f-33c5-492d-9d3d-045a9ebb68a4",
         "stage": "render",
         "type": "sequence",
-        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-voice.sequence.json",
-        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-voice.html",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-voice.sequence.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-voice.html",
         "error": "Sequence layout validation failed:\n- Sublabel \"hotkey or wake phrase\" needs ~89px at the 7px minimum that stays readable on this 1085px canvas, but participant \"user\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Chat / wake listener\" (~136px) is wider than component \"ui\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"Web Audio · MediaRecorder · phrase match\" needs ~168px at the 7px minimum that stays readable on this 1085px canvas, but participant \"ui\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Wake phrase matcher\" (~129px) is wider than component \"matcher\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"normalization · phonetic variants\" needs ~139px at the 7px minimum that stays readable on this 1085px canvas, but participant \"matcher\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Local Whisper service\" (~143px) is wider than component \"stt\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"127.0.0.1:5005 /transcribe\" needs ~110px at the 7px minimum that stays readable on this 1085px canvas, but participant \"stt\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"expand · pin · react · sound\" needs ~118px at the 7px minimum that stays readable on this 1085px canvas, but participant \"shell\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Chat / model routing\" (~136px) is wider than component \"chat\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"transcript text, not raw audio\" needs ~126px at the 7px minimum that stays readable on this 1085px canvas, but participant \"chat\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Local speech output\" (~129px) is wider than component \"speaker\" — shorten it to at most 15 text units (CJK counts 2; participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"Web Speech or Windows SAPI\" needs ~110px at the 7px minimum that stays readable on this 1085px canvas, but participant \"speaker\" provides 88px — shorten the sublabel (participant boxes are 96px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
         "diagnostics": [
           {
@@ -561,8 +561,8 @@
     }
   ],
   "evidence": {
-    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-voice.finalize.json",
-    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-voice.finalize-summary.json"
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-voice.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-voice.finalize-summary.json"
   },
   "visualReview": "not-requested",
   "failedStage": "validate",

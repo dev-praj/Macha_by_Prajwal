@@ -66,7 +66,7 @@ function isEnglishVoice(voice: SpeechSynthesisVoice): boolean {
 }
 
 void availableVoices().catch((error: unknown) => {
-  console.error("[coucou] could not initialize local speech voices", error);
+  console.error("[macha] could not initialize local speech voices", error);
 });
 
 function preferredVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
@@ -203,7 +203,7 @@ export async function speak(text: string): Promise<void> {
     await stop();
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error("[coucou] could not stop previous speech before starting a reply", error);
+    console.error("[macha] could not stop previous speech before starting a reply", error);
     notify(running, message);
     return;
   }
@@ -264,7 +264,7 @@ async function speakWithWebSpeech(text: string, utteranceGeneration: number): Pr
 }
 
 async function speakWithSapi(text: string, utteranceGeneration: number): Promise<void> {
-  if (!IS_TAURI) throw new Error("Windows SAPI is available only in the Coucou app.");
+  if (!IS_TAURI) throw new Error("Windows SAPI is available only in the Macha app.");
   await Bridge.ttsSpeak(text, State.settings.ttsRate, State.settings.ttsVolume);
   while (utteranceGeneration === generation) {
     if (!await Bridge.ttsIsSpeaking()) return;
@@ -288,7 +288,7 @@ async function playChunk(text: string, utteranceGeneration: number): Promise<voi
     } catch (error) {
       lastError = error;
       if (forcedEngine !== "auto") throw error;
-      console.warn(`[coucou] ${engine} voice failed; trying the next local engine`, error);
+      console.warn(`[macha] ${engine} voice failed; trying the next local engine`, error);
     }
   }
   throw lastError instanceof Error ? lastError : new Error("No offline speech engine is available.");
@@ -314,7 +314,7 @@ async function drain(drainGeneration: number): Promise<void> {
     streamBuffer = "";
     streamOpen = false;
     failure = error instanceof Error ? error.message : String(error);
-    console.error("[coucou] offline speech failed", error);
+    console.error("[macha] offline speech failed", error);
   } finally {
     if (drainGeneration === generation) {
       running = false;

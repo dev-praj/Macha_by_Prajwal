@@ -4,8 +4,8 @@
   "status": "current",
   "command": "deliver",
   "type": "sequence",
-  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-file-drop.sequence.json",
-  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-file-drop.html",
+  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-file-drop.sequence.json",
+  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-file-drop.html",
   "specification": {
     "sha256": "228bb7d6531c8f022edbc9bf13227a4fde3b1415025378d263d0e27b0f43cde8",
     "bytes": 3696

@@ -4,8 +4,8 @@
   "status": "current",
   "command": "deliver",
   "type": "sequence",
-  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-windows-notifications.sequence.json",
-  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-windows-notifications.html",
+  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-windows-notifications.sequence.json",
+  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-windows-notifications.html",
   "specification": {
     "sha256": "43f454e64f6e4c96eb37e2bdae922511ed8d96a7510104de366fb4a589a8f9c4",
     "bytes": 3634

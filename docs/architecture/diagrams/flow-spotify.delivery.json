@@ -4,8 +4,8 @@
   "status": "current",
   "command": "deliver",
   "type": "sequence",
-  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-spotify.sequence.json",
-  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\flow-spotify.html",
+  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-spotify.sequence.json",
+  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\flow-spotify.html",
   "specification": {
     "sha256": "5df17629ab99cb6fd857c062299c9b9be3c4b2fbe4f0d91d914e340f5e39f191",
     "bytes": 4121

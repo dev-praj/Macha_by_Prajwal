@@ -7,12 +7,12 @@
   "quality": "showcase",
   "startedAt": "2026-10-17T05:26:32.934Z",
   "specification": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.sequence.json",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-chat-automation.sequence.json",
     "sha256": "78c5339de7c8456b83c8e03edd19f0c559da5ec6e15a726796d610ed2648a1c2",
     "bytes": 4496
   },
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.html"
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-chat-automation.html"
   },
   "stages": {
     "validate": {
@@ -24,12 +24,12 @@
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "deliver",
         "sequence",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.sequence.json",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-chat-automation.sequence.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-chat-automation.html",
         "--quality",
         "showcase",
         "--repo-root",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha",
         "--json"
       ],
       "receipt": {
@@ -39,8 +39,8 @@
         "receiptId": "7947ca1f-b531-4962-bc6e-f9aa9b24572a",
         "stage": "render",
         "type": "sequence",
-        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.sequence.json",
-        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.html",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-chat-automation.sequence.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-chat-automation.html",
         "error": "Sequence layout validation failed:\n- Sublabel \"history · pending action card\" needs ~122px at the 7px minimum that stays readable on this 1085px canvas, but participant \"ui\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Claude chat service\" (~129px) is wider than component \"rust\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"context · tools · action queue\" needs ~126px at the 7px minimum that stays readable on this 1085px canvas, but participant \"rust\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Ollama or OpenRouter\" (~136px) is wider than component \"provider\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Automation executor\" (~129px) is wider than component \"action\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Sublabel \"validate then execute action\" needs ~118px at the 7px minimum that stays readable on this 1085px canvas, but participant \"action\" provides 105px — shorten the sublabel (participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).\n- Label \"Windows / filesystem\" (~136px) is wider than component \"windows\" — shorten it to at most 17 text units (CJK counts 2; participant boxes are 113px: the automatic 1085px canvas cannot widen further without its 7px sublabels falling below the desktop reading minimum, so keep meta.viewBox omitted).",
         "diagnostics": [
           {
@@ -353,8 +353,8 @@
     }
   ],
   "evidence": {
-    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.finalize.json",
-    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\flow-chat-automation.finalize-summary.json"
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-chat-automation.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\flow-chat-automation.finalize-summary.json"
   },
   "visualReview": "not-requested",
   "failedStage": "validate",

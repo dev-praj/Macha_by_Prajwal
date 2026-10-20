@@ -2,12 +2,12 @@
   "schema_version": 1,
   "diagram_type": "sequence",
   "meta": {
-    "title": "Coucou Windows — Vision Mode Gesture Loop",
+    "title": "Macha Windows — Vision Mode Gesture Loop",
     "locale": "en",
     "output": "docs/architecture/flow-vision-mode.html",
     "quality_profile": "showcase",
     "repository": {
-      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "url": "https://github.com/vemalaprajwal8200-a11y/macha-customised.git",
       "provider": "github",
       "link_mode": "web",
       "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"

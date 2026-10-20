@@ -4,8 +4,8 @@
   "status": "current",
   "command": "deliver",
   "type": "architecture",
-  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.architecture.json",
-  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\data-model.html",
+  "input": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\data-model.architecture.json",
+  "output": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\data-model.html",
   "specification": {
     "sha256": "93b1e0ef0f41b25b436a94604c956f8a5b83f692337f493bbba81096eb2119e1",
     "bytes": 6667

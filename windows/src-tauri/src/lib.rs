@@ -1,4 +1,4 @@
-// Coucou for Windows — app wiring and the commands the island calls.
+// Macha for Windows — app wiring and the commands the island calls.
 
 mod automation;
 mod claude;
@@ -116,7 +116,7 @@ fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) -> R
             manager.disable()
         };
         if let Err(err) = result {
-            eprintln!("[coucou] autostart: {err}");
+            eprintln!("[macha] autostart: {err}");
         }
     }
     if screen_changed {
@@ -603,7 +603,7 @@ fn create_settings_window(app: &AppHandle) {
     let url = settings_page_url(app);
     match WebviewWindowBuilder::new(app, "settings", url)
         .additional_browser_args(BROWSER_ARGS)
-        .title("Settings — Coucou")
+        .title("Settings — Macha")
         .inner_size(560.0, 680.0)
         .min_inner_size(460.0, 480.0)
         .resizable(true)
@@ -735,9 +735,7 @@ pub fn run() {
             messages::request_message_access,
             messages::message_access_status,
             messages::open_message_source,
-            spotify::spotify_connect,
             spotify::spotify_control,
-            spotify::spotify_disconnect,
             refresh_spotify,
             open_settings_window,
             set_paused,
@@ -757,7 +755,7 @@ pub fn run() {
             let handle = app.handle().clone();
             if loaded.autostart {
                 if let Err(error) = app.autolaunch().enable() {
-                    eprintln!("[coucou] autostart: {error}");
+                    eprintln!("[macha] autostart: {error}");
                 }
             }
             tray::build(&handle)?;
@@ -793,7 +791,7 @@ pub fn run() {
             island::spawn_cursor_poll(handle.clone(), gate.clone());
 
             log::line(format!(
-                "--- Coucou {} started ---",
+                "--- Macha {} started ---",
                 env!("CARGO_PKG_VERSION")
             ));
             hooks::ensure_hook_exe(&handle);
@@ -804,7 +802,7 @@ pub fn run() {
             Ok(())
         })
         .build(tauri::generate_context!())
-        .expect("error while building Coucou")
+        .expect("error while building Macha")
         .run(|app, event| {
             if matches!(event, tauri::RunEvent::Exit) {
                 nixi_hotkeys::stop();

@@ -2,12 +2,12 @@
   "schema_version": 1,
   "diagram_type": "sequence",
   "meta": {
-    "title": "Coucou Windows — File Drop and Chat Context",
+    "title": "Macha Windows — File Drop and Chat Context",
     "locale": "en",
     "output": "docs/architecture/flow-file-drop.html",
     "quality_profile": "showcase",
     "repository": {
-      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "url": "https://github.com/vemalaprajwal8200-a11y/macha-customised.git",
       "provider": "github",
       "link_mode": "web",
       "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
@@ -28,7 +28,7 @@
     { "id": "ui", "type": "frontend", "label": "Island / chat", "sublabel": "drop · file chip", "sources": [{ "path": "windows/src/views/upload.ts", "line": 1 }, { "path": "windows/src/views/chat.ts", "line": 1 }] },
     { "id": "bridge", "type": "messagebus", "label": "Tauri file bridge", "sublabel": "picker · ingest_file", "sources": [{ "path": "windows/src/core/bridge.ts", "line": 270 }, { "path": "windows/src/core/bridge.ts", "line": 326 }] },
     { "id": "rust", "type": "backend", "label": "Rust file ingestion", "sublabel": "validate and copy source", "sources": [{ "path": "windows/src-tauri/src/files.rs", "line": 26 }] },
-    { "id": "inbox", "type": "database", "label": "Local inbox", "sublabel": "%LOCALAPPDATA%\\Coucou\\inbox", "sources": [{ "path": "windows/src-tauri/src/files.rs", "line": 17 }] },
+    { "id": "inbox", "type": "database", "label": "Local inbox", "sublabel": "%LOCALAPPDATA%\\Macha\\inbox", "sources": [{ "path": "windows/src-tauri/src/files.rs", "line": 17 }] },
     { "id": "provider", "type": "cloud", "label": "Chat model provider", "sublabel": "optional interpretation", "sources": [{ "path": "windows/src-tauri/src/claude.rs", "line": 239 }] }
   ],
   "messages": [

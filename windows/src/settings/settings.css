@@ -62,6 +62,45 @@ section {
   gap: 12px;
 }
 
+.avatar-choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.avatar-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.avatar-choice.selected {
+  border-color: var(--green);
+  background: rgba(69, 221, 159, 0.1);
+}
+
+.avatar-preview {
+  position: relative;
+  width: 88px;
+  height: 88px;
+}
+
+.avatar-preview > canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.avatar-preview.custom-avatar-host > canvas {
+  display: block;
+}
+
 section > h2 {
   font: 600 13px var(--font);
   display: flex;

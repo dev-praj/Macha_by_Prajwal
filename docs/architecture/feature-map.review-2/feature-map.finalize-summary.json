@@ -6,12 +6,12 @@
   "type": "architecture",
   "quality": "showcase",
   "specification": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.architecture.json",
     "sha256": "5b5e852f03eba53cec6c93f0af57cc5b8b6a8df03dc5639acceefc3ad338569d",
     "bytes": 8677
   },
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.html",
     "sha256": "0739a04be6edc69a2da629538f8a19204220ea5e35b375e6c224f40cf4de717b",
     "bytes": 866935
   },
@@ -275,8 +275,8 @@
     "truncated": false
   },
   "evidence": {
-    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.review-2\\feature-map.finalize.json",
-    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.review-2\\feature-map.finalize-summary.json"
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.review-2\\feature-map.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.review-2\\feature-map.finalize-summary.json"
   },
   "update": {
     "status": "current",
@@ -292,7 +292,7 @@
   "durationMs": 1757,
   "nextAction": {
     "action": "edit-in-place",
-    "candidate": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
+    "candidate": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.architecture.json",
     "constraint": "Preserve unaffected semantics and geometry; apply each diagnostic's supportedFixes, or the fix its message names, and do not replace the whole candidate.",
     "then": "finalize-once"
   }

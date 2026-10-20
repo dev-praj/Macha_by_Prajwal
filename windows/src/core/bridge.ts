@@ -16,7 +16,7 @@ async function call<T>(cmd: string, args?: Record<string, unknown>): Promise<T |
   try {
     return await invoke<T>(cmd, args);
   } catch (err) {
-    console.error(`[coucou] ${cmd} failed`, err);
+    console.error(`[macha] ${cmd} failed`, err);
     return null;
   }
 }
@@ -46,9 +46,7 @@ export interface MessageNotification {
 export interface SpotifyTrack {
   name: string;
   artists: string;
-  imageUrl: string | null;
   durationMs: number;
-  uri: string | null;
 }
 
 export interface SpotifySnapshot {
@@ -56,7 +54,6 @@ export interface SpotifySnapshot {
   playing: boolean;
   progressMs: number;
   track: SpotifyTrack | null;
-  queue: SpotifyTrack[];
 }
 
 export const Bridge = {
@@ -90,7 +87,7 @@ export const Bridge = {
 
   openSettingsWindow: () => call<void>("open_settings_window"),
 
-  /** Writes to %LOCALAPPDATA%\Coucou\coucou.log, next to the Rust lines. */
+  /** Writes to %LOCALAPPDATA%\Macha\macha.log, next to the Rust lines. */
   log: (message: string) => call<void>("log_line", { message }),
 
   // ── Claude Code hooks ─────────────────────────────────────────────────────
@@ -210,18 +207,14 @@ export const Bridge = {
   messageAccessStatus: () => call<boolean>("message_access_status"),
   openMessageSource: (id: string) =>
     callOrThrow<void>("open_message_source", { notificationId: id }),
-  spotifyConnect: () => callOrThrow<string>("spotify_connect"),
   spotifyControl: (
-    action: "play" | "pause" | "next" | "previous" | "seek" | "play_track",
+    action: "play" | "pause" | "next" | "previous" | "seek",
     positionMs?: number,
-    trackUri?: string,
   ) => callOrThrow<void>("spotify_control", {
     action,
     positionMs: positionMs ?? null,
-    trackUri: trackUri ?? null,
   }),
   refreshSpotify: () => callOrThrow<SpotifySnapshot>("refresh_spotify"),
-  spotifyDisconnect: () => callOrThrow<void>("spotify_disconnect"),
 
   // ── Vision Mode ─────────────────────────────────────────────────────────
   gestureMouseStart: () => callOrThrow<void>("gesture_mouse_start"),
@@ -327,7 +320,7 @@ export interface HookPreview {
 
 /** Same as `call`, but surfaces the error so the UI can show what went wrong. */
 async function callOrThrow<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
-  if (!IS_TAURI) throw new Error("not running inside Coucou");
+  if (!IS_TAURI) throw new Error("not running inside Macha");
   return invoke<T>(cmd, args);
 }
 
@@ -402,4 +395,3 @@ export function onNixiDictateStart(handler: (payload: NixiHotkeyPayload) => void
 export function onNixiDictateStop(handler: (payload: NixiHotkeyPayload) => void) {
   return onEvent<NixiHotkeyPayload>("nixi-dictate-stop", handler);
 }
-

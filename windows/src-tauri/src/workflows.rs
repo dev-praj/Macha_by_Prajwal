@@ -198,7 +198,7 @@ mod tests {
 
     fn test_file() -> PathBuf {
         std::env::temp_dir()
-            .join(format!("coucou-workflows-test-{}", super::new_id()))
+            .join(format!("macha-workflows-test-{}", super::new_id()))
             .join("workflows.json")
     }
 

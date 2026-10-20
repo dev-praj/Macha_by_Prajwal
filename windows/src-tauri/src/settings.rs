@@ -7,6 +7,8 @@ use std::path::PathBuf;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
+    #[serde(default = "default_avatar")]
+    pub avatar: String,
     pub sound_enabled: bool,
     pub sound_volume: f64,
     pub auto_close_interval: f64,
@@ -52,6 +54,10 @@ fn default_provider_mode() -> String {
     "auto".into()
 }
 
+fn default_avatar() -> String {
+    "macha".into()
+}
+
 fn default_ollama_model() -> String {
     "qwen2.5:7b".into()
 }
@@ -95,6 +101,7 @@ fn default_auto_hide() -> bool {
 impl Default for Settings {
     fn default() -> Self {
         Self {
+            avatar: default_avatar(),
             sound_enabled: true,
             sound_volume: 0.12,
             auto_close_interval: 15.0,
@@ -148,6 +155,7 @@ pub fn load() -> Settings {
         }
         Err(_) => Settings::default(),
     };
+    settings.avatar = migrate_avatar(settings.avatar);
     settings.model = migrate_model(settings.model);
     migrate_integrations(&mut settings);
     settings
@@ -198,6 +206,12 @@ fn migrate_model(model: String) -> String {
 }
 
 pub fn save(settings: &Settings) -> std::io::Result<()> {
+    if !matches!(settings.avatar.as_str(), "macha" | "cubee" | "onee") {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "Unknown avatar selection.",
+        ));
+    }
     let dir = config_dir();
     crate::platform::ensure_private_dir(&dir)?;
     let json = serde_json::to_vec_pretty(settings)
@@ -205,12 +219,29 @@ pub fn save(settings: &Settings) -> std::io::Result<()> {
     std::fs::write(settings_path(), json)
 }
 
+fn migrate_avatar(avatar: String) -> String {
+    if matches!(avatar.as_str(), "macha" | "cubee" | "onee") {
+        avatar
+    } else {
+        default_avatar()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        default_auto_hide, default_model, default_speak_replies_mode, migrate_integrations,
-        migrate_model, migrate_speech_settings, Settings,
+        default_auto_hide, default_avatar, default_model, default_speak_replies_mode,
+        migrate_avatar, migrate_integrations, migrate_model, migrate_speech_settings, Settings,
     };
+
+    #[test]
+    fn avatar_choice_defaults_and_migrates_unknown_values() {
+        assert_eq!(default_avatar(), "macha");
+        assert_eq!(Settings::default().avatar, "macha");
+        assert_eq!(migrate_avatar("cubee".into()), "cubee");
+        assert_eq!(migrate_avatar("onee".into()), "onee");
+        assert_eq!(migrate_avatar("unexpected".into()), "macha");
+    }
 
     #[test]
     fn voice_reply_preferences_default_to_voice_only_and_keep_legacy_choice() {

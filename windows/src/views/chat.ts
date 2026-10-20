@@ -70,7 +70,7 @@ async function copyToClipboard(value: string, button: HTMLButtonElement): Promis
     }
     button.textContent = "Copied";
   } catch (error) {
-    console.error("[coucou] could not copy chat text", error);
+    console.error("[macha] could not copy chat text", error);
     button.textContent = "Copy failed";
   }
   button.disabled = true;
@@ -518,7 +518,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       try {
         await TTS.speak("Activating Vision Mode.");
       } catch (error) {
-        console.error("[coucou] could not speak Vision Mode activation", error);
+        console.error("[macha] could not speak Vision Mode activation", error);
       }
 
       const alreadyRunning = await Bridge.gestureMouseIsRunning();
@@ -530,16 +530,16 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       try {
         await TTS.speak(notice);
       } catch (error) {
-        console.error("[coucou] could not speak Vision Mode status", error);
+        console.error("[macha] could not speak Vision Mode status", error);
       }
     } catch (error) {
       failed = true;
       notice = `Could not activate Vision Mode: ${error instanceof Error ? error.message : String(error)}`;
-      console.error("[coucou] could not activate Vision Mode", error);
+      console.error("[macha] could not activate Vision Mode", error);
       try {
         await TTS.speak("I couldn't activate Vision Mode. Check its status in Settings.");
       } catch (speechError) {
-        console.error("[coucou] could not speak Vision Mode error", speechError);
+        console.error("[macha] could not speak Vision Mode error", speechError);
       }
     } finally {
       wakeAckInProgress = false;
@@ -572,16 +572,16 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
   function holdWakeConversation() {
     wakeConversationCompleted = false;
     wakeConversationHeld = true;
-    window.dispatchEvent(new Event("coucou-wake-word"));
+    window.dispatchEvent(new Event("macha-wake-word"));
   }
 
   function releaseWakeConversation() {
     if (!wakeConversationHeld) return;
     wakeConversationHeld = false;
     wakeConversationCompleted = true;
-    window.dispatchEvent(new Event("coucou-wake-word-complete"));
+    window.dispatchEvent(new Event("macha-wake-word-complete"));
     void Bridge.setVoiceActive(false).catch((error: unknown) => {
-      console.error("[coucou] could not clear the wake voice hold", error);
+      console.error("[macha] could not clear the wake voice hold", error);
     });
     window.setTimeout(() => {
       wakeConversationCompleted = false;
@@ -606,7 +606,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       if (wakeWord.isActive()) wakeWord.stop();
       clearWakeWordRetry();
       wakeWordRetryAttempt = 0;
-      console.info(`[coucou] restarting Hey Macha listener after ${reason}`);
+      console.info(`[macha] restarting Hey Macha listener after ${reason}`);
       void reconcileWakeWord();
     }, 250);
   }
@@ -632,7 +632,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         },
         (text) => void onWakeUtterance(text),
         (message) => {
-          console.error("[coucou] Hey Macha wake-word listener error", message);
+          console.error("[macha] Hey Macha wake-word listener error", message);
           wakeWord.stop();
           retryWakeWordStart(`${message} Reconnecting the microphone…`);
         },
@@ -651,12 +651,12 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       }
       const name = error instanceof DOMException ? error.name : "";
       const message = name === "NotAllowedError" || name === "SecurityError"
-        ? 'Coucou needs microphone access to listen for "Hey Macha". Enable microphone access for Coucou in Windows Settings > Privacy & security > Microphone, then return to the app.'
+        ? 'Macha needs microphone access to listen for "Hey Macha". Enable microphone access for Macha in Windows Settings > Privacy & security > Microphone, then return to the app.'
         : error instanceof Error
           ? error.message
           : "Could not start the Hey Macha wake-word listener.";
       setVoiceState("idle", message, true);
-      console.error("[coucou] could not start Macha wake-word listener", error);
+      console.error("[macha] could not start Macha wake-word listener", error);
       if (name !== "NotAllowedError" && name !== "SecurityError" && canRunWakeWord()) {
         retryWakeWordStart(`${message} Retrying Hey Macha…`);
       }
@@ -682,7 +682,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       }
       return;
     }
-    console.info("[coucou] Hey Macha wake phrase matched", {
+    console.info("[macha] Hey Macha wake phrase matched", {
       commandIncluded: Boolean(command),
     });
     if (command && isPartialVisionModeActivation(command)) {
@@ -701,7 +701,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     Sound.play("blip");
     setVoiceState("listening", "Yes Boss — I'm listening.");
     const acknowledgement = TTS.speak("Yes Boss").catch((error: unknown) => {
-      console.error("[coucou] could not speak wake-word acknowledgement", error);
+      console.error("[macha] could not speak wake-word acknowledgement", error);
     });
     void acknowledgement.then(() => { wakeAckInProgress = false; });
     if (!command) {
@@ -725,7 +725,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     }
   }
 
-  window.addEventListener("coucou-settings-ready", () => {
+  window.addEventListener("macha-settings-ready", () => {
     wakeWordReady = true;
     void reconcileWakeWord();
   }, { once: true });
@@ -773,14 +773,14 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         setVoiceState("speaking", error ?? "", !!error);
       }
       void Bridge.setVoiceActive(true).catch((cause: unknown) => {
-        console.error("[coucou] could not hold island visible for speech", cause);
+        console.error("[macha] could not hold island visible for speech", cause);
       });
     } else if (wakeAckInProgress) {
       if (voiceState !== "transcribing") setVoiceState("listening", "Yes Boss — I'm listening.");
     } else if (voiceState === "speaking") {
       setVoiceState("idle", error ?? "", !!error);
       void Bridge.setVoiceActive(false).catch((cause: unknown) => {
-        console.error("[coucou] could not release speech auto-hide hold", cause);
+        console.error("[macha] could not release speech auto-hide hold", cause);
       });
       if (!suppressWakeRestart) void reconcileWakeWord();
     } else if (error) {
@@ -797,7 +797,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     voiceMonitorContext = null;
     if (monitorContext && monitorContext.state !== "closed") {
       void monitorContext.close().catch((error: unknown) => {
-        console.error("[coucou] could not close voice activity monitor", error);
+        console.error("[macha] could not close voice activity monitor", error);
       });
     }
     mediaStream?.getTracks().forEach((track) => track.stop());
@@ -863,7 +863,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     try {
       await Bridge.setVoiceActive(false);
     } catch (error) {
-      console.error("[coucou] could not release voice auto-hide hold", error);
+      console.error("[macha] could not release voice auto-hide hold", error);
     }
     releaseWakeConversation();
     if (!suppressWakeRestart) void reconcileWakeWord();
@@ -876,7 +876,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         () => undefined,
         (text) => void onActionConfirmationTranscript(text),
         (message) => {
-          console.error("[coucou] voice confirmation listener error", message);
+          console.error("[macha] voice confirmation listener error", message);
           setVoiceState("idle", message, true);
         },
         "",
@@ -894,7 +894,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Could not start voice confirmation.";
       setVoiceState("idle", `${message} Use the Yes or No button.`, true);
-      console.error("[coucou] could not start voice confirmation listener", error);
+      console.error("[macha] could not start voice confirmation listener", error);
     }
   }
 
@@ -913,7 +913,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
           : `${openActionQuestion(action, selected?.label)} Say "yes" to open it or "no" to cancel.`;
       await TTS.speak(prompt);
     } catch (error) {
-      console.error("[coucou] could not speak the open confirmation", error);
+      console.error("[macha] could not speak the open confirmation", error);
       setVoiceState("idle", "Could not speak the confirmation. Use the Yes or No button.", true);
     }
     await listenForActionConfirmation();
@@ -973,7 +973,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       await TTS.stop();
     } catch (error) {
       suppressWakeRestart = false;
-      console.error("[coucou] could not stop speech before microphone recording", error);
+      console.error("[macha] could not stop speech before microphone recording", error);
       setVoiceState("speaking", "Could not stop speech before recording.", true);
       return;
     }
@@ -1056,7 +1056,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     try {
       activeRecorder.stop();
     } catch (error) {
-      console.error("[coucou] could not stop microphone recording", error);
+      console.error("[macha] could not stop microphone recording", error);
       stopMediaTracks();
       void releaseVoiceSession();
       setVoiceState("idle", "Could not finish microphone recording.", true);
@@ -1279,7 +1279,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         void reconcileWakeWord();
       }
       startQueuedWorkflow();
-      window.dispatchEvent(new Event("coucou-assistant-task-finished"));
+      window.dispatchEvent(new Event("macha-assistant-task-finished"));
     }
   }
 
@@ -1793,7 +1793,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       try {
         await TTS.stop();
       } catch (error) {
-        console.error("[coucou] could not stop the open confirmation speech", error);
+        console.error("[macha] could not stop the open confirmation speech", error);
       }
     }
     sending = true;
@@ -1830,7 +1830,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         releaseWakeConversation();
       }
       startQueuedWorkflow();
-      window.dispatchEvent(new Event("coucou-assistant-task-finished"));
+      window.dispatchEvent(new Event("macha-assistant-task-finished"));
     }
   }
 
@@ -1985,7 +1985,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     try {
       await Bridge.chatCancel(activeRequestId);
     } catch (error) {
-      console.error("[coucou] could not cancel chat request", error);
+      console.error("[macha] could not cancel chat request", error);
       cancelRequested = false;
       State.noteMessage = String(error).replace(/^Error:\s*/, "");
       State.view = "note";
@@ -2081,7 +2081,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
                   if (!window.confirm(`Delete "${conversation.title}"? This cannot be undone.`)) return;
                   if (!State.deleteConversation(conversation.id)) return;
                   void Bridge.chatDelete(conversation.id).catch((err: unknown) => {
-                    console.error("[coucou] could not clear deleted conversation from chat service", err);
+                    console.error("[macha] could not clear deleted conversation from chat service", err);
                   });
                   onHeightChange();
                 },

@@ -1,11 +1,12 @@
 // The upload canvas — port of UploadCanvasView.swift.
 //
 // While the sequence engine is active this canvas draws the whole island body:
-// card, dashed drop frame, drop text, progress bar, the choose card, Mochi and
-// the file being sucked in. The island's own Mochi is hidden for the duration,
+// card, dashed drop frame, drop text, progress bar, the choose card, Macha and
+// the file being sucked in. The island's own Macha is hidden for the duration,
 // exactly as on macOS, because this canvas draws its own.
 
 import { State } from "../core/state";
+import { mountAvatar, type AvatarDisplay } from "../macha/avatar";
 import {
   USC, eIn, eInOut, eOut, lerp, progressAt,
   type UploadEyeShape, type UploadFrame,
@@ -69,6 +70,8 @@ export class UploadCanvas {
   readonly el: HTMLElement;
 
   private canvas: HTMLCanvasElement;
+  private avatarHost: HTMLElement;
+  private avatar: AvatarDisplay;
   private ctx: CanvasRenderingContext2D | null;
   private overlay: HTMLElement;
   private sizedFor = 0;
@@ -95,7 +98,11 @@ export class UploadCanvas {
 
     this.el = document.createElement("div");
     this.el.id = "upload-layer";
-    this.el.append(this.canvas, this.overlay);
+    this.avatarHost = document.createElement("div");
+    this.avatarHost.id = "upload-avatar";
+    this.avatarHost.className = "custom-avatar-host";
+    this.el.append(this.canvas, this.avatarHost, this.overlay);
+    this.avatar = mountAvatar(this.avatarHost);
 
     this.ctx = this.canvas.getContext("2d");
   }
@@ -165,7 +172,18 @@ export class UploadCanvas {
     if (f.barAlpha > 0 || f.barReveal > 0) this.drawProgressBar(ctx, f);
     if (f.chooseAlpha > 0) this.drawChoose(ctx, f);
 
-    this.drawMochi(ctx, f);
+    if (State.settings.avatar === "macha") {
+      this.avatarHost.style.display = "none";
+      this.drawMacha(ctx, f);
+    } else {
+      this.avatarHost.style.display = "block";
+      this.avatarHost.style.left = `${f.x - f.d / 2}px`;
+      this.avatarHost.style.top = `${f.y + f.hop - f.d / 2}px`;
+      this.avatarHost.style.width = `${f.d}px`;
+      this.avatarHost.style.height = `${f.d}px`;
+      this.avatarHost.style.transform = `rotate(${f.tilt}rad) scale(${f.sx}, ${f.sy})`;
+      this.avatar.setState(State.effectiveState);
+    }
     if (f.fileVisible) this.drawFile(ctx, f);
   }
 
@@ -288,9 +306,9 @@ export class UploadCanvas {
     ctx.restore();
   }
 
-  // ── Mochi ─────────────────────────────────────────────────────────────────
+  // ── Macha ─────────────────────────────────────────────────────────────────
 
-  private drawMochi(ctx: CanvasRenderingContext2D, f: UploadFrame) {
+  private drawMacha(ctx: CanvasRenderingContext2D, f: UploadFrame) {
     const R = f.d / 2 / 1.04;
     const mc = Math.max(0, Math.min(f.morph, 1));
 
@@ -321,7 +339,7 @@ export class UploadCanvas {
     bodyPath(ctx, f.morph, R);
     ctx.clip();
 
-    // Top rim, once Mochi is box-shaped enough to have one.
+    // Top rim, once Macha is box-shaped enough to have one.
     if (mc > 0.3) {
       const a = Math.max(0, Math.min(1, (mc - 0.3) / 0.7));
       ctx.beginPath();

@@ -337,8 +337,6 @@ function spotifyTrack(value: unknown): SpotifyTrack | null {
     name: value.name,
     artists: value.artists,
     durationMs: value.durationMs,
-    imageUrl: "imageUrl" in value && typeof value.imageUrl === "string" ? value.imageUrl : null,
-    uri: "uri" in value && typeof value.uri === "string" ? value.uri : null,
   };
 }
 
@@ -349,14 +347,11 @@ function spotifySnapshot(): SpotifySnapshot {
     playing: data.playing === true,
     progressMs: typeof data.progressMs === "number" ? data.progressMs : 0,
     track: spotifyTrack(data.track),
-    queue: Array.isArray(data.queue)
-      ? data.queue.map(spotifyTrack).filter((track): track is SpotifyTrack => track !== null)
-      : [],
   };
 }
 
 function spotifyTrackIdentity(track: SpotifyTrack | null): string | null {
-  return track?.uri ?? (track ? `${track.name}\0${track.artists}` : null);
+  return track ? `${track.name}\0${track.artists}` : null;
 }
 
 function wait(milliseconds: number): Promise<void> {
@@ -364,24 +359,23 @@ function wait(milliseconds: number): Promise<void> {
 }
 
 async function spotifyAction(
-  action: "play" | "pause" | "next" | "previous" | "seek" | "play_track",
+  action: "play" | "pause" | "next" | "previous" | "seek",
   positionMs?: number,
-  trackUri?: string,
 ): Promise<void> {
   try {
-    await Bridge.spotifyControl(action, positionMs, trackUri);
+    await Bridge.spotifyControl(action, positionMs);
     const info = State.integrations.integration_spotify;
     if (info) info.error = null;
   } catch (error) {
     const info = State.integrations.integration_spotify;
     if (info) info.error = String(error).replace(/^Error:\s*/, "");
-    console.error("[coucou] Spotify playback action failed", error);
+    console.error("[macha] Spotify playback action failed", error);
     State.notify();
     return;
   }
 
   const previousTrack = spotifyTrackIdentity(spotifySnapshot().track);
-  const waitForTrackChange = action === "next" || action === "previous" || action === "play_track";
+  const waitForTrackChange = action === "next" || action === "previous";
   let lastError: unknown;
   for (let attempt = 0; attempt < 4; attempt += 1) {
     await wait(attempt === 0 ? 450 : 650);
@@ -398,15 +392,15 @@ async function spotifyAction(
       if (!waitForTrackChange || trackChanged) return;
     } catch (error) {
       lastError = error;
-      console.error("[coucou] Spotify playback refresh failed", error);
+      console.error("[macha] Spotify playback refresh failed", error);
     }
   }
 
   const info = State.integrations.integration_spotify;
   if (info) {
     info.error = lastError
-      ? `Playback command sent, but Spotify status could not be refreshed: ${String(lastError).replace(/^Error:\s*/, "")}`
-      : "Playback command sent, but Spotify has not reported the track change yet.";
+      ? `Playback command sent, but the Windows media session could not be refreshed: ${String(lastError).replace(/^Error:\s*/, "")}`
+      : "Playback command sent, but the Windows media session has not reported the change yet.";
   }
   State.notify();
 }
@@ -450,7 +444,7 @@ function messagesCard(openSettings: () => void): HTMLElement {
         } catch (error) {
           const info = State.integrations.integration_messages;
           if (info) info.error = String(error).replace(/^Error:\s*/, "");
-          console.error("[coucou] could not open notification source", error);
+          console.error("[macha] could not open notification source", error);
           State.notify();
         }
       },
@@ -470,15 +464,14 @@ function spotifyIcon(path: string, size = 16): SVGSVGElement {
   return svg(path, size, { stroke: 1.9 });
 }
 
-const SPOTIFY_ICONS = {
+const MUSIC_ICONS = {
   previous: "M6 5v14M18 6v12L8 12l10-6z",
   play: "M8 5v14l11-7z",
   pause: "M7 5h4v14H7zM15 5h4v14h-4z",
   next: "M18 5v14M6 6v12l10-6L6 6z",
-  rowPlay: "M8 5v14l11-7z",
 };
 
-function spotifyCard(openSettings: () => void): HTMLElement {
+function spotifyCard(): HTMLElement {
   const data = spotifySnapshot();
   const error = State.integrations.integration_spotify?.error;
   const track = data.track;
@@ -486,20 +479,18 @@ function spotifyCard(openSettings: () => void): HTMLElement {
     return h(
       "div",
       { class: "int-card spotify-card" },
-      header("#1DB954", "Spotify", "Player"),
+      header("#1DB954", "Music", "Windows media"),
       h("div", {
         class: "int-status",
         text: error ?? (data.connected
           ? "Nothing is playing."
-          : "Connect Spotify to see playback."),
+          : "Start playback in Spotify or another Windows media app."),
       }),
       h("div", { class: "int-actions" },
         h("button", {
           class: "link-btn",
-          text: data.connected ? "Refresh" : "Connect Spotify",
-          onclick: () => data.connected
-            ? void Bridge.refreshIntegration("integration_spotify")
-            : openSettings(),
+          text: "Refresh",
+          onclick: () => void Bridge.refreshIntegration("integration_spotify"),
         }),
       ),
     );
@@ -531,78 +522,27 @@ function spotifyCard(openSettings: () => void): HTMLElement {
       title: "Previous track",
       "aria-label": "Previous track",
       onclick: () => void spotifyAction("previous"),
-    }, spotifyIcon(SPOTIFY_ICONS.previous)),
+    }, spotifyIcon(MUSIC_ICONS.previous)),
     h("button", {
       class: "spotify-toggle",
       type: "button",
       title: data.playing ? "Pause" : "Play",
       "aria-label": data.playing ? "Pause" : "Play",
       onclick: () => void spotifyAction(data.playing ? "pause" : "play"),
-    }, spotifyIcon(data.playing ? SPOTIFY_ICONS.pause : SPOTIFY_ICONS.play, 21)),
+    }, spotifyIcon(data.playing ? MUSIC_ICONS.pause : MUSIC_ICONS.play, 21)),
     h("button", {
       class: "spotify-skip",
       type: "button",
       title: "Next track",
       "aria-label": "Next track",
       onclick: () => void spotifyAction("next"),
-    }, spotifyIcon(SPOTIFY_ICONS.next)),
+    }, spotifyIcon(MUSIC_ICONS.next)),
   );
 
-  const queueRows = h("div", { class: "spotify-queue" });
-  const queueHeader = h("div", { class: "spotify-queue-header" },
-    h("b", { text: "Up next" }),
-    h("span", { text: `${data.queue.length} ${data.queue.length === 1 ? "track" : "tracks"}` }),
-  );
-  const queueList = h("div", { class: "spotify-queue-list" });
-  if (data.queue.length) {
-    data.queue.forEach((item, index) => {
-      const thumbnail = item.imageUrl
-        ? h("img", { class: "spotify-queue-artwork", src: item.imageUrl, alt: "" })
-        : h("span", { class: "spotify-queue-artwork spotify-queue-artwork-empty", "aria-hidden": "true" });
-      const numberBadge = h("span", { class: "spotify-queue-number", "aria-hidden": "true" },
-        h("span", { class: "spotify-queue-number-value", text: String(index + 1) }),
-        spotifyIcon(SPOTIFY_ICONS.rowPlay, 12),
-      );
-      const row = h("button", {
-        class: `spotify-queue-item${index === 0 ? " is-next" : ""}`,
-        type: "button",
-        title: item.uri ? `Play ${item.name}` : `${item.name} cannot be selected from this queue`,
-        "aria-label": `Play ${item.name} by ${item.artists}`,
-        disabled: !item.uri,
-        onclick: () => {
-          if (item.uri) void spotifyAction("play_track", undefined, item.uri);
-        },
-      },
-      thumbnail,
-      h("span", { class: "spotify-queue-copy" },
-        h("b", { text: item.name }),
-        h("small", { text: item.artists }),
-      ),
-      index === 0
-        ? h("span", { class: "spotify-equalizer", "aria-label": "Next track" },
-          h("i"), h("i"), h("i"),
-        )
-        : numberBadge,
-      h("small", { class: "spotify-queue-duration", text: formatPlaybackTime(item.durationMs) }),
-      );
-      row.style.setProperty("--spotify-row-index", String(index));
-      queueList.append(row);
-    });
-  } else {
-    queueList.append(h("small", { class: "spotify-queue-empty", text: "Queue is empty" }));
-  }
-  queueRows.append(queueHeader, queueList);
-
-  const artwork = track.imageUrl
-    ? h("img", {
-      class: `spotify-artwork${data.playing ? " is-playing" : ""}`,
-      src: track.imageUrl,
-      alt: "Album artwork",
-    })
-    : h("div", {
-      class: `spotify-artwork spotify-artwork-empty${data.playing ? " is-playing" : ""}`,
-      text: "♪",
-    });
+  const artwork = h("div", {
+    class: `spotify-artwork spotify-artwork-empty${data.playing ? " is-playing" : ""}`,
+    text: "♪",
+  });
   const nowPlaying = h("div", { class: "spotify-now-playing" },
     artwork,
     h("div", { class: "spotify-track" },
@@ -618,18 +558,17 @@ function spotifyCard(openSettings: () => void): HTMLElement {
   return h(
     "div",
     { class: "int-card spotify-card" },
-    header("#1DB954", "Spotify", error ? "Status unavailable" : "Now playing"),
+    header("#1DB954", "Music", error ? "Status unavailable" : "Now playing"),
     error ? h("div", { class: "int-status", text: error }) : null,
     nowPlaying,
     timeline,
     controls,
-    queueRows,
   );
 }
 
 export function renderIntegrationCard(task: AgentTask, hooks: IntegrationCardHooks): HTMLElement {
   if (task.id === "integration_messages") return messagesCard(hooks.openSettings);
-  if (task.id === "integration_spotify") return spotifyCard(hooks.openSettings);
+  if (task.id === "integration_spotify") return spotifyCard();
   if (task.id === "integration_vercel" && hasIntegrationData(task.id)) {
     return hooks.detailOpen ? vercelDetail(hooks.closeDetail) : vercelCard(hooks.openDetail);
   }

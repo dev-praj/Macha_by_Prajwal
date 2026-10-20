@@ -8,7 +8,7 @@
   "provenance": "current",
   "deliveryReceiptId": "851a12e5-e734-4972-ae42-4fbfd2d8f2b6",
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\diagrams\\repaired\\flow-settings-memory.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\diagrams\\repaired\\flow-settings-memory.html",
     "sha256": "fd5a3573962c6ecb854d0f4f8694ed0f7d22394a061f538de3acc56654669f94",
     "bytes": 821471
   },
@@ -896,7 +896,7 @@
     "contactSheet": "flow-settings-memory.visual-check.html"
   },
   "sidecars": {
-    "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\images",
+    "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\images",
     "receipt": "flow-settings-memory.visual-check.json",
     "contactSheet": "flow-settings-memory.visual-check.html",
     "files": [

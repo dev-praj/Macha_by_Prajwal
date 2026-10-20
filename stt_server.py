@@ -1,7 +1,8 @@
-"""Offline speech-to-text service used by Coucou."""
+"""Offline speech-to-text service used by Macha."""
 
 from pathlib import Path
 import inspect
+import sys
 import tempfile
 
 import av
@@ -9,7 +10,17 @@ import numpy as np
 from flask import Flask, jsonify, request
 from faster_whisper import WhisperModel
 
-MODEL_NAME = "base.en"
+
+def resource_path(relative):
+    base_path = getattr(sys, "_MEIPASS", Path(__file__).resolve().parent)
+    return str(Path(base_path) / relative)
+
+
+MODEL_NAME = (
+    resource_path("whisper-base.en")
+    if getattr(sys, "frozen", False)
+    else "base.en"
+)
 TRANSCRIPTION_LANGUAGE = "en"
 DEVICE = "cpu"
 COMPUTE_TYPE = "int8"

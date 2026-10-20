@@ -8,7 +8,7 @@
   "provenance": "current",
   "deliveryReceiptId": "62407959-2915-48a4-bd6e-80e4287ecc96",
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.html",
     "sha256": "0739a04be6edc69a2da629538f8a19204220ea5e35b375e6c224f40cf4de717b",
     "bytes": 866935
   },
@@ -691,7 +691,7 @@
     "contactSheet": null
   },
   "sidecars": {
-    "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.review-3",
+    "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.review-3",
     "receipt": "feature-map.browser-check.json",
     "files": []
   }

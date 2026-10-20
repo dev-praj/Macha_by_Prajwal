@@ -7,12 +7,12 @@
   "quality": "showcase",
   "startedAt": "2026-10-17T05:20:49.445Z",
   "specification": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.architecture.json",
     "sha256": "5b5e852f03eba53cec6c93f0af57cc5b8b6a8df03dc5639acceefc3ad338569d",
     "bytes": 8677
   },
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.html",
     "sha256": "0739a04be6edc69a2da629538f8a19204220ea5e35b375e6c224f40cf4de717b",
     "bytes": 866935
   },
@@ -26,12 +26,12 @@
         "C:\\Users\\waste\\.agents\\skills\\archify\\bin\\archify.mjs",
         "deliver",
         "architecture",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.architecture.json",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.html",
         "--quality",
         "showcase",
         "--repo-root",
-        "C:\\Users\\waste\\OneDrive\\Desktop\\coucou",
+        "C:\\Users\\waste\\OneDrive\\Desktop\\macha",
         "--json"
       ],
       "receipt": {
@@ -41,8 +41,8 @@
         "receiptId": "f8381c8c-14ee-49ae-9284-3452fd37b252",
         "stage": "render",
         "type": "architecture",
-        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.architecture.json",
-        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.html",
+        "input": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.architecture.json",
+        "output": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.html",
         "error": "Architecture layout validation failed:\n- Components \"workflows\" and \"vision\" are less than 8px apart — move one or shrink its size.\n  \"workflows\" [640, 400, 120, 60]; \"vision\" [640, 360, 120, 60]\n  Suggested fix: move \"vision\" pos to [768, 360] (right of \"workflows\") or [640, 468] (below)\n- Components \"files\" and \"pollers\" are less than 8px apart — move one or shrink its size.\n  \"files\" [840, 400, 120, 60]; \"pollers\" [840, 360, 120, 60]\n  Suggested fix: move \"pollers\" pos to [968, 360] (right of \"files\") or [840, 468] (below)\n- [composition/label-route-clearance] showcase architecture label \"recognized command\" on connections[12] \"voice\" -> \"chat\" label \"recognized command\" is 0px from connections[21] \"chat\" -> \"localstores\" label \"persist conversations\" segment 0 [79, 460] -> [79, 569] (label rect [45, 560, 96, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.\n- [composition/label-route-clearance] showcase architecture label \"enable / configure\" on connections[15] \"settings\" -> \"pollers\" label \"enable / configure\" is 0px from connections[16] \"settings\" -> \"messages\" label \"request Windows access\" segment 0 [907, 260] -> [907, 310] (label rect [841, 290, 96, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.\n- [composition/label-route-clearance] showcase architecture label \"enable / configure\" on connections[15] \"settings\" -> \"pollers\" label \"enable / configure\" is 0px from connections[20] \"settings\" -> \"localstores\" label \"save preferences / workflows\" segment 0 [893, 260] -> [893, 350] (label rect [841, 290, 96, 14]; minimum 4px) — adjust labelAt, labelDx, labelDy, or labelSegment; otherwise adjust the other relationship route/via/channel.",
         "diagnostics": [
           {
@@ -559,8 +559,8 @@
     }
   ],
   "evidence": {
-    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.review-2\\feature-map.finalize.json",
-    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\feature-map.review-2\\feature-map.finalize-summary.json"
+    "receipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.review-2\\feature-map.finalize.json",
+    "summaryReceipt": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\feature-map.review-2\\feature-map.finalize-summary.json"
   },
   "visualReview": "not-requested",
   "failedStage": "validate",

@@ -160,11 +160,21 @@ pub fn tts_is_speaking(process: tauri::State<'_, TtsProcess>) -> Result<bool, St
 }
 
 pub fn start_stt_server(app: &AppHandle, process: &SttProcess) {
+    process.stopping.store(false, Ordering::Relaxed);
+    if let Ok(resources) = app.path().resource_dir() {
+        let executable = resources.join("MachaSTT.exe");
+        if executable.is_file() {
+            let mut command = Command::new(&executable);
+            if launch(&mut command, "bundled executable", app, process) {
+                return;
+            }
+        }
+    }
+
     let Some(script) = stt_script_path(app) else {
         log::line("voice STT server script was not found; voice input is unavailable");
         return;
     };
-    process.stopping.store(false, Ordering::Relaxed);
 
     let project_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
     let mut venv_candidates = vec![project_root.join(".venv/Scripts/python.exe")];

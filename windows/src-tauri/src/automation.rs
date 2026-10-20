@@ -846,7 +846,7 @@ fn create_backup(path: &Path, content: &[u8]) -> Result<PathBuf, String> {
         .map_err(|e| format!("System clock error while creating backup: {e}"))?
         .as_secs();
     for suffix in 0..1000u16 {
-        let backup = parent.join(format!("{name}.coucou-backup-{timestamp}-{suffix}"));
+        let backup = parent.join(format!("{name}.macha-backup-{timestamp}-{suffix}"));
         let mut file = match fs::OpenOptions::new()
             .write(true)
             .create_new(true)
@@ -1307,7 +1307,7 @@ mod tests {
             .unwrap()
             .as_nanos();
         let root = std::env::temp_dir().join(format!(
-            "coucou-automation-{}-{}",
+            "macha-automation-{}-{}",
             std::process::id(),
             unique
         ));
@@ -1329,7 +1329,7 @@ mod tests {
         let search = prepare(
             action(
                 "search_web",
-                json!({ "query": "Mochi & Coucou", "engine": "youtube" }),
+                json!({ "query": "Macha & Macha", "engine": "youtube" }),
             ),
             &[],
         )
@@ -1337,7 +1337,7 @@ mod tests {
         assert_eq!(search.name, "open_website");
         let url = search.arguments["url"].as_str().unwrap();
         assert!(url.starts_with("https://www.youtube.com/results?search_query="));
-        assert!(url.contains("Mochi+%26+Coucou"));
+        assert!(url.contains("Macha+%26+Macha"));
 
         let website = prepare(
             action("open_website", json!({ "url": "https://example.com" })),
@@ -1640,13 +1640,13 @@ mod tests {
             result.contains("notes.txt. Original content backed up to "),
             "{result}"
         );
-        assert!(result.contains(".coucou-backup-"), "{result}");
+        assert!(result.contains(".macha-backup-"), "{result}");
         assert_eq!(fs::read_to_string(&file).unwrap(), "replacement");
         let backup = fs::read_dir(&folder)
             .unwrap()
             .flatten()
             .map(|entry| entry.path())
-            .find(|path| path.to_string_lossy().contains(".coucou-backup-"))
+            .find(|path| path.to_string_lossy().contains(".macha-backup-"))
             .unwrap();
         assert_eq!(fs::read_to_string(backup).unwrap(), "original");
 

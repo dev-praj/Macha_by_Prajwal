@@ -436,7 +436,7 @@ mod imp {
             let title = String::from_utf16_lossy(&buffer[..copied as usize])
                 .trim()
                 .to_string();
-            if title.is_empty() || title.to_ascii_lowercase().contains("coucou") {
+            if title.is_empty() || title.to_ascii_lowercase().contains("macha") {
                 return 1;
             }
             let windows = &mut *(data as *mut Vec<WindowEntry>);

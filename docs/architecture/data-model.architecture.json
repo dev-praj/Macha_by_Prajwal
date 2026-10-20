@@ -2,12 +2,12 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "Coucou Windows — Data and Persistence Model",
+    "title": "Macha Windows — Data and Persistence Model",
     "locale": "en",
     "output": "docs/architecture/data-model.html",
     "quality_profile": "showcase",
     "repository": {
-      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "url": "https://github.com/vemalaprajwal8200-a11y/macha-customised.git",
       "provider": "github",
       "link_mode": "web",
       "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"

@@ -2,12 +2,12 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "Coucou Windows — System Overview",
+    "title": "Macha Windows — System Overview",
     "locale": "en",
     "output": "docs/architecture/system-overview.html",
     "quality_profile": "showcase",
     "repository": {
-      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "url": "https://github.com/vemalaprajwal8200-a11y/macha-customised.git",
       "provider": "github",
       "link_mode": "web",
       "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
@@ -27,7 +27,7 @@
   },
   "components": [
     { "id": "user", "type": "external", "label": "User", "sublabel": "types, approves, configures", "pos": [40, 270], "sources": [{ "path": "windows/src/main.ts", "line": 43, "label": "island actions" }] },
-    { "id": "island", "type": "frontend", "label": "Island WebView", "sublabel": "views · chat · Mochi · state", "pos": [220, 180], "sources": [{ "path": "windows/src/main.ts", "line": 11 }, { "path": "windows/src/views/views.ts", "line": 487 }, { "path": "windows/src/core/state.ts", "line": 170 }] },
+    { "id": "island", "type": "frontend", "label": "Island WebView", "sublabel": "views · chat · Macha · state", "pos": [220, 180], "sources": [{ "path": "windows/src/main.ts", "line": 11 }, { "path": "windows/src/views/views.ts", "line": 487 }, { "path": "windows/src/core/state.ts", "line": 170 }] },
     { "id": "settings_ui", "type": "frontend", "label": "Settings WebView", "sublabel": "preferences · workflows", "pos": [220, 360], "sources": [{ "path": "windows/src/settings/main.ts", "line": 1348 }] },
     { "id": "bridge", "type": "messagebus", "label": "Tauri bridge", "sublabel": "commands · events", "pos": [400, 270], "sources": [{ "path": "windows/src/core/bridge.ts", "line": 1 }, { "path": "windows/src/core/bridge.ts", "line": 80 }] },
     { "id": "rust", "type": "backend", "label": "Rust application", "sublabel": "chat · hooks · settings", "pos": [580, 270], "sources": [{ "path": "windows/src-tauri/src/lib.rs", "line": 623 }, { "path": "windows/src-tauri/src/claude.rs", "line": 239 }] },
@@ -60,7 +60,7 @@
     { "id": "rust-spotify", "from": "rust", "to": "spotify", "label": "OAuth / playback API" }
   ],
   "cards": [
-    { "dot": "cyan", "title": "Local-first data", "items": ["No SQL, Firebase, or hosted Coucou database was found. Settings, workflows, memories, inbox files, and logs are stored locally.", "Secrets use Windows Credential Manager. Audio is transcribed by local Whisper; prompts and optional screenshots may go to a configured cloud model."] },
+    { "dot": "cyan", "title": "Local-first data", "items": ["No SQL, Firebase, or hosted Macha database was found. Settings, workflows, memories, inbox files, and logs are stored locally.", "Secrets use Windows Credential Manager. Audio is transcribed by local Whisper; prompts and optional screenshots may go to a configured cloud model."] },
     { "dot": "amber", "title": "Optional services", "items": ["Ollama and APIs for Vercel, GitHub, Stripe, Notion, and Cal.com require local availability or user configuration. Spotify adds OAuth playback controls.", "Windows notifications, camera access, cursor control, and SAPI are provided by Windows; permission and packaging behavior can vary."] }
   ]
 }

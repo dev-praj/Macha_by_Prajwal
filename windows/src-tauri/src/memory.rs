@@ -252,11 +252,11 @@ mod tests {
         let context = system_context(&[Memory {
             id: "1".into(),
             category: "project".into(),
-            text: "The user is building Coucou.".into(),
+            text: "The user is building Macha.".into(),
             created_at: 1,
             updated_at: 1,
         }]);
-        assert!(context.contains("The user is building Coucou."));
+        assert!(context.contains("The user is building Macha."));
         assert!(context.contains("passwords"));
     }
 }

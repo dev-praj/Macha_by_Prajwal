@@ -9,7 +9,7 @@ $repoRoot = Split-Path -Parent $windowsRoot
 $package = Get-Content (Join-Path $windowsRoot "package.json") -Raw | ConvertFrom-Json
 $version = $package.version
 $stage = Join-Path $windowsRoot "target\msix\stage"
-$output = Join-Path $windowsRoot "target\msix\Coucou-Windows-$version-x64.msix"
+$output = Join-Path $windowsRoot "target\msix\Macha-Windows-$version-x64.msix"
 
 function Find-SdkTool([string]$name) {
   $onPath = Get-Command "$name.exe" -ErrorAction SilentlyContinue
@@ -51,8 +51,8 @@ New-Item -ItemType Directory -Path (Join-Path $stage "Assets") -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $stage "resources") -Force | Out-Null
 
 $release = Join-Path $windowsRoot "target\release"
-Copy-Item (Join-Path $release "coucou.exe") (Join-Path $stage "Coucou.exe")
-Copy-Item (Join-Path $release "coucou-hook.exe") (Join-Path $stage "resources\coucou-hook.exe")
+Copy-Item (Join-Path $release "macha.exe") (Join-Path $stage "Macha.exe")
+Copy-Item (Join-Path $release "macha-hook.exe") (Join-Path $stage "resources\macha-hook.exe")
 Copy-Item (Join-Path $repoRoot "stt_server.py") (Join-Path $stage "resources\stt_server.py")
 $iconRoot = Join-Path $windowsRoot "src-tauri\icons"
 Copy-Item (Join-Path $iconRoot "50x50.png") (Join-Path $stage "Assets\StoreLogo.png")

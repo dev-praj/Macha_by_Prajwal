@@ -1,4 +1,4 @@
-// The launch "coucou" — port of GreetingCanvasView.swift.
+// The launch "macha" — port of GreetingCanvasView.swift.
 // Everything is laid out in the same 640×150 reference space as on macOS.
 
 import { Sound } from "../core/sound";
@@ -248,7 +248,7 @@ function rr(x: CanvasRenderingContext2D, X: number, Y: number, W: number, H: num
   x.closePath();
 }
 
-function mochiPath(hw: number, hh: number): Path2D {
+function machaPath(hw: number, hh: number): Path2D {
   const n = 3.2;
   const p = new Path2D();
   const steps = 96;
@@ -327,7 +327,7 @@ function drawHandR(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose)
   x.restore();
 }
 
-function drawMochi(x: CanvasRenderingContext2D, p: Pose) {
+function drawMacha(x: CanvasRenderingContext2D, p: Pose) {
   const hh = p.hb / 2;
   const hw = hh * ASP;
   if (hh <= 0.4) return;
@@ -357,7 +357,7 @@ function drawMochi(x: CanvasRenderingContext2D, p: Pose) {
   drawHandL(x, hw, hh, p);
   drawHandR(x, hw, hh, p);
 
-  const body = mochiPath(hw, hh);
+  const body = machaPath(hw, hh);
   whiteFill(x, body, hw * 0.6, -hh, -hw * 0.6, hh);
 
   if (p.tint > 0) {
@@ -473,7 +473,7 @@ function drawMinis(x: CanvasRenderingContext2D, alpha: number) {
     x.translate(cx + dx, cy + dy);
     x.scale(alpha, alpha);
     x.fillStyle = MINI_COLORS[i];
-    x.fill(mochiPath(5.3, 4));
+    x.fill(machaPath(5.3, 4));
     x.restore();
   });
 }
@@ -536,7 +536,7 @@ export class Greeting {
     this.timers = [];
   }
 
-  draw(x: CanvasRenderingContext2D) {
+  draw(x: CanvasRenderingContext2D, drawMascot = true) {
     const t = this.elapsed;
     if (!this.fired && t >= T.end && this.tc >= T.autoLeave) this.fire();
 
@@ -560,7 +560,9 @@ export class Greeting {
       drawParticles(x, t, p);
     }
 
-    drawMinis(x, p.minis);
-    drawMochi(x, p);
+    if (drawMascot) {
+      drawMinis(x, p.minis);
+      drawMacha(x, p);
+    }
   }
 }

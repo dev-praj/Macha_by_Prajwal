@@ -1,4 +1,4 @@
-// The island: DOM shell, sizing animation, Mochi placement, mouse handling.
+// The island: DOM shell, sizing animation, Macha placement, mouse handling.
 // Mirrors IslandRootView.swift + IslandWindowController.swift.
 
 import { Tracked, Spring, clamp } from "../core/anim";
@@ -11,9 +11,10 @@ import {
 } from "../core/layout";
 import { Sound } from "../core/sound";
 import { State } from "../core/state";
-import { BotEngine, hexToRGB } from "../mochi/engine";
-import { Greeting } from "../mochi/greeting";
-import { createMiniBot, pruneMiniBots, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
+import { BotEngine, hexToRGB } from "../macha/engine";
+import { mountAvatar, setAvatarSelection, type AvatarDisplay } from "../macha/avatar";
+import { Greeting } from "../macha/greeting";
+import { createMiniBot, pruneMiniBots, syncMiniBotStates, tickMiniBots } from "../macha/minibots";
 import { UploadCanvas } from "../upload/canvas";
 import { USC, UploadSeq } from "../upload/sequence";
 import { buildHeader, buildViews, type ViewActions, type ViewHost } from "../views/views";
@@ -43,6 +44,10 @@ export class Island {
   private contentEl!: HTMLElement;
   private viewsEl!: HTMLElement;
   private botCanvas!: HTMLCanvasElement;
+  private botAvatarHost!: HTMLElement;
+  private greetingAvatarHost!: HTMLElement;
+  private botAvatar!: AvatarDisplay;
+  private greetingAvatar!: AvatarDisplay;
   private botGlow!: HTMLElement;
   private greetingCanvas!: HTMLCanvasElement;
   private miniGrid!: HTMLElement;
@@ -187,7 +192,9 @@ export class Island {
     this.wakeStrip = h("div", { id: "wake-strip" });
     this.botGlow = h("div", { id: "bot-glow" });
     this.botCanvas = h("canvas", { id: "bot-canvas" });
+    this.botAvatarHost = h("div", { id: "bot-avatar" });
     this.greetingCanvas = h("canvas", { id: "greeting-canvas" });
+    this.greetingAvatarHost = h("div", { id: "greeting-avatar" });
     this.miniGrid = h("div", { id: "mini-grid" });
     this.countdown = h("div", { id: "countdown" });
     this.statusBar = new NixiStatusBar();
@@ -198,7 +205,7 @@ export class Island {
     for (const v of this.views.values()) this.viewsEl.append(v.el);
     this.contentEl = h("div", { id: "content" }, this.header.el, this.viewsEl);
 
-    // The drop sequence draws the card, the bar and its own Mochi. It sits under
+    // The drop sequence draws the card, the bar and its own Macha. It sits under
     // the header, which stays visible on top of it exactly as on macOS.
     this.uploadCanvas = new UploadCanvas({
       ask: () => {
@@ -223,6 +230,8 @@ export class Island {
       this.clipEl,
       this.botGlow,
       this.botCanvas,
+      this.botAvatarHost,
+      this.greetingAvatarHost,
       this.statusBar.el,
       this.miniGrid,
       this.countdown,
@@ -235,6 +244,8 @@ export class Island {
     this.greetingCanvas.style.height = "150px";
 
     this.root.append(this.wakeStrip, this.islandEl);
+    this.botAvatar = mountAvatar(this.botAvatarHost);
+    this.greetingAvatar = mountAvatar(this.greetingAvatarHost);
     this.applyGeometry();
   }
 
@@ -248,17 +259,17 @@ export class Island {
           this.setMode("hidden");
           break;
         case "petit":
-          if (from === "coucou") this.greeting.interrupt();
+          if (from === "macha") this.greeting.interrupt();
           else if (from === "hidden") Sound.play("peek");
           this.setMode("compact");
-          if (from === "coucou") State.view = State.defaultView();
+          if (from === "macha") State.view = State.defaultView();
           if (!this.wasInIsland) this.fsm.mouseLeft();
           break;
         case "home":
           this.expand(State.defaultView());
           if (!this.wasInIsland) this.fsm.mouseLeft();
           break;
-        case "coucou":
+        case "macha":
           this.expand("greeting");
           this.greeting.start();
           break;
@@ -451,7 +462,7 @@ export class Island {
   }
 
   /**
-   * Mochi eats the file. Nothing here waits on the file system: the copy into
+   * Macha eats the file. Nothing here waits on the file system: the copy into
    * the inbox runs in the background and swaps the path in when it lands, so a
    * slow disk can never stall the animation — same as FileDropHandler on macOS.
    */
@@ -488,7 +499,7 @@ export class Island {
 
   /**
    * Sounds and view changes hung off the canvas timeline: a `tick` every 10 %,
-   * the ✓ chime when the bar completes, then `choose` once Mochi has grown back.
+   * the ✓ chime when the bar completes, then `choose` once Macha has grown back.
    */
   private stepSequence() {
     const since = UploadSeq.sinceDrop();
@@ -517,13 +528,6 @@ export class Island {
 
   private targetSize(): { w: number; h: number; r: number } {
     const size = islandSize(State.mode, State.view, State.chatHistory.length);
-    if (
-      State.mode === "expanded"
-      && State.view === "overview"
-      && State.focusTask?.id === "integration_spotify"
-    ) {
-      size.h = PANEL_H;
-    }
     const r = State.mode === "expanded" ? EXPANDED_CORNER : ROUNDED_CORNER;
     return { w: size.w, h: size.h, r };
   }
@@ -659,7 +663,7 @@ export class Island {
       y >= rect.y - HIT_MARGIN && y <= rect.y + rect.h + HIT_MARGIN;
 
     if (inIsland && !this.wasInIsland) {
-      if (this.fsm.state === "coucou") this.greeting.hover();
+      if (this.fsm.state === "macha") this.greeting.hover();
       this.fsm.mouseEntered();
       this.homeCollapseAt = null;
     }
@@ -771,15 +775,18 @@ export class Island {
     this.botSize.step(dt);
 
     const greetingActive = State.mode === "expanded" && State.view === "greeting";
+    const customAvatar = State.settings.avatar !== "macha";
     if (greetingActive) {
+      this.greetingAvatarHost.style.display = customAvatar ? "block" : "none";
       const gctx = this.greetingCanvas.getContext("2d");
       if (gctx) {
         const dpr = Math.min(2, window.devicePixelRatio || 1);
         gctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        this.greeting.draw(gctx);
+        this.greeting.draw(gctx, !customAvatar);
       }
     } else {
-      // Kept running even while the drop canvas is up, so the island's own Mochi
+      this.greetingAvatarHost.style.display = "none";
+      // Kept running even while the drop canvas is up, so the island's own Macha
       // is already in the right place the moment the canvas fades out.
       this.drawBot(dt);
     }
@@ -823,9 +830,13 @@ export class Island {
     this.botSize.target = p.diameter / 0.6;
 
     const greetingActive = State.mode === "expanded" && State.view === "greeting";
-    // The drop canvas draws its own Mochi; two of them would overlap.
+    // The drop canvas draws its own Macha; two of them would overlap.
     const visible = p.opacity > 0 && !greetingActive && !this.uploadActive;
-    this.botCanvas.style.opacity = visible ? "1" : "0";
+    this.botCanvas.style.opacity = visible && State.settings.avatar === "macha" ? "1" : "0";
+    this.botAvatarHost.style.display = visible && State.settings.avatar !== "macha" ? "block" : "none";
+    this.greetingAvatarHost.style.display = greetingActive && State.settings.avatar !== "macha" ? "block" : "none";
+    this.botAvatar.setState(State.effectiveState);
+    this.greetingAvatar.setState(State.effectiveState);
 
     if (State.mode === "expanded" && State.view !== "uploading" && !greetingActive && !this.uploadActive) {
       const d = p.diameter;
@@ -856,6 +867,11 @@ export class Island {
     }
     this.botCanvas.style.left = `${this.botCx.value - w / 2}px`;
     this.botCanvas.style.top = `${this.botCy.value - BOT_OVERHANG / 2 - hCss / 2}px`;
+    const bodySize = this.botSize.value * 0.6;
+    this.botAvatarHost.style.width = `${bodySize}px`;
+    this.botAvatarHost.style.height = `${bodySize}px`;
+    this.botAvatarHost.style.left = `${this.botCx.value - bodySize / 2}px`;
+    this.botAvatarHost.style.top = `${this.botCy.value - bodySize / 2}px`;
 
     const ctx = this.botCanvas.getContext("2d");
     if (!ctx) return;
@@ -865,6 +881,13 @@ export class Island {
     this.engine.particleOverhang = BOT_OVERHANG;
     this.engine.lookX = this.lookX();
     this.engine.lookY = this.lookY();
+    this.botAvatar.setLook(this.engine.lookX, this.engine.lookY);
+    const greetingCenterX = this.greetingAvatarHost.offsetLeft + this.greetingAvatarHost.offsetWidth / 2;
+    const greetingCenterY = this.greetingAvatarHost.offsetTop + this.greetingAvatarHost.offsetHeight / 2;
+    this.greetingAvatar.setLook(
+      Math.tanh((State.mouseInIsland.x - greetingCenterX) / 260),
+      -Math.tanh((State.mouseInIsland.y - greetingCenterY) / 200),
+    );
     if (this.engine.morph > 0.3) {
       this.engine.slotHTarget = State.fileDragOver ? 0.2 : 0;
     } else {
@@ -960,6 +983,7 @@ export class Island {
 
   /** Applies settings coming from Rust at boot. */
   applySettings() {
+    setAvatarSelection(State.settings.avatar);
     Sound.setEnabled(State.settings.soundEnabled);
     Sound.setVolume(State.settings.soundVolume);
     this.fsm.homeToPetitDelay = State.settings.autoCloseInterval;

@@ -2,12 +2,12 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "Coucou Windows — Feature Map",
+    "title": "Macha Windows — Feature Map",
     "locale": "en",
     "output": "docs/architecture/feature-map.html",
     "quality_profile": "showcase",
     "repository": {
-      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "url": "https://github.com/vemalaprajwal8200-a11y/macha-customised.git",
       "provider": "github",
       "link_mode": "web",
       "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
@@ -27,7 +27,7 @@
   },
   "components": [
     { "id": "user", "type": "external", "label": "User", "tag": "Person", "pos": [40, 60], "sources": [{ "path": "windows/src/main.ts", "line": 43 }] },
-    { "id": "island", "type": "frontend", "label": "Island / Mochi", "tag": "Shell", "pos": [240, 60], "sources": [{ "path": "windows/src/island/island.ts", "line": 1 }, { "path": "windows/src/core/layout.ts", "line": 1 }] },
+    { "id": "island", "type": "frontend", "label": "Island / Macha", "tag": "Shell", "pos": [240, 60], "sources": [{ "path": "windows/src/island/island.ts", "line": 1 }, { "path": "windows/src/core/layout.ts", "line": 1 }] },
     { "id": "settings", "type": "frontend", "label": "Settings window", "tag": "Shell", "pos": [440, 60], "sources": [{ "path": "windows/src/settings/main.ts", "line": 1348 }] },
     { "id": "tray", "type": "backend", "label": "Tray / hotkeys", "sublabel": "auto-hide", "tag": "Shell", "pos": [640, 60], "sources": [{ "path": "windows/src-tauri/src/lib.rs", "line": 42 }, { "path": "windows/src-tauri/src/lib.rs", "line": 623 }] },
     { "id": "taskpills", "type": "frontend", "label": "Task activity", "sublabel": "session pills", "tag": "Shell", "pos": [840, 60], "sources": [{ "path": "windows/src/views/views.ts", "line": 120 }, { "path": "windows/src/core/state.ts", "line": 8 }] },

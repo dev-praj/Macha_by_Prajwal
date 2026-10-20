@@ -11,7 +11,7 @@ traffic is on the same machine unless otherwise stated.
 ### Island window and view navigation
 
 - **What it does:** A small top-of-screen island expands to show the active
-  session, questions, approvals, chat, or file-drop flow. The Mochi mascot
+  session, questions, approvals, chat, or file-drop flow. The Macha mascot
   changes position/state with the island mode.
 - **User flow:** The app opens at the top of the selected display. Hovering the
   hidden strip reveals the compact island; click expands it. Header tabs switch
@@ -21,7 +21,7 @@ traffic is on the same machine unless otherwise stated.
   names, and geometry. `windows/src/island/fsm.ts` manages hidden/compact/
   expanded transitions and timers. `windows/src/island/island.ts` syncs state
   to rendering and window geometry. `windows/src/views/views.ts` creates the
-  views; `buildHeader` and `buildViews` connect navigation. `windows/src/mochi/`
+  views; `buildHeader` and `buildViews` connect navigation. `windows/src/macha/`
   contains mascot rendering/animation.
 - **Data:** Current view, mode, task pills, and mascot state are held in
   frontend memory (`windows/src/core/state.ts`). No backend record is created
@@ -85,7 +85,7 @@ traffic is on the same machine unless otherwise stated.
   hooks. Claude Code events update the matching project/session pill.
 - **Under the hood:** `windows/src/settings/main.ts::claudeSection` calls
   `hooks_status`, `hooks_preview`, and `hooks_apply`.
-  `windows/src-tauri/src/hooks.rs::preview` merges or removes Coucou entries,
+  `windows/src-tauri/src/hooks.rs::preview` merges or removes Macha entries,
   prepares a dated backup and a file fingerprint, and writes only after
   confirmation if the file still matches the preview. The hook helper in
   `windows/hook/src/main.rs` reads JSON on stdin, trims large fields, adds
@@ -96,9 +96,9 @@ traffic is on the same machine unless otherwise stated.
   forwards selected hook payload fields; active task state is in memory.
 - **Edge cases:** Malformed or unreadable Claude settings are reported rather
   than overwritten. Hook helper events have short budgets and exit without
-  blocking Claude Code if Coucou is unavailable. Empty/invalid hook input
+  blocking Claude Code if Macha is unavailable. Empty/invalid hook input
   produces no forwarded event.
-- **Dependencies:** Claude Code, the bundled `coucou-hook.exe`, the per-user
+- **Dependencies:** Claude Code, the bundled `macha-hook.exe`, the per-user
   named pipe, and Tauri events. The hook event list includes session, prompt,
   tool, notification, stop, and subagent lifecycle events.
 
@@ -140,7 +140,7 @@ traffic is on the same machine unless otherwise stated.
   screen image. `windows/src-tauri/src/llm_client.rs::chat` routes to Ollama
   (`127.0.0.1:11434`) or OpenRouter (`https://openrouter.ai/api/v1`).
 - **Data:** Conversation IDs/titles/messages/current file pointer are saved in
-  WebView `localStorage` under `coucou.conversations.v1`. Active LLM request
+  WebView `localStorage` under `macha.conversations.v1`. Active LLM request
   history and cancellation tokens live in Rust memory. Durable memories are
   loaded separately and inserted into prompt context.
 - **Edge cases:** The `auto` provider mode tries local Ollama first and can
@@ -191,7 +191,7 @@ traffic is on the same machine unless otherwise stated.
   with plan/action/verify phases, `Bridge.chatAction`, and verification logic
   form the loop. `windows/src-tauri/src/claude.rs::workflow_action_tools`
   limits each action phase to one of app open/click/type/shortcut/scroll.
-- **Data:** Workflows are JSON objects in `%APPDATA%\\Coucou\\workflows.json`
+- **Data:** Workflows are JSON objects in `%APPDATA%\\Macha\\workflows.json`
   with `id`, `name`, `prompt`, `archived`, `createdAt`, `updatedAt`.
   Checkpoints and screenshots exist only for the running workflow; screenshots
   are kept in memory, not written to a file. Conversation turns are in the
@@ -219,7 +219,7 @@ traffic is on the same machine unless otherwise stated.
   `windows/src/core/bridge.ts` exposes drop/picker/`ingest_file`. Rust
   `windows/src-tauri/src/files.rs::ingest` copies the file. `claude.rs` reads
   file context for chat and attaches it to the first turn.
-- **Data:** Copies go under `%LOCALAPPDATA%\\Coucou\\inbox`; the conversation
+- **Data:** Copies go under `%LOCALAPPDATA%\\Macha\\inbox`; the conversation
   stores the display name and copy path, not a second copy of the bytes.
 - **Edge cases:** Folders are rejected. Name collisions get numbered names.
   Inbox copies older than seven days are swept on later ingestion. Unreadable
@@ -391,7 +391,7 @@ not included in this guide.
 
 ### Windows notification cards
 
-- **What it does / user flow:** With Windows notification permission, Coucou
+- **What it does / user flow:** With Windows notification permission, Macha
   surfaces newly observed notifications as island cards and can open their
   source app.
 - **Under the hood:** `messages.rs::request_message_access` requests
@@ -435,7 +435,7 @@ not included in this guide.
 - **Under the hood:** `windows/src/settings/main.ts` builds each section.
   `settings.rs::Settings` defines serde fields, defaults, and migrations;
   `lib.rs::save_settings` persists and emits the updated settings.
-- **Data:** `%APPDATA%\\Coucou\\settings.json`, except secrets which use the OS
+- **Data:** `%APPDATA%\\Macha\\settings.json`, except secrets which use the OS
   credential store. Settings include active integration IDs and voice/provider
   options.
 - **Edge cases:** Older speech/integration values are migrated. The settings
@@ -472,7 +472,7 @@ not included in this guide.
 - **Under the hood:** `memory.rs::remember`, `list`, and `forget` validate and
   persist entries. `claude.rs` loads them for chat context. The Settings UI
   refreshes and reports errors.
-- **Data:** `%LOCALAPPDATA%\\Coucou\\memories.json`; each item has `id`,
+- **Data:** `%LOCALAPPDATA%\\Macha\\memories.json`; each item has `id`,
   `category`, `text`, `createdAt`, and `updatedAt`. Categories are constrained
   to a known list.
 - **Edge cases:** Maximum 200 entries and 500 bytes of text. Credential-like
@@ -486,13 +486,13 @@ not included in this guide.
 
 | Data | Location | Lifetime / relationship |
 |---|---|---|
-| Preferences | `%APPDATA%\\Coucou\\settings.json` | Durable; controls active settings and integration IDs |
-| Saved workflows | `%APPDATA%\\Coucou\\workflows.json` | Durable; independent workflows with prompt text |
-| OpenRouter account metadata | `%APPDATA%\\Coucou\\openrouter-accounts.json` | Durable names/IDs only; key value stored separately |
+| Preferences | `%APPDATA%\\Macha\\settings.json` | Durable; controls active settings and integration IDs |
+| Saved workflows | `%APPDATA%\\Macha\\workflows.json` | Durable; independent workflows with prompt text |
+| OpenRouter account metadata | `%APPDATA%\\Macha\\openrouter-accounts.json` | Durable names/IDs only; key value stored separately |
 | API keys and OAuth tokens | Windows Credential Manager | Durable per-user credentials |
-| Memories | `%LOCALAPPDATA%\\Coucou\\memories.json` | Durable; inserted into model context |
-| Dropped file copies | `%LOCALAPPDATA%\\Coucou\\inbox\\` | Local copies; swept after seven days on ingestion |
-| Conversation history | WebView `localStorage`, key `coucou.conversations.v1` | Durable per WebView profile; transcript/file path metadata |
+| Memories | `%LOCALAPPDATA%\\Macha\\memories.json` | Durable; inserted into model context |
+| Dropped file copies | `%LOCALAPPDATA%\\Macha\\inbox\\` | Local copies; swept after seven days on ingestion |
+| Conversation history | WebView `localStorage`, key `macha.conversations.v1` | Durable per WebView profile; transcript/file path metadata |
 | Active chat/provider/task/integration state | Frontend and Rust process memory | Volatile; cleared when app exits |
 | Workflow screenshots/checkpoints | Workflow execution memory | Temporary; screenshot is sent with model call and not written as a file |
 | Hook settings/backups | `%USERPROFILE%\\.claude\\settings.json` and dated sibling backups | Durable Claude Code configuration |

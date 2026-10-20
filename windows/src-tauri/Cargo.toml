@@ -1,13 +1,13 @@
 [package]
-name = "coucou"
-description = "Coucou for Windows — Mochi lives at the top of your screen"
+name = "macha"
+description = "Macha for Windows — a desktop assistant at the top of your screen"
 authors = ["Louis Raille"]
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 
 [lib]
-name = "coucou_lib"
+name = "macha_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -31,6 +31,7 @@ regex = "1"
 
 [target.'cfg(windows)'.dependencies]
 keyring = { version = "3", features = ["windows-native"] }
+windows-future = "0.2.1"
 windows = { version = "0.61", features = [
   "Win32_Foundation",
   "Win32_Security",
@@ -52,6 +53,7 @@ windows = { version = "0.61", features = [
   "ApplicationModel",
   "Data_Xml_Dom",
   "Foundation",
+  "Media_Control",
   "UI_Notifications",
   "UI_Notifications_Management",
   "Win32_System_WinRT",

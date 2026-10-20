@@ -13,12 +13,11 @@ import { Sound } from "../core/sound";
 import { State } from "../core/state";
 import type { Island } from "./island";
 
-/** Which Credential Manager key backs each pill. */
+/** Which Credential Manager key backs each API integration. */
 const KEY_FOR: Record<string, string> = {
   integration_stripe: "stripe-api-key",
   integration_github: "github-token",
   integration_vercel: "vercel-token",
-  integration_spotify: "spotify-client-id",
   integration_notion: "notion-api-key",
   integration_calcom: "calcom-api-key",
 };
@@ -82,6 +81,22 @@ export async function refreshConfigured() {
     const present = (await Bridge.secretPresent(key)) ?? false;
     const info = State.integrations[id] ?? { data: {}, error: null, loaded: false, configured: false };
     State.integrations[id] = { ...info, configured: present };
+  }
+  try {
+    const snapshot = await Bridge.refreshSpotify();
+    State.integrations.integration_spotify = {
+      data: { ...snapshot },
+      error: null,
+      loaded: true,
+      configured: true,
+    };
+  } catch (error) {
+    State.integrations.integration_spotify = {
+      data: {},
+      error: String(error).replace(/^Error:\s*/, ""),
+      loaded: false,
+      configured: true,
+    };
   }
   const notificationAccess = await Bridge.messageAccessStatus();
   const messages = State.integrations.integration_messages;

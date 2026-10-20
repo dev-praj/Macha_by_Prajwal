@@ -44,7 +44,7 @@ describe("wake-word response timing", () => {
     assert.equal(extractWakeCommand("A Macha, tell me the weather"), "tell me the weather");
     assert.equal(extractWakeCommand("Hey Maccha, tell me the weather"), "tell me the weather");
     assert.equal(extractWakeCommand("Hey Maacha, tell me the weather"), "tell me the weather");
-    assert.equal(extractWakeCommand("Hey Mochi, tell me the weather"), "tell me the weather");
+    assert.equal(extractWakeCommand("Hey Macha, tell me the weather"), "tell me the weather");
     assert.equal(extractWakeCommand("HEY MOCHA!"), "");
   });
 

@@ -8,7 +8,7 @@
   "provenance": "current",
   "deliveryReceiptId": "3855f37b-1bf6-40cf-8207-b8b93e55159f",
   "artifact": {
-    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\system-overview.html",
+    "path": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\system-overview.html",
     "sha256": "99edf8b9dfb6b49d59d2f158747492794ab58178663e586c33e537cc3a7ebe3c",
     "bytes": 846102
   },
@@ -896,7 +896,7 @@
     "contactSheet": "system-overview.visual-check.html"
   },
   "sidecars": {
-    "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\coucou\\docs\\architecture\\images",
+    "directory": "C:\\Users\\waste\\OneDrive\\Desktop\\macha\\docs\\architecture\\images",
     "receipt": "system-overview.visual-check.json",
     "contactSheet": "system-overview.visual-check.html",
     "files": [

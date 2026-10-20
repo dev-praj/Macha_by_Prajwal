@@ -1,4 +1,4 @@
-# Start Coucou's release build once and wait for its local speech service.
+# Start Macha's release build once and wait for its local speech service.
 [CmdletBinding()]
 param(
     [ValidateRange(0, 300)]
@@ -16,8 +16,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
-$appPath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "target\release\coucou.exe"))
-$logDirectory = Join-Path $env:LOCALAPPDATA "Coucou"
+$appPath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "target\release\macha.exe"))
+$logDirectory = Join-Path $env:LOCALAPPDATA "Macha"
 $logPath = Join-Path $logDirectory "startup.log"
 $curlPath = Join-Path $env:SystemRoot "System32\curl.exe"
 $healthUrl = "http://127.0.0.1:5005/health"
@@ -31,8 +31,8 @@ function Write-StartupLog {
     Add-Content -LiteralPath $logPath -Value "$timestamp $Message" -Encoding UTF8
 }
 
-function Get-CoucouProcess {
-    Get-Process -Name "coucou" -ErrorAction SilentlyContinue | Select-Object -First 1
+function Get-MachaProcess {
+    Get-Process -Name "macha" -ErrorAction SilentlyContinue | Select-Object -First 1
 }
 
 try {
@@ -46,7 +46,7 @@ try {
     $restartCount = 0
     $delayBeforeLaunch = $StartupDelaySeconds
     while ($true) {
-        $process = Get-CoucouProcess
+        $process = Get-MachaProcess
         $startedHere = $false
         if ($null -eq $process) {
             if ($delayBeforeLaunch -gt 0) {
@@ -55,24 +55,24 @@ try {
                 $delayBeforeLaunch = 0
             }
 
-            $process = Get-CoucouProcess
+            $process = Get-MachaProcess
             if ($null -ne $process) {
-                Write-StartupLog "Coucou started during the delay (PID $($process.Id)); waiting for its health endpoint."
+                Write-StartupLog "Macha started during the delay (PID $($process.Id)); waiting for its health endpoint."
             }
             else {
                 $listeners = @(Get-NetTCPConnection -State Listen -LocalPort 5005 -ErrorAction SilentlyContinue)
                 if ($listeners.Count -gt 0) {
                     $processIds = ($listeners | Select-Object -ExpandProperty OwningProcess -Unique) -join ", "
-                    throw "Port 5005 is already in use by process ID(s) $processIds. Coucou was not started; inspect the listener and free the port."
+                    throw "Port 5005 is already in use by process ID(s) $processIds. Macha was not started; inspect the listener and free the port."
                 }
 
                 $process = Start-Process -FilePath $appPath -WorkingDirectory $repoRoot -PassThru
                 $startedHere = $true
-                Write-StartupLog "Started Coucou from '$appPath' (PID $($process.Id))."
+                Write-StartupLog "Started Macha from '$appPath' (PID $($process.Id))."
             }
         }
         else {
-            Write-StartupLog "Coucou is already running (PID $($process.Id)); waiting for its health endpoint."
+            Write-StartupLog "Macha is already running (PID $($process.Id)); waiting for its health endpoint."
         }
 
         $deadline = [DateTime]::UtcNow.AddSeconds($HealthTimeoutSeconds)
@@ -95,10 +95,10 @@ try {
             $reason = "Health endpoint $healthUrl did not become ready within $HealthTimeoutSeconds seconds."
             if ($startedHere -and $null -ne (Get-Process -Id $process.Id -ErrorAction SilentlyContinue)) {
                 Stop-Process -Id $process.Id -Force
-                Write-StartupLog "Stopped Coucou PID $($process.Id) after its startup health check failed."
+                Write-StartupLog "Stopped Macha PID $($process.Id) after its startup health check failed."
             }
             if (-not $MonitorProcess -or -not $startedHere -or $restartCount -ge $MaxCrashRestarts) {
-                throw "$reason See '$logPath' and '$logDirectory\coucou.log'."
+                throw "$reason See '$logPath' and '$logDirectory\macha.log'."
             }
 
             $restartCount++
@@ -112,19 +112,19 @@ try {
             exit 0
         }
 
-        Write-StartupLog "Monitoring Coucou process $($process.Id)."
+        Write-StartupLog "Monitoring Macha process $($process.Id)."
         $process.WaitForExit()
         $process.Refresh()
         if ($process.ExitCode -eq 0) {
-            Write-StartupLog "Coucou exited normally."
+            Write-StartupLog "Macha exited normally."
             exit 0
         }
         if ($restartCount -ge $MaxCrashRestarts) {
-            throw "Coucou exited with code $($process.ExitCode) after $restartCount crash restart(s); no retries remain."
+            throw "Macha exited with code $($process.ExitCode) after $restartCount crash restart(s); no retries remain."
         }
 
         $restartCount++
-        Write-StartupLog "ERROR: Coucou exited with code $($process.ExitCode). Restart $restartCount of $MaxCrashRestarts in $RestartDelaySeconds seconds."
+        Write-StartupLog "ERROR: Macha exited with code $($process.ExitCode). Restart $restartCount of $MaxCrashRestarts in $RestartDelaySeconds seconds."
         Start-Sleep -Seconds $RestartDelaySeconds
     }
 }

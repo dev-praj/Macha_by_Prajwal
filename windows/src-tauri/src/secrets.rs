@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-const SERVICE: &str = "fr.louisraille.coucou";
+const SERVICE: &str = "fr.louisraille.macha";
 const OPENROUTER_META: &str = "openrouter-accounts.json";
 const LEGACY_OPENROUTER_KEY: &str = "openrouter-api-key";
 static ACCOUNT_SEQUENCE: AtomicU64 = AtomicU64::new(0);
@@ -18,10 +18,13 @@ pub struct OpenRouterAccount {
     pub name: String,
 }
 
-/// Every key Coucou may store. Anything outside this list is refused.
+/// Every key Macha may store. Anything outside this list is refused.
 pub const KNOWN_KEYS: &[&str] = &[
     "openrouter-api-key",
+    "grok-api-key",
     "anthropic-api-key",
+    "openai-api-key",
+    "gemini-api-key",
     "elevenlabs-api-key",
     "n8n-url",
     "n8n-api-key",
@@ -31,9 +34,6 @@ pub const KNOWN_KEYS: &[&str] = &[
     "resend-api-key",
     "notion-api-key",
     "calcom-api-key",
-    "spotify-client-id",
-    "spotify-refresh-token",
-    "spotify-oauth-token",
 ];
 
 fn entry(key: &str) -> Option<Entry> {
@@ -206,8 +206,7 @@ pub fn get(key: &str) -> Option<String> {
 pub fn set(key: &str, value: &str) -> Result<(), String> {
     let entry = entry(key).ok_or_else(|| format!("unknown key {key}"))?;
     if value.is_empty() {
-        let _ = entry.delete_credential();
-        return Ok(());
+        return clear(key);
     }
     entry.set_password(value).map_err(|e| e.to_string())
 }

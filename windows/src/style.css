@@ -1,4 +1,4 @@
-/* Coucou for Windows — same palette, sizes and type scale as the macOS island.
+/* Macha for Windows — same palette, sizes and type scale as the macOS island.
    Every colour below is copied from the Swift views. */
 
 :root {
@@ -88,6 +88,27 @@ body {
   pointer-events: none;
 }
 
+#bot-avatar,
+#greeting-avatar {
+  position: absolute;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 3;
+}
+
+#greeting-avatar {
+  left: 270px;
+  top: 40px;
+  width: 100px;
+  height: 100px;
+}
+
+.custom-avatar-host > canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 /* The drop sequence. Sits under the header and takes over the island body; it
    cross-fades in and out, so the last frame stays up while the views return. */
 #upload-layer {
@@ -107,6 +128,13 @@ body {
 #upload-canvas {
   position: absolute;
   inset: 0;
+}
+
+#upload-avatar {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  transform-origin: center;
 }
 
 #upload-overlay {
@@ -257,12 +285,23 @@ body {
 }
 
 
-/* A mini Mochi: the slot is the body, the canvas is larger and overflows it so
+/* A mini Macha: the slot is the body, the canvas is larger and overflows it so
    hands, badges and particles are not cut off. */
 .mini {
   position: relative;
   display: inline-block;
   flex: 0 0 auto;
+}
+
+.mini-avatar-host {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.mini-avatar-host > svg > g > path,
+.mini-avatar-host > svg > g > g:not([clip-path]) > path {
+  fill: var(--mini-avatar-color);
 }
 
 .mini canvas {

@@ -117,13 +117,18 @@ pub fn gesture_mouse_start(
             *child_guard = None;
         }
 
-        let script = script_path(&app)?;
-        let python = find_python()?;
-
-        let mut command = Command::new(&python.program);
+        let (mut command, runner) = if let Some(executable) = packaged_executable_path(&app) {
+            let runner = executable.to_string_lossy().into_owned();
+            (Command::new(executable), runner)
+        } else {
+            let script = script_path(&app)?;
+            let python = find_python()?;
+            let runner = python.program.to_string_lossy().into_owned();
+            let mut command = Command::new(&python.program);
+            command.args(&python.args).arg(script);
+            (command, runner)
+        };
         command
-            .args(&python.args)
-            .arg(&script)
             .arg("--no-browser")
             .arg("--managed")
             .stdin(Stdio::piped())
@@ -140,24 +145,29 @@ pub fn gesture_mouse_start(
         if let Some(stderr) = child.stderr.take() {
             relay_output(stderr, "stderr");
         }
-        if let Err(error) = wait_for_dashboard() {
+        if let Err(error) = wait_for_dashboard(&mut child) {
             let _ = child.kill();
             let _ = child.wait();
             return Err(error);
         }
         *child_guard = Some(child);
-        log::line(format!(
-            "Gesture Mouse started with {}",
-            python.program.to_string_lossy()
-        ));
+        log::line(format!("Gesture Mouse started with {runner}"));
         Ok(())
     }
 }
 
 #[cfg(windows)]
-fn wait_for_dashboard() -> Result<(), String> {
+fn wait_for_dashboard(child: &mut Child) -> Result<(), String> {
     let deadline = Instant::now() + Duration::from_secs(30);
     loop {
+        if let Some(status) = child
+            .try_wait()
+            .map_err(|error| format!("Could not check Gesture Mouse startup: {error}"))?
+        {
+            return Err(format!(
+                "Gesture Mouse exited during startup with status {status}. Check Macha's log for startup errors."
+            ));
+        }
         if let Ok(mut stream) =
             TcpStream::connect_timeout(&DASHBOARD_ADDR, Duration::from_millis(250))
         {
@@ -175,7 +185,7 @@ fn wait_for_dashboard() -> Result<(), String> {
             }
         }
         if Instant::now() >= deadline {
-            return Err("Gesture Mouse started, but its local dashboard did not become ready. Check Coucou's log for startup errors.".into());
+            return Err("Gesture Mouse started, but its local dashboard did not become ready. Check Macha's log for startup errors.".into());
         }
         thread::sleep(Duration::from_millis(100));
     }
@@ -278,13 +288,22 @@ fn script_path(app: &AppHandle) -> Result<PathBuf, String> {
     let packaged = app
         .path()
         .resource_dir()
-        .map_err(|error| format!("Could not locate Coucou resources: {error}"))?
+        .map_err(|error| format!("Could not locate Macha resources: {error}"))?
         .join("gesture_mouse/app.py");
     if packaged.is_file() {
         return Ok(packaged);
     }
 
-    Err("Hand Gesture Mouse files are missing from this Coucou installation.".into())
+    Err("Hand Gesture Mouse files are missing from this Macha installation.".into())
+}
+
+#[cfg(windows)]
+fn packaged_executable_path(app: &AppHandle) -> Option<PathBuf> {
+    app.path()
+        .resource_dir()
+        .ok()
+        .map(|resources| resources.join("gesture_mouse/MachaGestureMouse.exe"))
+        .filter(|path| path.is_file())
 }
 
 fn relay_output(reader: impl Read + Send + 'static, stream: &'static str) {

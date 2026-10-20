@@ -1,10 +1,11 @@
 // App state — mirror of AppState.swift (the parts the island needs).
 
 import type { BotEmoteName, BotStateName, IslandMode, IslandViewName } from "./layout";
-import type { EyeShape } from "../mochi/engine";
+import type { EyeShape } from "../macha/engine";
 
 export type AgentSource = "claudeCode" | "n8n" | "agent";
 export type PillBadge = "approval" | "finished" | "error";
+export type AvatarChoice = "macha" | "cubee" | "onee";
 
 export interface AgentTask {
   id: string;
@@ -55,7 +56,7 @@ interface StoredConversations {
   conversations: ChatConversation[];
 }
 
-const CONVERSATION_STORAGE_KEY = "coucou.conversations.v1";
+const CONVERSATION_STORAGE_KEY = "macha.conversations.v1";
 
 function readConversations(): StoredConversations {
   if (typeof window === "undefined") return { activeId: null, conversations: [] };
@@ -94,7 +95,7 @@ function readConversations(): StoredConversations {
         : null;
     return { activeId, conversations };
   } catch (error) {
-    console.error("[coucou] could not restore conversation history", error);
+    console.error("[macha] could not restore conversation history", error);
     return { activeId: null, conversations: [] };
   }
 }
@@ -125,7 +126,7 @@ const task = (
 export const INTEGRATION_AGENTS: AgentTask[] = [
   task("integration_claude", "VS Code", "#F5F6F8", "claudeCode"),
   task("integration_messages", "Messages", "#22C55E", "agent"),
-  task("integration_spotify", "Spotify", "#1DB954", "agent"),
+  task("integration_spotify", "Music", "#1DB954", "agent"),
   task("integration_vercel", "Vercel", "#7C5CFF", "n8n"),
   task("integration_github", "GitHub", "#F4505E", "n8n"),
   task("integration_notion", "Notion", "#8C8C8C", "n8n"),
@@ -147,6 +148,7 @@ export interface IntegrationInfo {
 }
 
 export interface Settings {
+  avatar: AvatarChoice;
   soundEnabled: boolean;
   soundVolume: number;
   autoCloseInterval: number;
@@ -159,7 +161,14 @@ export interface Settings {
   /** OpenRouter model slug; openrouter/free enables per-request auto-routing. */
   model: string;
   automationFolders: string[];
-  providerMode: "auto" | "ollamaOnly" | "openRouterOnly";
+  providerMode:
+    | "auto"
+    | "ollamaOnly"
+    | "openRouterOnly"
+    | "grokOnly"
+    | "claudeOnly"
+    | "openAiOnly"
+    | "geminiOnly";
   ollamaModel: string;
   speakRepliesMode: "off" | "voiceOnly" | "always";
   ttsEngine: "auto" | "webSpeech" | "sapi";
@@ -174,6 +183,7 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
+  avatar: "macha",
   soundEnabled: true,
   soundVolume: 0.12,
   autoCloseInterval: 15,
@@ -353,7 +363,7 @@ class AppState {
         JSON.stringify({ activeId: this.activeConversationId, conversations: this.conversations }),
       );
     } catch (error) {
-      console.error("[coucou] could not save conversation history", error);
+      console.error("[macha] could not save conversation history", error);
     }
   }
 

@@ -21,10 +21,15 @@ async function main() {
   if (boot) {
     State.settings = { ...State.settings, ...boot.settings };
   }
-  window.dispatchEvent(new Event("coucou-settings-ready"));
+  window.dispatchEvent(new Event("macha-settings-ready"));
   island.applySettings();
   State.loadIntegrationTasks();
   if (boot && !boot.cursorPoll) island.followPageCursor();
+
+  await onEvent<Settings>("settings-changed", (settings) => {
+    State.settings = { ...State.settings, ...settings };
+    island.applySettings();
+  });
 
   await onEvent<{ x: number; y: number }>("cursor", ({ x, y }) => island.onCursor(x, y));
 
@@ -66,25 +71,25 @@ async function main() {
     setPaused(false);
     island.alert("prompt");
   });
-  window.addEventListener("coucou-wake-word", () => {
-    console.info("[coucou] Hey Macha wake action fired: expanding chat");
+  window.addEventListener("macha-wake-word", () => {
+    console.info("[macha] Hey Macha wake action fired: expanding chat");
     setPaused(false);
     State.isPinned = true;
     island.alert("prompt");
     island.reactToWakePhrase();
     void Bridge.setWakeConversationActive(true).catch((error: unknown) => {
-      console.error("[coucou] could not keep the wake conversation visible", error);
+      console.error("[macha] could not keep the wake conversation visible", error);
     });
   });
-  window.addEventListener("coucou-wake-word-complete", () => {
+  window.addEventListener("macha-wake-word-complete", () => {
     State.isPinned = false;
     island.dropPin();
     island.fsm.forceHidden();
     void Bridge.setWakeConversationActive(false).catch((error: unknown) => {
-      console.error("[coucou] could not release the wake conversation visibility hold", error);
+      console.error("[macha] could not release the wake conversation visibility hold", error);
     });
   });
-  window.addEventListener("coucou-assistant-task-finished", () => {
+  window.addEventListener("macha-assistant-task-finished", () => {
     if (State.mode === "hidden" || State.mode === "compact") {
       island.alert(State.view);
     }

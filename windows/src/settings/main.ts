@@ -14,6 +14,8 @@ import {
 } from "../core/bridge";
 import { DEFAULT_SETTINGS, type Settings } from "../core/state";
 import { State } from "../core/state";
+import { BotEngine } from "../macha/engine";
+import { avatarLabel, mountAvatar } from "../macha/avatar";
 import * as TTS from "../core/tts";
 import { recordWakePronunciation } from "../core/wakeWord";
 import { h, clear } from "../views/dom";
@@ -80,7 +82,7 @@ function claudeSection(status: HookStatus): HTMLElement {
       h("div", {
         class: "hint",
         text: status.installed
-          ? "Coucou is hooked into your Claude Code sessions. Tool calls, questions and permission requests show up in the island, and you can answer them there."
+          ? "Macha is hooked into your Claude Code sessions. Tool calls, questions and permission requests show up in the island, and you can answer them there."
           : "Install the hooks to see your Claude Code sessions in the island and approve permissions without leaving what you are doing.",
       }),
       h("div", { class: "row" },
@@ -97,7 +99,7 @@ function claudeSection(status: HookStatus): HTMLElement {
     if (!status.hookReady) {
       body.append(h("div", {
         class: "notice warn",
-        text: "coucou-hook.exe is not in place yet. Restart Coucou; if it still fails, build it with `cargo build -p coucou-hook`.",
+        text: "macha-hook.exe is not in place yet. Restart Macha; if it still fails, build it with `cargo build -p macha-hook`.",
       }));
     }
 
@@ -148,7 +150,7 @@ function claudeSection(status: HookStatus): HTMLElement {
         class: "hint",
         text: install
           ? "This is exactly what will change in your settings.json. Your own hooks are left untouched."
-          : "This removes Coucou's entries only. Your own hooks are left untouched.",
+          : "This removes Macha's entries only. Your own hooks are left untouched.",
       }),
       renderDiff(preview.diff),
       h("div", { class: "row" },
@@ -206,6 +208,7 @@ const MODELS: [string, string][] = [
 function apiSection(
   initialAccounts: OpenRouterAccount[],
   initialOllamaStatus: OllamaStatus,
+  providerKeysPresent: Record<string, boolean>,
   accountLoadError?: string,
 ): HTMLElement {
   let accounts = initialAccounts;
@@ -217,6 +220,9 @@ function apiSection(
   const toggleAccounts = h("button", { text: "View uploaded keys" });
   const addButton = h("button", { class: "primary", text: "+ Add account" });
   const addForm = h("div", { class: "openrouter-add-form", style: "display:none" });
+  const directProviderKeys = h("div", {
+    style: "display:flex;flex-direction:column;gap:8px",
+  });
   const nameField = h("input", {
     type: "text",
     placeholder: "Account name",
@@ -376,6 +382,10 @@ function apiSection(
     h("option", { value: "auto", text: "Auto — Ollama first, OpenRouter fallback" }),
     h("option", { value: "ollamaOnly", text: "Ollama only" }),
     h("option", { value: "openRouterOnly", text: "OpenRouter only" }),
+    h("option", { value: "grokOnly", text: "Grok only" }),
+    h("option", { value: "claudeOnly", text: "Claude only" }),
+    h("option", { value: "openAiOnly", text: "OpenAI only" }),
+    h("option", { value: "geminiOnly", text: "Gemini only" }),
   );
   providerMode.value = settings.providerMode;
   providerMode.addEventListener("change", () => {
@@ -431,6 +441,55 @@ function apiSection(
   });
   renderOllamaModels();
 
+  for (const { key, provider, placeholder } of [
+    { key: "grok-api-key", provider: "Grok", placeholder: "xai-…" },
+    { key: "anthropic-api-key", provider: "Claude", placeholder: "sk-ant-…" },
+    { key: "openai-api-key", provider: "OpenAI", placeholder: "sk-…" },
+    { key: "gemini-api-key", provider: "Gemini", placeholder: "AIza…" },
+  ]) {
+    const input = h("input", {
+      type: "password",
+      placeholder: providerKeysPresent[key] ? "••••••••  (stored)" : placeholder,
+      autocomplete: "off",
+      spellcheck: "false",
+      style: "flex:1 1 auto;min-width:0",
+      "aria-label": `${provider} API key`,
+    }) as HTMLInputElement;
+    const dotEl = statusDot(providerKeysPresent[key] ?? false);
+    const saveButton = h("button", { class: "primary", text: "Save key" });
+    saveButton.addEventListener("click", async () => {
+      saveButton.disabled = true;
+      clear(feedback);
+      const value = input.value.trim();
+      try {
+        await Bridge.secretSet(key, value);
+        providerKeysPresent[key] = value.length > 0;
+        input.value = "";
+        input.placeholder = providerKeysPresent[key] ? "••••••••  (stored)" : placeholder;
+        dotEl.style.background = providerKeysPresent[key] ? "#22c55e" : "#f4505e";
+        feedback.append(h("div", {
+          class: "notice ok",
+          text: providerKeysPresent[key]
+            ? `${provider} API key saved securely in the OS credential manager.`
+            : `${provider} API key removed from the OS credential manager.`,
+        }));
+      } catch (err) {
+        feedback.append(h("div", {
+          class: "notice err",
+          text: `Could not save ${provider} API key: ${String(err).replace(/^Error:\s*/, "")}`,
+        }));
+      } finally {
+        saveButton.disabled = false;
+      }
+    });
+    directProviderKeys.append(h("div", { class: "row" },
+      h("label", { text: `${provider} API key` }),
+      input,
+      saveButton,
+      dotEl,
+    ));
+  }
+
   renderAccounts();
   updateState();
   if (accountLoadError) {
@@ -448,7 +507,12 @@ function apiSection(
     ollamaWarning,
     h("p", {
       class: "hint",
-      text: "Auto tries local Ollama first and uses OpenRouter only if Ollama is unavailable. Ollama-only never contacts OpenRouter.",
+      text: "Auto tries local Ollama first and uses OpenRouter only if Ollama is unavailable. The Claude, OpenAI, Gemini, and Grok options send chat directly to that provider.",
+    }),
+    directProviderKeys,
+    h("p", {
+      class: "hint",
+      text: "Provider API keys are stored securely in the OS credential manager. Leave a field empty and save to remove its key.",
     }),
     h("h3", { text: "OpenRouter fallback" }),
     state,
@@ -473,8 +537,7 @@ interface IntegrationDef {
 
 const INTEGRATIONS: IntegrationDef[] = [
   { id: "integration_messages", name: "Messages", color: "#22C55E", fields: [] },
-  { id: "integration_spotify", name: "Spotify", color: "#1DB954",
-    fields: [{ key: "spotify-client-id", label: "Client ID", placeholder: "Spotify app Client ID", secret: false }] },
+  { id: "integration_spotify", name: "Music", color: "#1DB954", fields: [] },
   { id: "integration_stripe", name: "Stripe", color: "#0570DE",
     fields: [{ key: "stripe-api-key", label: "Secret key", placeholder: "sk_live_…", secret: true }] },
   { id: "integration_github", name: "GitHub", color: "#F4505E",
@@ -575,37 +638,15 @@ function integrationsSection(present: Record<string, boolean>): HTMLElement {
         enable,
         h("div", {
           class: "hint",
-          text: "Coucou shows notifications from all apps here. Turn off notification banners for individual apps in Windows Settings to avoid duplicate pop-ups.",
+          text: "Macha shows notifications from all apps here. Turn off notification banners for individual apps in Windows Settings to avoid duplicate pop-ups.",
         }),
       );
     }
     if (def.id === "integration_spotify") {
-      const connect = h("button", { text: "Connect Spotify" });
-      connect.addEventListener("click", async () => {
-        try {
-          await Bridge.openUrlStrict(await Bridge.spotifyConnect());
-          connect.textContent = "Complete sign-in in your browser";
-        } catch (error) {
-          connect.textContent = String(error).replace(/^Error:\s*/, "");
-        }
-      });
-      const disconnect = h("button", {
-        text: "Disconnect Spotify",
-        onclick: async () => {
-          try {
-            await Bridge.spotifyDisconnect();
-            disconnect.textContent = "Spotify disconnected";
-          } catch (error) {
-            disconnect.textContent = String(error).replace(/^Error:\s*/, "");
-          }
-        },
-      });
       rows.append(
-        connect,
-        disconnect,
         h("div", {
           class: "hint",
-          text: "In your Spotify Developer app, add this redirect URI exactly: http://127.0.0.1:43821/callback. Playback control may require Spotify Premium.",
+          text: "Controls the active Windows media session. Play music in Spotify or another media app that supports Windows media controls; no Spotify sign-in or API key is needed.",
         }),
       );
     }
@@ -830,7 +871,7 @@ function gestureMouseSection(): HTMLElement {
           }
         }
       } catch (error) {
-        console.error("[coucou] invalid Vision Mode live update", error);
+        console.error("[macha] invalid Vision Mode live update", error);
       }
     });
     nextSocket.addEventListener("close", () => {
@@ -855,7 +896,7 @@ function gestureMouseSection(): HTMLElement {
       const wasRunning = running;
       running = await Bridge.gestureMouseIsRunning();
       if (wasRunning && !running && !stopRequested) {
-        feedback.textContent = "Vision Mode exited unexpectedly. Check Coucou's log for details.";
+        feedback.textContent = "Vision Mode exited unexpectedly. Check Macha's log for details.";
       }
       if (!running) stopRequested = false;
       update();
@@ -965,6 +1006,82 @@ function liveStat(label: string, value: HTMLElement): HTMLElement {
 
 // ── General section ───────────────────────────────────────────────────────────
 
+function avatarPreview(choice: Settings["avatar"]): HTMLElement {
+  const preview = h("div", { class: "avatar-preview" });
+  if (choice === "macha") {
+    const canvas = h("canvas", {}) as HTMLCanvasElement;
+    canvas.width = 88;
+    canvas.height = 88;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      const engine = new BotEngine();
+      engine.isMini = true;
+      engine.setState("idle", true);
+      engine.draw(ctx, 88, 88);
+    }
+    preview.append(canvas);
+  } else {
+    mountAvatar(preview, choice);
+  }
+  return preview;
+}
+
+function avatarSection(): HTMLElement {
+  const feedback = h("p", { class: "hint", "aria-live": "polite" });
+  const choiceIds = ["macha", "cubee", "onee"] as const;
+  const choices: HTMLButtonElement[] = [];
+
+  for (const choice of choiceIds) {
+    const button = h("button", {
+      class: settings.avatar === choice ? "avatar-choice selected" : "avatar-choice",
+      "aria-pressed": settings.avatar === choice,
+    }) as HTMLButtonElement;
+    button.append(
+      avatarPreview(choice),
+      h("span", { text: avatarLabel(choice) }),
+    );
+    button.addEventListener("click", async () => {
+      if (settings.avatar === choice) return;
+      const previous = settings.avatar;
+      settings.avatar = choice;
+      for (const [index, option] of choices.entries()) {
+        const selected = choiceIds[index] === choice;
+        option.classList.toggle("selected", selected);
+        option.setAttribute("aria-pressed", String(selected));
+      }
+      try {
+        await Bridge.saveSettingsStrict(settings);
+        State.settings = { ...State.settings, ...settings };
+        feedback.textContent = `${avatarLabel(choice)} is now your avatar.`;
+      } catch (error) {
+        settings.avatar = previous;
+        for (const [index, option] of choices.entries()) {
+          const selected = choiceIds[index] === previous;
+          option.classList.toggle("selected", selected);
+          option.setAttribute("aria-pressed", String(selected));
+        }
+        feedback.textContent = `Could not save your avatar: ${
+          error instanceof Error ? error.message : String(error)
+        }`;
+        console.error("[macha] could not save avatar selection", error);
+      }
+    });
+    choices.push(button);
+  }
+
+  return h(
+    "section",
+    {},
+    h("h2", {}, h("span", { text: "Avatar" })),
+    h("p", {
+      class: "hint",
+      text: "Choose the character shown in the island, agent bar, greeting, and file-drop animation.",
+    }),
+    h("div", { class: "avatar-choices" }, ...choices),
+    feedback,
+  );
+}
+
 function generalSection(): HTMLElement {
   const volume = h("input", {
     type: "range", min: "0", max: "0.2", step: "0.005",
@@ -1035,7 +1152,7 @@ function generalSection(): HTMLElement {
       voiceActivationStatus.textContent = `Could not save the voice activation setting: ${
         error instanceof Error ? error.message : String(error)
       }`;
-      console.error("[coucou] could not save Hey Macha voice activation", error);
+      console.error("[macha] could not save Hey Macha voice activation", error);
     }).finally(() => {
       voiceActivationToggle.disabled = false;
     });
@@ -1058,13 +1175,13 @@ function generalSection(): HTMLElement {
       wakePhraseHint.textContent = error instanceof Error
         ? error.message
         : "Could not calibrate the wake phrase.";
-      console.error("[coucou] wake phrase calibration failed", error);
+      console.error("[macha] wake phrase calibration failed", error);
     } finally {
       try {
         await Bridge.setVoiceActive(false);
         await Bridge.setWakeCalibration(false);
       } catch (error) {
-        console.error("[coucou] could not restore the wake listener after calibration", error);
+        console.error("[macha] could not restore the wake listener after calibration", error);
       }
       calibrateWakePhrase.disabled = false;
     }
@@ -1101,7 +1218,7 @@ function generalSection(): HTMLElement {
     }
     voice.value = settings.ttsVoice;
   }).catch((error: unknown) => {
-    console.error("[coucou] could not list local speech voices", error);
+    console.error("[macha] could not list local speech voices", error);
   });
 
   const rateLabel = h("span", { text: `${settings.ttsRate.toFixed(1)}×` });
@@ -1133,7 +1250,7 @@ function generalSection(): HTMLElement {
   });
   testVoice.addEventListener("click", () => {
     void save();
-    void TTS.speak("Hi, I'm coucou.");
+    void TTS.speak("Hi, I'm macha.");
   });
 
   return h(
@@ -1168,7 +1285,7 @@ function generalSection(): HTMLElement {
       voiceActivationStatus,
       h("span", {
         class: "hint",
-        text: "When enabled, Coucou listens on this device and sends speech only to its local Whisper service. Allow microphone access in Windows privacy settings when prompted. The Voice button remains available when this is off.",
+        text: "When enabled, Macha listens on this device and sends speech only to its local Whisper service. Allow microphone access in Windows privacy settings when prompted. The Voice button remains available when this is off.",
       }),
     ),
     h("div", { class: "row" },
@@ -1580,16 +1697,18 @@ async function main() {
 
   const keys = [
     "stripe-api-key", "github-token", "vercel-token",
-    "spotify-client-id", "notion-api-key", "calcom-api-key", "elevenlabs-api-key",
+    "notion-api-key", "calcom-api-key", "elevenlabs-api-key",
+    "grok-api-key", "anthropic-api-key", "openai-api-key", "gemini-api-key",
   ];
   const present: Record<string, boolean> = {};
   for (const k of keys) present[k] = (await Bridge.secretPresent(k)) ?? false;
 
   clear(root);
   root.append(
-    h("h1", {}, h("span", { text: "Coucou" }), h("span", { class: "version", text: version })),
+    h("h1", {}, h("span", { text: "Macha" }), h("span", { class: "version", text: version })),
     claudeSection(status),
-    apiSection(openRouterAccounts, ollamaStatus, openRouterError),
+    avatarSection(),
+    apiSection(openRouterAccounts, ollamaStatus, present, openRouterError),
     memorySection(),
     workflowsSection(),
     automationSection(),

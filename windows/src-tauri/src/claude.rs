@@ -563,10 +563,10 @@ fn compatibility_messages(mut messages: Vec<Value>) -> Result<Vec<Value>, String
     system["content"] = json!(format!(
         "{system_content}\n\n\
          Native function calling is unavailable for this configured model. To request one supported action, \
-         return exactly one <coucou_action>JSON</coucou_action> block with this shape: \
+         return exactly one <macha_action>JSON</macha_action> block with this shape: \
          {{\"name\":\"tool_name\",\"arguments\":{{...}}}}. Do not put the block in Markdown fences. \
          Available action definitions: {schema}. \
-         A block is only a proposal: Coucou validates it and asks the user before performing any action that \
+         A block is only a proposal: Macha validates it and asks the user before performing any action that \
          changes local data or opens an app, path, or website. Never claim the action is already completed. \
          If no action is needed, answer normally without a block."
     ));
@@ -592,7 +592,7 @@ fn compatibility_messages(mut messages: Vec<Value>) -> Result<Vec<Value>, String
                 .unwrap_or("No action result was returned.");
             *message = json!({
                 "role": "assistant",
-                "content": format!("Coucou action result: {result}"),
+                "content": format!("Macha action result: {result}"),
             });
         }
         true
@@ -1189,8 +1189,8 @@ fn handle_response_mode(
 }
 
 fn compatibility_action_call(message: &Value) -> Result<Option<(Value, String)>, String> {
-    const OPEN: &str = "<coucou_action>";
-    const CLOSE: &str = "</coucou_action>";
+    const OPEN: &str = "<macha_action>";
+    const CLOSE: &str = "</macha_action>";
     let Some(content) = message.get("content").and_then(value_text) else {
         return Ok(None);
     };
@@ -1218,7 +1218,7 @@ fn compatibility_action_call(message: &Value) -> Result<Option<(Value, String)>,
         .to_string();
     Ok(Some((
         json!({
-            "id": "coucou-compatibility-action",
+            "id": "macha-compatibility-action",
             "type": "function",
             "function": {
                 "name": name,
@@ -1702,7 +1702,7 @@ mod tests {
                 }
             }]
         });
-        let folder = std::env::temp_dir().join(format!("coucou-tool-test-{}", std::process::id()));
+        let folder = std::env::temp_dir().join(format!("macha-tool-test-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&folder);
         std::fs::create_dir_all(folder.join("notes")).unwrap();
         let folders = vec![folder.to_string_lossy().into_owned()];
@@ -1794,7 +1794,7 @@ mod tests {
                             "type": "function",
                             "function": {
                                 "name": "search_web",
-                                "arguments": "{\"query\":\"Coucou assistant\"}"
+                                "arguments": "{\"query\":\"Macha assistant\"}"
                             }
                         }
                     ]
@@ -2021,7 +2021,7 @@ mod tests {
     fn compatibility_action_is_validated_and_waits_for_approval() {
         let chat = Chat::default();
         let folder = std::env::temp_dir().join(format!(
-            "coucou-compatibility-action-{}",
+            "macha-compatibility-action-{}",
             std::process::id()
         ));
         let _ = fs::remove_dir_all(&folder);
@@ -2031,7 +2031,7 @@ mod tests {
             "choices": [{
                 "message": {
                     "role": "assistant",
-                    "content": "I can create that.\n<coucou_action>{\"name\":\"create_file\",\"arguments\":{\"path\":\"created.txt\",\"content\":\"hello\"}}</coucou_action>"
+                    "content": "I can create that.\n<macha_action>{\"name\":\"create_file\",\"arguments\":{\"path\":\"created.txt\",\"content\":\"hello\"}}</macha_action>"
                 }
             }]
         });
@@ -2118,7 +2118,7 @@ mod tests {
 
     #[test]
     fn file_block_reads_text_and_encodes_images() {
-        let dir = std::env::temp_dir().join(format!("coucou-chat-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("macha-chat-{}", std::process::id()));
         fs::create_dir_all(&dir).unwrap();
 
         let text_path = dir.join("note.txt");
@@ -2215,7 +2215,7 @@ mod tests {
 
     #[test]
     fn restored_file_conversation_reloads_its_attachment_context() {
-        let dir = std::env::temp_dir().join(format!("coucou-restore-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("macha-restore-{}", std::process::id()));
         fs::create_dir_all(&dir).unwrap();
         let path = dir.join("note.txt");
         fs::write(&path, "private local file contents").unwrap();
@@ -2260,7 +2260,7 @@ mod tests {
 
     #[test]
     fn shared_context_includes_previous_messages_and_file_contents() {
-        let dir = std::env::temp_dir().join(format!("coucou-shared-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("macha-shared-{}", std::process::id()));
         fs::create_dir_all(&dir).unwrap();
         let path = dir.join("reference.txt");
         fs::write(&path, "shared attachment facts").unwrap();
@@ -2274,7 +2274,7 @@ mod tests {
                 },
                 ChatHistoryMessage {
                     role: "assistant".into(),
-                    content: "The project is Mochi".into(),
+                    content: "The project is Macha".into(),
                 },
             ],
             file: Some(SharedContextFile {
@@ -2290,7 +2290,7 @@ mod tests {
             .any(|block| block["text"] == "User: Remember the project name"));
         assert!(blocks
             .iter()
-            .any(|block| block["text"] == "Assistant: The project is Mochi"));
+            .any(|block| block["text"] == "Assistant: The project is Macha"));
         assert!(blocks
             .iter()
             .any(|block| block["text"] == "File contents:\nshared attachment facts"));
@@ -2440,14 +2440,14 @@ mod tests {
             "How do I create a file in this folder?"
         ));
         assert!(!local_file_action_intent("Explain how to edit a document"));
-        assert!(!local_file_action_intent("What files can Coucou access?"));
+        assert!(!local_file_action_intent("What files can Macha access?"));
     }
 
     #[test]
     fn compatibility_action_envelope_becomes_a_validated_tool_request() {
         let message = serde_json::json!({
             "role": "assistant",
-            "content": "I can do that.\n<coucou_action>{\"name\":\"open_app\",\"arguments\":{\"appName\":\"Google Chrome\"}}</coucou_action>"
+            "content": "I can do that.\n<macha_action>{\"name\":\"open_app\",\"arguments\":{\"appName\":\"Google Chrome\"}}</macha_action>"
         });
         let (call, clean_content) = super::compatibility_action_call(&message).unwrap().unwrap();
         assert_eq!(call["function"]["name"], "open_app");
@@ -2462,15 +2462,15 @@ mod tests {
     #[test]
     fn compatibility_action_envelope_rejects_unsupported_and_malformed_requests() {
         let unsupported = serde_json::json!({
-            "content": "<coucou_action>{\"name\":\"run_shell\",\"arguments\":{}}</coucou_action>"
+            "content": "<macha_action>{\"name\":\"run_shell\",\"arguments\":{}}</macha_action>"
         });
         assert!(super::compatibility_action_call(&unsupported).is_err());
         let malformed = serde_json::json!({
-            "content": "<coucou_action>{not json}</coucou_action>"
+            "content": "<macha_action>{not json}</macha_action>"
         });
         assert!(super::compatibility_action_call(&malformed).is_err());
         let incomplete = serde_json::json!({
-            "content": "<coucou_action>{\"name\":\"open_app\"}"
+            "content": "<macha_action>{\"name\":\"open_app\"}"
         });
         assert!(super::compatibility_action_call(&incomplete).is_err());
     }
@@ -2496,9 +2496,9 @@ mod tests {
         assert!(adapted[0]["content"]
             .as_str()
             .unwrap()
-            .contains("<coucou_action>"));
+            .contains("<macha_action>"));
         assert_eq!(adapted[1]["role"], "assistant");
-        assert_eq!(adapted[1]["content"], "Coucou action result: Created file.");
+        assert_eq!(adapted[1]["content"], "Macha action result: Created file.");
         assert_eq!(adapted[2]["content"], "Thanks");
     }
 }

@@ -2,12 +2,12 @@
   "schema_version": 1,
   "diagram_type": "sequence",
   "meta": {
-    "title": "Coucou Windows — Claude Code Hook and Approval",
+    "title": "Macha Windows — Claude Code Hook and Approval",
     "locale": "en",
     "output": "docs/architecture/flow-hooks-approval.html",
     "quality_profile": "showcase",
     "repository": {
-      "url": "https://github.com/vemalaprajwal8200-a11y/coucou-customised.git",
+      "url": "https://github.com/vemalaprajwal8200-a11y/macha-customised.git",
       "provider": "github",
       "link_mode": "web",
       "revision": "bd05b4a680a5876221544934fa776d1963bb28cf"
@@ -25,15 +25,15 @@
   },
   "participants": [
     { "id": "claude", "type": "external", "label": "Claude Code", "sublabel": "hook JSON on stdin", "sources": [{ "path": "windows/src-tauri/src/hooks.rs", "line": 14 }] },
-    { "id": "helper", "type": "backend", "label": "coucou-hook.exe", "sublabel": "sanitize · forward", "sources": [{ "path": "windows/hook/src/main.rs", "line": 17 }, { "path": "windows/hook/src/main.rs", "line": 94 }] },
-    { "id": "pipe", "type": "messagebus", "label": "Windows named pipe", "sublabel": "per-user Coucou relay", "sources": [{ "path": "windows/src-tauri/src/pipe.rs", "line": 37 }, { "path": "windows/src-tauri/src/pipe.rs", "line": 70 }] },
+    { "id": "helper", "type": "backend", "label": "macha-hook.exe", "sublabel": "sanitize · forward", "sources": [{ "path": "windows/hook/src/main.rs", "line": 17 }, { "path": "windows/hook/src/main.rs", "line": 94 }] },
+    { "id": "pipe", "type": "messagebus", "label": "Windows named pipe", "sublabel": "per-user Macha relay", "sources": [{ "path": "windows/src-tauri/src/pipe.rs", "line": 37 }, { "path": "windows/src-tauri/src/pipe.rs", "line": 70 }] },
     { "id": "app", "type": "backend", "label": "Rust relay", "sublabel": "events · ack · deadline", "sources": [{ "path": "windows/src-tauri/src/pipe.rs", "line": 202 }, { "path": "windows/src-tauri/src/pipe.rs", "line": 236 }] },
     { "id": "island", "type": "frontend", "label": "Island approval card", "sublabel": "operation · Allow / Deny", "sources": [{ "path": "windows/src/island/hooks.ts", "line": 90 }, { "path": "windows/src/views/views.ts", "line": 292 }] },
     { "id": "user", "type": "external", "label": "User", "sublabel": "reviews request", "sources": [{ "path": "windows/src/views/views.ts", "line": 302 }] }
   ],
   "messages": [
     { "from": "user", "to": "app", "y": 160, "label": "preview hook diff, then confirm install", "variant": "security" },
-    { "from": "app", "to": "claude", "y": 205, "label": "merge Coucou hooks in Claude settings after confirmation", "variant": "security" },
+    { "from": "app", "to": "claude", "y": 205, "label": "merge Macha hooks in Claude settings after confirmation", "variant": "security" },
     { "from": "claude", "to": "helper", "y": 250, "label": "event payload on stdin" },
     { "from": "helper", "to": "pipe", "y": 295, "label": "sanitized JSON line" },
     { "from": "pipe", "to": "app", "y": 340, "label": "emit ordinary hook or pending PermissionRequest" },
@@ -46,7 +46,7 @@
     { "from": "helper", "to": "claude", "y": 655, "label": "hookSpecificOutput JSON on stdout", "variant": "return" }
   ],
   "cards": [
-    { "dot": "rose", "title": "Fail-open to terminal", "items": ["If Coucou is closed, paused, or the card is not acknowledged, the hook helper exits without a decision and Claude Code takes over.", "Only PermissionRequest waits for a human; other events are forwarded without waiting."] },
+    { "dot": "rose", "title": "Fail-open to terminal", "items": ["If Macha is closed, paused, or the card is not acknowledged, the hook helper exits without a decision and Claude Code takes over.", "Only PermissionRequest waits for a human; other events are forwarded without waiting."] },
     { "dot": "slate", "title": "Safe settings write", "items": ["Install previews a diff, creates a dated backup, and checks a fingerprint before writing.", "The helper has short connection/run budgets so ordinary Claude Code hooks do not wait for island UI."] }
   ]
 }

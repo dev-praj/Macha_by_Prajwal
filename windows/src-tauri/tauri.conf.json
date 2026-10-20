@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Coucou",
-  "version": "0.1.1",
-  "identifier": "fr.louisraille.coucou",
+  "productName": "Macha",
+  "version": "0.1.2",
+  "identifier": "fr.louisraille.macha",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://127.0.0.1:1420",
@@ -12,13 +12,13 @@
   "app": {
     "withGlobalTauri": false,
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://i.scdn.co; media-src 'self' blob:; frame-src http://127.0.0.1:8765; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:8765 ws://127.0.0.1:8765 http://127.0.0.1:5005",
-      "devCsp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://i.scdn.co; media-src 'self' blob:; frame-src http://127.0.0.1:8765; connect-src 'self' ipc: http://ipc.localhost ws://127.0.0.1:1420 http://127.0.0.1:1420 http://127.0.0.1:8765 ws://127.0.0.1:8765 http://127.0.0.1:5005"
+      "csp": "default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://i.scdn.co; media-src 'self' blob:; frame-src http://127.0.0.1:8765; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:8765 ws://127.0.0.1:8765 http://127.0.0.1:5005",
+      "devCsp": "default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://i.scdn.co; media-src 'self' blob:; frame-src http://127.0.0.1:8765; connect-src 'self' ipc: http://ipc.localhost ws://127.0.0.1:1420 http://127.0.0.1:1420 http://127.0.0.1:8765 ws://127.0.0.1:8765 http://127.0.0.1:5005"
     },
     "windows": [
       {
         "label": "island",
-        "title": "Coucou",
+        "title": "Macha",
         "url": "index.html",
         "width": 240,
         "height": 6,
@@ -49,16 +49,15 @@
       "icons/icon.ico"
     ],
     "resources": {
-      "../target/release/coucou-hook.exe": "coucou-hook.exe",
-      "../../stt_server.py": "stt_server.py",
-      "../gesture_mouse/app.py": "gesture_mouse/app.py",
-      "../gesture_mouse/requirements.txt": "gesture_mouse/requirements.txt",
+      "../target/release/macha-hook.exe": "macha-hook.exe",
+      "../target/python-helpers/MachaSTT.exe": "MachaSTT.exe",
+      "../target/python-helpers/MachaGestureMouse.exe": "gesture_mouse/MachaGestureMouse.exe",
       "../gesture_mouse/LICENSE": "gesture_mouse/LICENSE"
     },
     "copyright": "© Louis Raille",
     "category": "DeveloperTool",
-    "shortDescription": "Mochi lives at the top of your screen",
-    "longDescription": "Coucou puts Mochi at the top of your screen: it shows your Claude Code sessions and a few integrations, and lets you approve, answer, chat and drop files without leaving what you are doing.",
+    "shortDescription": "Macha lives at the top of your screen",
+    "longDescription": "Macha is a desktop assistant that stays at the top of your screen, shows Claude Code sessions and integrations, and lets you approve, answer, chat and drop files without leaving what you are doing.",
     "windows": {
       "nsis": {
         "installMode": "currentUser",
