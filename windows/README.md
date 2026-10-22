@@ -29,6 +29,20 @@ installer will be published again once it is cleared and code-signed.
 Until then, [build it yourself](#build-it-yourself): it takes a few minutes and
 installs for the current user only — no admin prompt.
 
+## Uninstall
+
+Open `Uninstall Macha.cmd` in the `windows` folder and choose whether to keep
+Macha's settings and remaining local data or remove the app-specific
+`%APPDATA%\Macha` and `%LOCALAPPDATA%\Macha` folders too. The script previews
+the selected scope and requires confirmation; it uses the registered Windows
+uninstaller and removes only Macha's named startup task and data directories.
+The installer may remove its own helper files, inbox, and log during normal
+uninstallation.
+
+Windows Credential Manager entries and Macha's entries in Claude Code settings
+are preserved because those stores may contain credentials or settings the user
+wants to keep. Review and remove those entries separately if desired.
+
 ## Using it
 
 <img src="screenshots/compact.png" width="292" alt="The compact island, with the integration pills as mini Machas">
@@ -199,7 +213,8 @@ transcription is forced to English and sent only to the local service at `127.0.
 chat uses Ollama-only mode so transcripts are not sent to OpenRouter. Macha can
 also speak replies locally using Web Speech when an installed voice is available,
 with Windows SAPI as the automatic fallback. Both engines select English voices
-only, preferring en-US and then en-IN; install an English Windows speech voice if
+only, preferring Microsoft Zira when installed and otherwise using another
+available English voice; install an English Windows speech voice if
 none is available. Configure **Settings… → General → Speak replies** to keep it
 off, enable it only for voice messages (the default), or speak every reply. The
 voice, engine, rate, and volume are configurable there; speech text is processed
@@ -239,9 +254,13 @@ python -m venv .venv
 Macha starts the transcription service when it launches. The wake listener
 waits for the local model to finish loading and retries automatically if startup
 takes longer than expected. If automatic startup is unavailable, run
-`python .\stt_server.py` from the repository root. Press
-**Ctrl+Alt+Space** or the **Voice** button beside the chat input to start
-recording; press it again to stop and send the recognized text through chat.
+`python .\stt_server.py` from the repository root. Hold **left Ctrl + left Alt**
+or use the **Voice** button beside the chat input to start recording. While
+holding the chord, drag with the left mouse button over an object to include
+that screen region with your spoken question; the drag is captured by Macha
+instead of being sent to the underlying app. Release either modifier to submit.
+The selected crop stays in memory and is sent with the question to the configured
+AI provider, so image questions require a vision-capable model.
 In automatic provider mode, voice requests try the configured OpenRouter model
 first and fall back to Ollama if the network or OpenRouter credits are
 unavailable. Explicit Ollama-only or OpenRouter-only settings are respected.
@@ -311,7 +330,7 @@ C++"). WebView2 ships with Windows 10/11.
 ```powershell
 cd windows
 npm install
-npm run tauri dev      # live-reloading development build
+npm run tauri dev      # live-reloading development build; packaging-only helper files are not required
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build-python-helpers.ps1 # bundles helpers, then builds installer
 npm run pack:msix -- -CertificateThumbprint YOUR_CERTIFICATE_THUMBPRINT # signed MSIX with notification access
 ```

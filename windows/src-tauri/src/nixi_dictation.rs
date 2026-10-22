@@ -1,5 +1,6 @@
 // Nixi Dictation — text post-processing and text insertion command.
 
+use crate::settings::DictationReplacement;
 use regex::Regex;
 
 /// Post-processes transcribed dictation text applying rules in order:
@@ -99,6 +100,113 @@ fn capitalize_sentences(s: &str) -> String {
         }
     }
     result
+}
+
+fn apply_replacements(text: &str, replacements: &[DictationReplacement]) -> Result<String, String> {
+    if replacements.len() > 100 {
+        return Err("At most 100 dictation replacements are allowed.".into());
+    }
+
+    let mut result = text.to_string();
+    for entry in replacements {
+        let spoken = entry.spoken.trim();
+        if spoken.is_empty()
+            || spoken.len() > 100
+            || entry.replacement.len() > 500
+            || spoken.contains('\0')
+            || entry.replacement.contains('\0')
+        {
+            return Err("A dictation replacement is invalid or exceeds its length limit.".into());
+        }
+
+        let phrase = spoken
+            .split_whitespace()
+            .map(regex::escape)
+            .collect::<Vec<_>>()
+            .join(r"\s+");
+        let pattern = format!(r"(?iu)(^|[^\p{{L}}\p{{N}}_])({phrase})($|[^\p{{L}}\p{{N}}_])");
+        let regex = Regex::new(&pattern)
+            .map_err(|error| format!("Could not compile dictation replacement: {error}"))?;
+        let mut replaced = String::with_capacity(result.len());
+        let mut cursor = 0;
+        for captures in regex.captures_iter(&result) {
+            let whole = captures.get(0).expect("capture group 0 always exists");
+            replaced.push_str(&result[cursor..whole.start()]);
+            if let Some(left) = captures.get(1) {
+                replaced.push_str(left.as_str());
+            }
+            replaced.push_str(&entry.replacement);
+            if let Some(right) = captures.get(3) {
+                replaced.push_str(right.as_str());
+            }
+            cursor = whole.end();
+        }
+        replaced.push_str(&result[cursor..]);
+        result = replaced;
+    }
+    Ok(result)
+}
+
+fn apply_style(text: &str, style: &str) -> Result<String, String> {
+    match style {
+        "standard" => Ok(postprocess(text)),
+        "verbatim" => Ok(text.trim().to_string()),
+        _ => Err("Unsupported dictation writing style.".into()),
+    }
+}
+
+#[tauri::command]
+pub fn nixi_foreground_application() -> Result<Option<String>, String> {
+    #[cfg(windows)]
+    {
+        use windows::core::PWSTR;
+        use windows::Win32::Foundation::CloseHandle;
+        use windows::Win32::System::Threading::{
+            OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_FORMAT,
+            PROCESS_QUERY_LIMITED_INFORMATION,
+        };
+        use windows::Win32::UI::WindowsAndMessaging::{
+            GetForegroundWindow, GetWindowThreadProcessId,
+        };
+
+        let foreground = unsafe { GetForegroundWindow() };
+        if foreground.0.is_null() {
+            return Ok(None);
+        }
+        let mut process_id = 0;
+        unsafe {
+            GetWindowThreadProcessId(foreground, Some(&mut process_id));
+        }
+        if process_id == 0 {
+            return Ok(None);
+        }
+        let process = unsafe {
+            OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, process_id)
+        }
+        .map_err(|error| format!("Could not identify the dictation target application: {error}"))?;
+
+        let mut path = vec![0u16; 32_768];
+        let mut length = path.len() as u32;
+        let query = unsafe {
+            QueryFullProcessImageNameW(
+                process,
+                PROCESS_NAME_FORMAT(0),
+                PWSTR(path.as_mut_ptr()),
+                &mut length,
+            )
+        };
+        let _ = unsafe { CloseHandle(process) };
+        query.map_err(|error| format!("Could not read the dictation target application: {error}"))?;
+
+        let path = String::from_utf16_lossy(&path[..length as usize]);
+        Ok(std::path::Path::new(&path)
+            .file_name()
+            .map(|name| name.to_string_lossy().to_ascii_lowercase()))
+    }
+    #[cfg(not(windows))]
+    {
+        Ok(None)
+    }
 }
 
 #[cfg(windows)]
@@ -395,8 +503,12 @@ async fn insert_via_clipboard(text: &str) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn nixi_dictate_insert(text: String) -> Result<String, String> {
-    let processed = postprocess(&text);
+pub async fn nixi_dictate_insert(
+    text: String,
+    replacements: Vec<DictationReplacement>,
+    style: String,
+) -> Result<String, String> {
+    let processed = apply_replacements(&apply_style(&text, &style)?, &replacements)?;
     if processed.is_empty() {
         crate::log::line("nixi_dictate_insert: empty text after postprocessing");
         return Ok("sendinput".to_string());
@@ -507,5 +619,43 @@ mod tests {
     #[test]
     fn test_multiple_spaces_collapsed() {
         assert_eq!(postprocess("hello    world   today"), "Hello world today");
+    }
+
+    #[test]
+    fn phrase_replacements_match_case_insensitively_at_word_boundaries() {
+        let replacements = vec![
+            DictationReplacement {
+                spoken: "macha".into(),
+                replacement: "Macha AI".into(),
+            },
+            DictationReplacement {
+                spoken: "project name".into(),
+                replacement: "Macha".into(),
+            },
+        ];
+
+        assert_eq!(
+            apply_replacements("Macha, open project   name; catalog.", &replacements).unwrap(),
+            "Macha AI, open Macha; catalog."
+        );
+    }
+
+    #[test]
+    fn phrase_replacements_reject_invalid_entries() {
+        let replacements = vec![DictationReplacement {
+            spoken: "  ".into(),
+            replacement: "value".into(),
+        }];
+        assert!(apply_replacements("text", &replacements).is_err());
+    }
+
+    #[test]
+    fn dictation_styles_are_local_and_verbatim_skips_cleanup() {
+        assert_eq!(apply_style("  um hello period  ", "standard").unwrap(), "Hello.");
+        assert_eq!(
+            apply_style("  um hello period  ", "verbatim").unwrap(),
+            "um hello period"
+        );
+        assert!(apply_style("text", "unknown").is_err());
     }
 }

@@ -147,6 +147,16 @@ export interface IntegrationInfo {
   configured: boolean;
 }
 
+export interface DictationReplacement {
+  spoken: string;
+  replacement: string;
+}
+
+export interface DictationAppStyle {
+  application: string;
+  style: "standard" | "verbatim";
+}
+
 export interface Settings {
   avatar: AvatarChoice;
   soundEnabled: boolean;
@@ -178,6 +188,9 @@ export interface Settings {
   wakeWordEnabled: boolean;
   wakeWordPronunciation: string;
   wakeWordThreshold: number;
+  dictationVocabulary: string[];
+  dictationReplacements: DictationReplacement[];
+  dictationAppStyles: DictationAppStyle[];
   /** Kept to read settings.json files written by earlier Windows builds. */
   spokenReplies: boolean;
 }
@@ -207,6 +220,9 @@ export const DEFAULT_SETTINGS: Settings = {
   wakeWordEnabled: true,
   wakeWordPronunciation: "Hey Macha",
   wakeWordThreshold: 0.012,
+  dictationVocabulary: [],
+  dictationReplacements: [],
+  dictationAppStyles: [],
   spokenReplies: false,
 };
 

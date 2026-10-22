@@ -36,23 +36,27 @@ traffic is on the same machine unless otherwise stated.
 ### Tray, hotkey, positioning, and app lifecycle
 
 - **What it does:** The tray can reopen the island, open settings, pause
-  activity, or toggle auto-hide. The global `Ctrl+Alt+Space` shortcut opens
-  voice input. The island tracks the selected monitor and cursor.
-- **User flow:** Use the tray or hotkey while the app is running; close/hide
-  and pause behavior depends on the selected setting. A second app launch
-  signals the existing instance rather than opening another island.
+  activity, or toggle auto-hide. Holding left Ctrl + left Alt starts voice
+  input; releasing either key submits the recording. The island tracks the
+  selected monitor and cursor.
+- **User flow:** Hold left Ctrl and left Alt together, speak, and release to
+  submit the prompt. Use the tray to reopen the island or change settings; a
+  second app launch signals the existing instance rather than opening another.
 - **Under the hood:** `windows/src-tauri/src/lib.rs::run` registers
-  single-instance, tray, autostart, global-shortcut, and dialog plugins. Its
-  setup starts the helpers and creates the Settings window before the island.
+  single-instance, tray, autostart, and dialog plugins. Its setup starts the
+  native keyboard hook and creates the Settings window before the island.
   `windows/src-tauri/src/island.rs::spawn_cursor_poll` reads Windows cursor and
-  display state. `windows/src/main.ts` receives tray/hotkey events and routes
-  them into the island or chat.
+  display state. `windows/src-tauri/src/nixi_hotkeys.rs` detects the held
+  modifier chord without consuming the keystrokes. `windows/src/main.ts`
+  routes its events into the island and chat.
 - **Data:** Autostart and auto-hide preferences are in `settings.json`; current
   pause/pin/window state is in memory.
-- **Edge cases:** Display changes trigger repositioning. Polling is paused or
-  reduced when the island need not be interactive. Registration failures are
-  logged; the app can still launch without the hotkey.
-- **Dependencies:** Windows APIs, Tauri plugins, and per-user settings.
+- **Edge cases:** Releasing either modifier stops capture; a pending
+  microphone permission request is cancelled safely if the chord is released.
+  Display changes trigger repositioning. Polling is paused or reduced when
+  the island need not be interactive.
+- **Dependencies:** Windows low-level keyboard hook, microphone permission,
+  Tauri plugins, and per-user settings.
 
 ### Activity cards and integration pills
 
@@ -229,27 +233,116 @@ traffic is on the same machine unless otherwise stated.
 
 ## Voice, speech, and Vision Mode
 
+### Voice setup guide
+
+- **What it does:** An animated first-run introduction opens on the first
+  application launch and summarizes voice chat, dictation, screen-region
+  questions, integrations, workflows, and action review. It then guides the
+  user through microphone access, dictation, optional “Hey Macha” activation,
+  spoken-reply playback, optional AI-provider setup, and a final avatar choice.
+- **Presentation:** The first-run wizard is displayed in a centered, fixed-size
+  frameless window with the Settings page and outer scrollbars hidden. Finishing
+  or deferring setup restores the normal resizable Settings window.
+- **User flow:** Continue through welcome, permissions, microphone, dictation,
+  Vision Mode, wake phrase, speech, AI-provider setup, and final avatar choice.
+  AI setup accepts optional Grok, Claude, OpenAI, and Gemini API keys or a
+  named OpenRouter account, and lets the user choose a provider mode. The user
+  can skip keys and select local Ollama. The permissions step can
+  request microphone and camera access, lets the user explicitly allow selected
+  screen regions, and explains per-action file, desktop-action, clipboard,
+  keyboard-shortcut, and autostart behavior. Camera access is optional and is
+  used for hand tracking only while gesture controls run; camera consent can be
+  revoked in Settings, which stops Vision Mode. Declined microphone access
+  does not block setup; screen-region capture remains off unless explicitly
+  enabled. The Vision Mode step hides Settings,
+  opens the island chat, and asks the user to hold left Ctrl + left Alt, drag
+  across a screen region, and ask a question. After the result, Settings
+  returns automatically and reports success or a retryable error. The
+  microphone check shows a local level meter and
+  automatically stops after 12 seconds; users may stop it sooner. The
+  dictation step routes Right Alt hold-to-dictate transcription into its test
+  field, without inserting into another application. The wizard can be skipped
+  and replayed from Settings. Setup progress
+  is shared by the island and Settings WebViews so the wizard is not reopened
+  after completion or dismissal.
+- **Data:** Microphone and camera access are requested by user actions and can
+  be denied; the Tauri microphone permission handler defers to the WebView
+  default instead of pre-approving it. The microphone check analyzes audio
+  levels in memory only. It does not record, transcribe, or send audio. The
+  dictation check uses the normal local STT service and sends its transcript
+  back to the setup field instead of inserting it into another application.
+  Vision test results, including microphone/transcription/capture failures,
+  return to the setup window. The wake-phrase
+  choice and provider mode are saved in Macha settings; provider keys are
+  stored through the OS credential manager and are never added to settings or
+  WebView storage. Completion/dismissal and successful Vision Mode testing are
+  recorded in local WebView storage.
+- **Dependencies:** WebView microphone permission for the input check, the
+  configured local wake-word listener, and the selected text-to-speech engine.
+
 ### Push-to-talk voice input
 
 - **What it does:** Records a short microphone clip, transcribes it locally,
-  and sends the resulting text to chat.
-- **User flow:** Click the voice control or press `Ctrl+Alt+Space`, allow
-  microphone access, speak, then wait for the transcript and assistant response.
-- **Under the hood:** `windows/src/main.ts` receives the hotkey event.
+  and sends the resulting text to chat. While holding the chord, a left-button
+  drag selects a screen region to include with the spoken question.
+- **User flow:** Click the Voice control to toggle recording, or hold left
+  Ctrl + left Alt while speaking and release to submit. Drag across an object
+  before releasing the chord to ask about the selected region.
+- **Under the hood:** `windows/src-tauri/src/nixi_hotkeys.rs` emits start/stop
+  events for the held chord and observes global left-button drags only while
+  the chord is active. The drag is suppressed from reaching the underlying app,
+  and `windows/src-tauri/src/nixi_system.rs` captures the selected desktop crop
+  in memory.
   `windows/src/views/chat.ts::startListening` records with browser
   `getUserMedia`/`MediaRecorder`, monitors silence, and posts to
-  `http://127.0.0.1:5005/transcribe`. `windows/src-tauri/src/voice.rs`
+  `http://127.0.0.1:5005/transcribe`. For a selected region, the crop is
+  attached to the resulting chat request through the existing vision input
+  path. `windows/src-tauri/src/voice.rs`
   starts/monitors `stt_server.py`; the Python service decodes audio and runs
   `faster-whisper` (`base.en`, English, CPU/int8).
 - **Data:** Raw audio is posted to the local Flask process and temporary audio
-  files are deleted after transcription. Transcript text enters chat and may
-  then be sent to the configured model provider.
+  files are deleted after transcription. The screen crop is held in memory and
+  sent to the configured model provider with the transcript; no crop is saved
+  to disk.
 - **Edge cases:** Silence, low-confidence text, missing microphone, and
   unavailable service show an error/notice. The recorder stops after silence
-  or a 30-second maximum. English is the configured transcription language.
+  or a 30-second maximum; silence auto-stop is paused while the chord is held.
+  Image questions require a vision-capable selected model; Macha shows an error
+  rather than silently retrying without the image. English is the configured
+  transcription language.
 - **Dependencies:** Microphone permission, Python plus Flask/Whisper/audio
   dependencies, and local Whisper model files. The app attempts to start a
   suitable local Python service.
+
+### Right Alt dictation
+
+- **What it does:** Hold Right Alt while speaking to transcribe text and insert
+  it into the currently focused Windows control. Spoken punctuation, filler
+  cleanup, and self-correction are applied locally.
+- **User flow:** Focus a text field, hold Right Alt, speak, then release. In
+  Settings → Voice dictation, add custom spellings for names/technical terms
+  and phrase replacements such as a spoken phrase mapped to an inserted
+  snippet. Per-application formatting profiles match the focused executable
+  name and choose standard cleanup or verbatim transcription.
+- **Under the hood:** `windows/src/nixi/hotkeys.ts` records audio and posts it
+  to the loopback STT service. Custom spellings are supplied as a local
+  `faster-whisper` initial prompt; configured phrase replacements are applied
+  by `windows/src-tauri/src/nixi_dictation.rs` before UI Automation,
+  `SendInput`, or clipboard insertion. The native helper reads only the
+  foreground executable name to select a profile; it does not collect window
+  titles or document content.
+- **Data:** Vocabulary and replacement rules are stored in
+  `%APPDATA%\\Macha\\settings.json`. Raw audio remains within the local STT
+  service; vocabulary hints are sent only to `127.0.0.1`. Replacement rules
+  and formatting are processed locally and dictation text is not sent to a
+  chat model. Per-app profiles store executable names and a local formatting
+  mode.
+- **Edge cases:** The audio session is cancelled if the hotkey is released
+  while microphone permission is pending. Insertion reports a failure if all
+  Windows insertion fallbacks fail. Limits are 50 vocabulary hints and 100
+  replacements.
+- **Dependencies:** Microphone permission, local STT, the native keyboard
+  hook, and a focused Windows text control.
 
 ### “Hey Macha” wake phrase
 
@@ -286,6 +379,8 @@ traffic is on the same machine unless otherwise stated.
   qualifying replies, cleaned response text is chunked and queued for speech;
   the user can stop playback.
 - **Under the hood:** `windows/src/core/tts.ts` filters local English voices,
+  preferring Microsoft Zira when installed and otherwise using another
+  available English voice,
   cleans Markdown/URLs, and queues text using browser Speech Synthesis or
   `Bridge.ttsSpeak`. The native command in
   `windows/src-tauri/src/voice.rs::tts_speak` invokes Windows PowerShell

@@ -3,188 +3,187 @@
 import {
   Bridge,
   IS_TAURI,
+  onEvent,
   onNixiDictateStart,
   onNixiDictateStop,
   onNixiPttStart,
   onNixiPttStop,
 } from "../core/bridge";
+import { State } from "../core/state";
 import { Sound } from "../core/sound";
 import type { Island } from "../island/island";
+import { NixiAudioRecorder } from "./audioRecorder";
+import { isDictationSetupTestPayload } from "./setupDictation";
+import { transcribeAudio } from "./stt";
 import type { NixiStatusBar } from "./status";
-
-const STT_ENDPOINT = "http://127.0.0.1:5005/transcribe";
-
-class NixiAudioRecorder {
-  private mediaStream: MediaStream | null = null;
-  private recorder: MediaRecorder | null = null;
-  private audioChunks: Blob[] = [];
-  private activeMode: "ptt" | "dictate" | null = null;
-
-  async start(mode: "ptt" | "dictate"): Promise<boolean> {
-    this.activeMode = mode;
-    this.audioChunks = [];
-    try {
-      if (!this.mediaStream || !this.mediaStream.active) {
-        this.mediaStream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            channelCount: 1,
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-          },
-        });
-      }
-      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-        ? "audio/webm;codecs=opus"
-        : "audio/webm";
-      this.recorder = new MediaRecorder(this.mediaStream, { mimeType });
-      this.recorder.addEventListener("dataavailable", (event) => {
-        if (event.data.size > 0) this.audioChunks.push(event.data);
-      });
-      this.recorder.start();
-      return true;
-    } catch (err) {
-      console.error("[nixi] failed to start audio recording", err);
-      return false;
-    }
-  }
-
-  async stop(): Promise<{ blob: Blob; mode: "ptt" | "dictate" } | null> {
-    const mode = this.activeMode;
-    this.activeMode = null;
-    if (!this.recorder || this.recorder.state !== "recording" || !mode) {
-      return null;
-    }
-
-    return new Promise((resolve) => {
-      this.recorder!.addEventListener(
-        "stop",
-        () => {
-          const blob = new Blob(this.audioChunks, {
-            type: this.recorder?.mimeType || "audio/webm",
-          });
-          this.audioChunks = [];
-          resolve({ blob, mode });
-        },
-        { once: true },
-      );
-      try {
-        this.recorder!.stop();
-      } catch (err) {
-        console.error("[nixi] error stopping recorder", err);
-        resolve(null);
-      }
-    });
-  }
-
-  destroy() {
-    if (this.recorder && this.recorder.state === "recording") {
-      try {
-        this.recorder.stop();
-      } catch {
-        // ignore
-      }
-    }
-    if (this.mediaStream) {
-      this.mediaStream.getTracks().forEach((track) => track.stop());
-      this.mediaStream = null;
-    }
-  }
-}
-
-async function transcribeAudio(audio: Blob): Promise<string> {
-  const form = new FormData();
-  form.append("audio", audio, "nixi.webm");
-  form.append("mode", "voice");
-
-  const response = await fetch(STT_ENDPOINT, {
-    method: "POST",
-    body: form,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Voice server error (HTTP ${response.status})`);
-  }
-
-  const data: unknown = await response.json();
-  if (
-    typeof data === "object" &&
-    data !== null &&
-    "text" in data &&
-    typeof data.text === "string"
-  ) {
-    return data.text.trim();
-  }
-  return "";
-}
 
 export function registerNixiHotkeyHandlers(
   island: Island,
   statusBar: NixiStatusBar,
 ): () => void {
   const recorder = new NixiAudioRecorder();
+  let recordingGeneration = 0;
+  let dictationApplication: Promise<string | null> = Promise.resolve(null);
+  let dictationApplicationError: string | null = null;
+  let dictationSetupTestActive = false;
+  let dictationSetupTestRecording = false;
+
+  const unlistenSetupTest = onEvent<boolean>("dictation-setup-test-active", (active) => {
+    dictationSetupTestActive = active;
+  }).catch((error: unknown) => {
+    console.error("[nixi] could not listen for setup dictation mode", error);
+    return () => {};
+  });
+  void Bridge.getDictationSetupTestActive().then((active) => {
+    dictationSetupTestActive = active;
+  }).catch((error: unknown) => {
+    console.error("[nixi] could not read setup dictation mode", error);
+  });
+  const reportSetupDictation = (transcript: string, error?: string) => {
+    void Bridge.completeDictationSetupTest(transcript, error).catch((reportError: unknown) => {
+      console.error("[nixi] could not report setup dictation result", reportError);
+    });
+  };
 
   const onPttStart = () => {
+    const session = ++recordingGeneration;
     island.setNixiPtt(true);
     statusBar.setStatus("Listening…");
     Sound.play("peek");
-    void recorder.start("ptt");
+    void recorder.start("ptt").then((started) => {
+      if (started || session !== recordingGeneration) return;
+      island.setNixiPtt(false);
+      statusBar.setStatus("Microphone unavailable", "Allow microphone access, then try push-to-talk again.");
+    });
   };
 
   const onPttStop = () => {
+    const session = ++recordingGeneration;
     island.setNixiPtt(false);
     statusBar.setStatus("Thinking…");
     void (async () => {
       const result = await recorder.stop();
+      if (session !== recordingGeneration) return;
       if (!result || result.blob.size === 0) {
-        statusBar.clear();
+        statusBar.setStatus("No audio captured", "Hold Right Ctrl while speaking, then release.");
         return;
       }
       try {
         const transcript = await transcribeAudio(result.blob);
+        if (session !== recordingGeneration) return;
         if (!transcript) {
           statusBar.setStatus("No speech heard");
           return;
         }
         statusBar.setStatus("Executing…", transcript);
         const cmdRes = await Bridge.nixiRunCommand(transcript);
+        if (session !== recordingGeneration) return;
         if (!cmdRes.success) {
           statusBar.setStatus(cmdRes.summary, cmdRes.detail);
         }
       } catch (err) {
+        if (session !== recordingGeneration) return;
         console.error("[nixi] PTT transcription failed", err);
-        statusBar.setStatus("Speech service offline");
+        statusBar.setStatus(
+          "Speech service unavailable",
+          err instanceof Error ? err.message : String(err),
+        );
       }
     })();
   };
 
   const onDictateStart = () => {
+    if (dictationSetupTestActive) return;
+    const session = ++recordingGeneration;
+    dictationSetupTestRecording = dictationSetupTestActive;
+    dictationApplicationError = null;
+    dictationApplication = IS_TAURI && !dictationSetupTestRecording
+      ? Bridge.nixiForegroundApplication().catch((error: unknown) => {
+        dictationApplicationError = error instanceof Error ? error.message : String(error);
+        console.error("[nixi] could not identify the dictation target application", error);
+        return null;
+      })
+      : Promise.resolve(null);
     island.setNixiDictate(true);
     statusBar.setStatus("Dictating…");
     Sound.play("peek");
-    void recorder.start("dictate");
+    void recorder.start("dictate").then((started) => {
+      if (started || session !== recordingGeneration) return;
+      island.setNixiDictate(false);
+      statusBar.setStatus("Microphone unavailable", "Allow microphone access, then hold Right Alt to dictate.");
+      if (dictationSetupTestRecording) {
+        dictationSetupTestRecording = false;
+        reportSetupDictation("", "Microphone unavailable. Allow microphone access, then try again.");
+      }
+    });
   };
 
   const onDictateStop = () => {
+    if (dictationSetupTestActive && !dictationSetupTestRecording) return;
+    const session = ++recordingGeneration;
+    const isSetupTest = dictationSetupTestRecording;
+    dictationSetupTestRecording = false;
     island.setNixiDictate(false);
     statusBar.setStatus("Transcribing…");
     void (async () => {
       const result = await recorder.stop();
+      if (session !== recordingGeneration) return;
       if (!result || result.blob.size === 0) {
-        statusBar.clear();
+        statusBar.setStatus("No dictation captured", "Hold Right Alt while speaking, then release.");
+        if (isSetupTest) {
+          reportSetupDictation("", "No dictation audio was captured. Hold Right Alt while speaking, then release.");
+        }
         return;
       }
       try {
-        const transcript = await transcribeAudio(result.blob);
+        const transcript = await transcribeAudio(result.blob, State.settings.dictationVocabulary);
+        if (session !== recordingGeneration) return;
         if (!transcript) {
           statusBar.setStatus("No speech heard");
+          if (isSetupTest) {
+            reportSetupDictation("", "No speech was detected. Try speaking a little longer.");
+          }
           return;
         }
-        await Bridge.nixiDictateInsert(transcript);
-        statusBar.setStatus("Dictation inserted");
+        if (isSetupTest) {
+          reportSetupDictation(transcript);
+          statusBar.setStatus("Setup dictation transcribed");
+          return;
+        }
+        const targetApplication = await dictationApplication;
+        if (session !== recordingGeneration) return;
+        const appStyle = targetApplication
+          ? State.settings.dictationAppStyles.find(
+            (entry) => entry.application.toLowerCase() === targetApplication.toLowerCase(),
+          )
+          : undefined;
+        await Bridge.nixiDictateInsert(
+          transcript,
+          State.settings.dictationReplacements,
+          appStyle?.style ?? "standard",
+        );
+        if (session !== recordingGeneration) return;
+        const detail = appStyle
+          ? `${appStyle.style === "verbatim" ? "Verbatim" : "Standard"} style for ${targetApplication}.`
+          : dictationApplicationError
+            ? `Could not identify the target app; standard formatting was used. ${dictationApplicationError}`
+            : targetApplication && State.settings.dictationAppStyles.length > 0
+              ? `No style is configured for ${targetApplication}; standard formatting was used.`
+              : undefined;
+        statusBar.setStatus("Dictation inserted", detail);
       } catch (err) {
+        if (session !== recordingGeneration) return;
         console.error("[nixi] Dictation transcription failed", err);
-        statusBar.setStatus("Dictation failed");
+        statusBar.setStatus(
+          "Dictation failed",
+          err instanceof Error ? err.message : String(err),
+        );
+        if (isSetupTest) {
+          reportSetupDictation(
+            "",
+            err instanceof Error ? err.message : "Dictation transcription failed.",
+          );
+        }
       }
     })();
   };
@@ -234,8 +233,12 @@ export function registerNixiHotkeyHandlers(
     }
 
     try {
-      void onNixiDictateStart(() => {
+      void onNixiDictateStart((payload) => {
         try {
+          if (isDictationSetupTestPayload(payload)) {
+            dictationSetupTestActive = true;
+            return;
+          }
           window.dispatchEvent(new CustomEvent("macha-nixi-dictate-start"));
         } catch (err) {
           void Bridge.log(`[nixi] error dispatching macha-nixi-dictate-start: ${String(err)}`);
@@ -252,8 +255,12 @@ export function registerNixiHotkeyHandlers(
     }
 
     try {
-      void onNixiDictateStop(() => {
+      void onNixiDictateStop((payload) => {
         try {
+          if (isDictationSetupTestPayload(payload)) {
+            dictationSetupTestActive = true;
+            return;
+          }
           window.dispatchEvent(new CustomEvent("macha-nixi-dictate-stop"));
         } catch (err) {
           void Bridge.log(`[nixi] error dispatching macha-nixi-dictate-stop: ${String(err)}`);
@@ -271,6 +278,7 @@ export function registerNixiHotkeyHandlers(
   }
 
   return () => {
+    void unlistenSetupTest.then((unlisten) => unlisten());
     recorder.destroy();
     window.removeEventListener("macha-nixi-ptt-start", onPttStart);
     window.removeEventListener("macha-nixi-ptt-stop", onPttStop);

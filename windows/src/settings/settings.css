@@ -588,3 +588,1728 @@ select option {
     justify-content: flex-start;
   }
 }
+
+/* ==========================================================================
+   MACHA SETUP & ONBOARDING — NEXT-GEN PREMIUM DARK EXPERIENCE
+   ========================================================================== */
+
+/* ── Fullscreen Setup Takeover (Zero Scrollbars, Zero Background Clutter) ── */
+
+html.voice-setup-only,
+html.voice-setup-active,
+html:has(.voice-setup-dialog[open]),
+body.voice-setup-only,
+body.voice-setup-active,
+body:has(.voice-setup-dialog[open]) {
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  scrollbar-width: none !important;
+}
+
+html.voice-setup-only::-webkit-scrollbar,
+html.voice-setup-active::-webkit-scrollbar,
+html:has(.voice-setup-dialog[open])::-webkit-scrollbar,
+body.voice-setup-only::-webkit-scrollbar,
+body.voice-setup-active::-webkit-scrollbar,
+body:has(.voice-setup-dialog[open])::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Completely hide all settings cards behind setup */
+body.voice-setup-only #settings-root > *:not(.voice-setup-launcher),
+body.voice-setup-active #settings-root > *:not(.voice-setup-launcher),
+body:has(.voice-setup-dialog[open]) #settings-root > *:not(.voice-setup-launcher) {
+  display: none !important;
+}
+
+body.voice-setup-only #settings-root,
+body.voice-setup-active #settings-root,
+body:has(.voice-setup-dialog[open]) #settings-root {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  overflow: hidden !important;
+  display: block !important;
+}
+
+body.voice-setup-only .voice-setup-launcher,
+body.voice-setup-active .voice-setup-launcher,
+body:has(.voice-setup-dialog[open]) .voice-setup-launcher {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+body.voice-setup-only .voice-setup-launcher > *:not(.voice-setup-dialog),
+body.voice-setup-active .voice-setup-launcher > *:not(.voice-setup-dialog),
+body:has(.voice-setup-dialog[open]) .voice-setup-launcher > *:not(.voice-setup-dialog) {
+  display: none !important;
+}
+
+/* ── Launcher Banner in Normal Settings View ────────────────────────────── */
+
+.voice-setup-launcher {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 22px;
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse 70% 80% at 100% 0%, rgba(52, 211, 153, 0.12), transparent 60%),
+    radial-gradient(ellipse 50% 60% at 0% 100%, rgba(56, 189, 248, 0.06), transparent 50%),
+    linear-gradient(180deg, #16191f 0%, #101217 100%);
+  box-shadow:
+    0 10px 30px -10px rgba(0, 0, 0, 0.5),
+    0 0 20px -5px rgba(52, 211, 153, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+}
+
+.voice-setup-launcher:hover {
+  border-color: rgba(52, 211, 153, 0.38);
+  box-shadow:
+    0 14px 40px -10px rgba(0, 0, 0, 0.65),
+    0 0 30px -5px rgba(52, 211, 153, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.voice-setup-launcher-copy {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.voice-setup-launcher-copy > div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.voice-setup-launcher-copy strong {
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  color: #f8fafc;
+}
+
+.voice-setup-label,
+.voice-setup-step-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.voice-setup-orb {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #e6fff5, #34d399 45%, #064e3b 85%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.2),
+    0 0 0 5px rgba(52, 211, 153, 0.12),
+    0 0 32px rgba(52, 211, 153, 0.45);
+  animation: voice-setup-breathe 3s ease-in-out infinite;
+}
+
+.voice-setup-orb::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1px dashed rgba(52, 211, 153, 0.35);
+  animation: voice-setup-ring 12s linear infinite;
+}
+
+/* ── Seamless Dialog Surface (Window Frame Replacement) ─────────────────── */
+
+.voice-setup-dialog:not([open]) {
+  display: none !important;
+}
+
+.voice-setup-dialog[open],
+body.voice-setup-only .voice-setup-dialog[open],
+body.voice-setup-active .voice-setup-dialog[open],
+body:has(.voice-setup-dialog[open]) .voice-setup-dialog[open] {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background:
+    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(52, 211, 153, 0.16) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 45% at 90% 100%, rgba(56, 189, 248, 0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 45% at 10% 100%, rgba(52, 211, 153, 0.06) 0%, transparent 60%),
+    #0c0e12 !important;
+  color: var(--ink) !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  animation: none !important;
+}
+
+.voice-setup-dialog::backdrop,
+body.voice-setup-only .voice-setup-dialog::backdrop,
+body.voice-setup-active .voice-setup-dialog::backdrop,
+body:has(.voice-setup-dialog[open]) .voice-setup-dialog::backdrop {
+  display: none !important;
+  background: transparent !important;
+}
+
+/* Setup Container Shell */
+.voice-setup-shell {
+  display: flex;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  flex-direction: column;
+  padding: 22px 34px 18px;
+  box-sizing: border-box;
+  user-select: none;
+  overflow: hidden;
+}
+
+/* ── Top Header & Progress Bar ────────────────────────────────────────────── */
+
+.voice-setup-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+}
+
+.voice-setup-topline > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #e2e8f0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.voice-setup-topline > span:first-child::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 10px #34d399;
+  animation: voice-setup-pulse-dot 2.4s ease-in-out infinite;
+}
+
+.voice-setup-step-label {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+}
+
+.voice-setup-progress {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  margin-top: 14px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.voice-setup-progress-fill {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #10b981 0%, #34d399 45%, #67e8f9 85%, #34d399 100%);
+  background-size: 200% 100%;
+  box-shadow:
+    0 0 16px rgba(52, 211, 153, 0.55),
+    0 0 4px rgba(52, 211, 153, 0.8);
+  animation: progress-shimmer 3s linear infinite;
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Interactive Stage ────────────────────────────────────────────────────── */
+
+.voice-setup-stage {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 0;
+  padding: 8px 12px;
+  text-align: center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  contain: paint layout;
+}
+
+.voice-setup-stage::-webkit-scrollbar {
+  display: none;
+}
+
+/* Stage Entrance & Exit Animations */
+.voice-setup-stage-enter {
+  animation: voice-setup-stage-in 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.voice-setup-stage-exit {
+  animation: voice-setup-stage-out 0.18s cubic-bezier(0.4, 0, 1, 1) both;
+  pointer-events: none;
+}
+
+/* ── Mascot & Animated Avatar Aura (Top Visual) ──────────────────────────── */
+
+.voice-setup-visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 140px;
+  flex: 0 0 auto;
+  margin: 0 auto 8px;
+  pointer-events: none;
+}
+
+.voice-setup-visual-ring {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.voice-setup-visual-ring-outer {
+  border: 1px dashed rgba(52, 211, 153, 0.32);
+  animation: voice-setup-ring 16s linear infinite;
+}
+
+.voice-setup-visual-ring-inner {
+  inset: 20px;
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  box-shadow: inset 0 0 16px rgba(52, 211, 153, 0.06);
+  animation: voice-setup-ring 9s linear infinite reverse;
+}
+
+.voice-setup-visual::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  pointer-events: none;
+}
+
+.voice-setup-mascot-glow {
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.3) 0%, rgba(52, 211, 153, 0.08) 55%, transparent 72%);
+  filter: blur(8px);
+  animation: voice-setup-core 3.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.voice-setup-mascot {
+  position: relative;
+  z-index: 1;
+  max-width: 82%;
+  max-height: 82%;
+  width: auto;
+  height: auto;
+  display: block;
+  margin: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 10px 20px rgba(52, 211, 153, 0.22));
+  transition: filter 0.3s;
+}
+
+.voice-setup-avatar-host {
+  position: absolute;
+  z-index: 2;
+  inset: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.voice-setup-avatar-host > svg,
+.voice-setup-avatar-host > canvas,
+.voice-setup-avatar-host > * {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+}
+
+.voice-setup-visual[data-avatar-choice="macha"] .voice-setup-avatar-host,
+.voice-setup-visual:not([data-avatar-choice="macha"]) .voice-setup-mascot {
+  display: none !important;
+}
+
+.voice-setup-visual:not([data-avatar-choice="macha"]) .voice-setup-avatar-host {
+  display: flex !important;
+}
+
+.voice-setup-mascot-caption {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -6px;
+  padding: 2.5px 10px;
+  border-radius: 999px;
+  background: rgba(12, 14, 18, 0.88);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  backdrop-filter: blur(6px);
+  color: #a7f3d0;
+  font: 700 8.5px var(--mono);
+  letter-spacing: 0.24em;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 10px rgba(52, 211, 153, 0.4);
+  transition: color 0.3s;
+}
+
+/* Listening State on Mascot Aura */
+.voice-setup-visual.is-listening .voice-setup-visual-ring-outer {
+  border-color: rgba(56, 189, 248, 0.65);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+  animation-duration: 2.2s;
+}
+
+.voice-setup-visual.is-listening .voice-setup-visual-ring-inner {
+  border-color: rgba(56, 189, 248, 0.45);
+  animation-duration: 1.8s;
+}
+
+.voice-setup-visual.is-listening .voice-setup-mascot-glow {
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.42) 0%, rgba(56, 189, 248, 0.12) 54%, transparent 72%);
+  filter: blur(10px);
+}
+
+.voice-setup-visual.is-listening .voice-setup-mascot-caption {
+  color: #bae6fd;
+  text-shadow: 0 0 16px rgba(56, 189, 248, 0.7);
+}
+
+/* ── Typography & Headings ────────────────────────────────────────────────── */
+
+.voice-setup-title {
+  max-width: 520px;
+  outline: none;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.voice-setup-description {
+  max-width: 480px;
+  margin: 0 auto;
+  color: #94a3b8;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.voice-setup-status {
+  max-width: 460px;
+  min-height: 20px;
+  margin: 0;
+  color: #94a3b8;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transition: color 0.2s;
+}
+
+.voice-setup-status.is-ready {
+  color: #6ee7b7;
+  font-weight: 500;
+  text-shadow: 0 0 12px rgba(52, 211, 153, 0.3);
+}
+
+/* ── Welcome Stage (Step 0) ───────────────────────────────────────────────── */
+
+.voice-setup-stage-welcome {
+  gap: 12px;
+  padding: 10px 4px;
+}
+
+.voice-setup-stage-welcome .voice-setup-visual {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 0;
+}
+
+.voice-setup-stage-welcome .voice-setup-title {
+  font-size: 28px;
+}
+
+.voice-setup-stage-welcome .voice-setup-description {
+  max-width: 500px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.voice-setup-features {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: min(560px, 100%);
+  margin-top: 4px;
+  text-align: left;
+}
+
+.voice-setup-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.3);
+  animation: voice-setup-feature-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--feature-index, 0) * 60ms + 100ms);
+  transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.voice-setup-feature:hover {
+  border-color: rgba(52, 211, 153, 0.32);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 8px 24px -4px rgba(0, 0, 0, 0.45),
+    0 0 20px -5px rgba(52, 211, 153, 0.15);
+  transform: translateY(-2px);
+}
+
+.voice-setup-feature-index {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  color: #34d399;
+  font: 700 10px var(--mono);
+}
+
+.voice-setup-feature h3 {
+  margin: 0 0 3px;
+  color: #f1f5f9;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.voice-setup-feature p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.voice-setup-privacy {
+  max-width: 500px;
+  margin: 2px 0 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* ── Permissions Stage (Step 1) ───────────────────────────────────────────── */
+
+.voice-setup-stage-permissions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas:
+    "visual title"
+    "visual description"
+    "microphone camera"
+    "screen screen"
+    "note note";
+  align-content: start;
+  justify-items: stretch;
+  flex: 1 1 0;
+  gap: 10px;
+  min-height: 0;
+  padding: 8px 4px;
+  width: min(580px, 100%);
+  margin: 0 auto;
+}
+
+.voice-setup-stage-permissions > .voice-setup-visual {
+  grid-area: visual;
+  align-self: center;
+  justify-self: center;
+  width: 104px;
+  height: 104px;
+  margin-bottom: 0;
+}
+
+.voice-setup-stage-permissions > .voice-setup-title {
+  grid-area: title;
+  align-self: end;
+  justify-self: start;
+  text-align: left;
+  font-size: 22px;
+}
+
+.voice-setup-stage-permissions > .voice-setup-description {
+  grid-area: description;
+  align-self: start;
+  justify-self: start;
+  margin: 0;
+  text-align: left;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.voice-setup-permission-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 13px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.voice-setup-permission-card:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.voice-setup-stage-permissions .voice-setup-permission-card-microphone {
+  grid-area: microphone;
+}
+
+.voice-setup-stage-permissions .voice-setup-permission-card-camera {
+  grid-area: camera;
+}
+
+.voice-setup-stage-permissions .voice-setup-permission-card-screen {
+  grid-area: screen;
+}
+
+.voice-setup-stage-permissions .voice-setup-permission-note {
+  grid-area: note;
+}
+
+.voice-setup-permission-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #f8fafc;
+}
+
+.voice-setup-permission-heading h3 {
+  font-size: 13px;
+  font-weight: 650;
+  margin: 0;
+}
+
+.voice-setup-permission-heading > span {
+  font-size: 10.5px;
+  font-weight: 600;
+  font-family: var(--mono);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+}
+
+.voice-setup-permission-heading input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #10b981;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.voice-setup-permission-card > p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 11.5px;
+  line-height: 1.48;
+}
+
+.voice-setup-permission-status {
+  margin: 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.voice-setup-permission-card .voice-setup-secondary {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 6px 12px;
+  font-size: 11px;
+}
+
+.voice-setup-permission-note {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: #64748b;
+  font-size: 10.5px;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.voice-setup-permission-note strong {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.voice-setup-permission-note p {
+  margin: 0;
+  color: #64748b;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+/* ── Microphone Live Test Stage (Step 2) ──────────────────────────────────── */
+
+.voice-setup-meter {
+  position: relative;
+  width: min(380px, 100%);
+  height: 10px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.voice-setup-meter-fill {
+  width: 100%;
+  height: 100%;
+  transform: scaleX(var(--meter-level, 0));
+  transform-origin: left center;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #10b981 0%, #34d399 50%, #38bdf8 100%);
+  box-shadow:
+    0 0 14px rgba(52, 211, 153, 0.5),
+    0 0 4px rgba(56, 189, 248, 0.7);
+  transition: transform 60ms linear;
+}
+
+/* ── Dictation Test Stage (Step 3) ────────────────────────────────────────── */
+
+.voice-setup-shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.voice-setup-shortcut kbd {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 7px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+  color: #f8fafc;
+  padding: 4px 10px;
+  font: 600 11.5px var(--mono);
+  letter-spacing: 0;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.voice-setup-dictation-input {
+  width: min(440px, 100%);
+  min-height: 84px;
+  margin-top: 8px;
+  resize: vertical;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #f8fafc;
+  padding: 14px 16px;
+  font: 400 13.5px/1.55 var(--font);
+  text-align: left;
+  user-select: text;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.voice-setup-dictation-input::placeholder {
+  color: #64748b;
+}
+
+.voice-setup-dictation-input:focus {
+  outline: none;
+  border-color: rgba(52, 211, 153, 0.6);
+  background: rgba(52, 211, 153, 0.03);
+  box-shadow:
+    0 0 0 3px rgba(52, 211, 153, 0.12),
+    inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.voice-setup-dictation-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: min(440px, 100%);
+}
+
+.voice-setup-dictation-footer .voice-setup-status {
+  text-align: left;
+}
+
+/* ── Vision Mode Stage (Step 4) ───────────────────────────────────────────── */
+
+.voice-setup-stage-vision {
+  gap: 10px;
+  padding: 10px 4px;
+}
+
+.voice-setup-stage-vision .voice-setup-visual {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 0;
+}
+
+.voice-setup-stage-vision .voice-setup-title {
+  font-size: 24px;
+}
+
+.voice-setup-stage-vision .voice-setup-description {
+  max-width: 480px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.voice-setup-vision-steps {
+  display: grid;
+  gap: 8px;
+  width: min(460px, 100%);
+  margin: 6px 0 2px;
+  padding: 14px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.025);
+  list-style: none;
+  text-align: left;
+}
+
+.voice-setup-vision-steps li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #cbd5e1;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.voice-setup-vision-steps li > span:first-child {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: 50%;
+  background: rgba(52, 211, 153, 0.12);
+  color: #34d399;
+  font: 700 11px var(--mono);
+}
+
+.voice-setup-vision-steps kbd {
+  display: inline-block;
+  padding: 2px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.32);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.04) 100%);
+  color: #f8fafc;
+  font: 600 11px var(--mono);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  vertical-align: baseline;
+}
+
+.voice-setup-vision-return {
+  max-width: 460px;
+  margin: 0;
+  color: #6ee7b7;
+  font-size: 11.5px;
+  line-height: 1.45;
+  text-shadow: 0 0 10px rgba(52, 211, 153, 0.3);
+  animation: voice-setup-pulse-subtle 2.5s ease-in-out infinite;
+}
+
+/* ── Wake Phrase Choice Stage (Step 5) ────────────────────────────────────── */
+
+.voice-setup-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(440px, 100%);
+  margin: 8px 0 4px;
+  padding: 14px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.voice-setup-choice:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.voice-setup-check {
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  color: #34d399;
+  font: 700 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.voice-setup-choice .voice-setup-status {
+  min-height: 0;
+  font-size: 13px;
+}
+
+/* ── AI Provider Stage (Step 7) ───────────────────────────────────────────── */
+
+.voice-setup-stage-provider {
+  gap: 8px;
+  padding: 6px 4px;
+}
+
+.voice-setup-stage-provider .voice-setup-visual {
+  width: 90px;
+  height: 90px;
+  margin-bottom: 0;
+}
+
+.voice-setup-stage-provider .voice-setup-title {
+  font-size: 22px;
+}
+
+.voice-setup-stage-provider .voice-setup-description {
+  max-width: 500px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.voice-setup-provider-mode-row {
+  display: flex;
+  width: min(540px, 100%);
+  gap: 10px;
+}
+
+.voice-setup-provider-mode-row select,
+.voice-setup-provider-openrouter input,
+.voice-setup-provider-key input {
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #f8fafc;
+  font: inherit;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.voice-setup-provider-mode-row select:focus,
+.voice-setup-provider-openrouter input:focus,
+.voice-setup-provider-key input:focus {
+  outline: none;
+  border-color: rgba(52, 211, 153, 0.6);
+  background: rgba(52, 211, 153, 0.03);
+}
+
+.voice-setup-provider-mode-row select {
+  flex: 1;
+  padding: 9px 12px;
+  font-size: 12px;
+}
+
+.voice-setup-provider-mode-row option {
+  background: #13161c;
+  color: #f8fafc;
+}
+
+.voice-setup-provider-mode-row button,
+.voice-setup-provider-key button,
+.voice-setup-provider-openrouter button {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  border-radius: 10px;
+  background: rgba(52, 211, 153, 0.1);
+  color: #34d399;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.voice-setup-provider-mode-row button:hover,
+.voice-setup-provider-key button:hover,
+.voice-setup-provider-openrouter button:hover {
+  background: rgba(52, 211, 153, 0.18);
+  border-color: rgba(52, 211, 153, 0.5);
+  box-shadow: 0 0 14px rgba(52, 211, 153, 0.2);
+}
+
+.voice-setup-provider-keys {
+  display: grid;
+  width: min(540px, 100%);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  text-align: left;
+}
+
+.voice-setup-provider-key {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 5px 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.025);
+  color: #cbd5e1;
+  font-size: 11px;
+}
+
+.voice-setup-provider-key-input {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 6px;
+}
+
+.voice-setup-provider-key input,
+.voice-setup-provider-openrouter input {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 11px;
+}
+
+.voice-setup-provider-key-status {
+  color: #34d399;
+  font-size: 9.5px;
+  font-family: var(--mono);
+  text-align: right;
+}
+
+.voice-setup-provider-openrouter {
+  display: grid;
+  width: min(540px, 100%);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  text-align: left;
+}
+
+.voice-setup-provider-openrouter-title {
+  grid-column: 1 / -1;
+  color: #f1f5f9;
+  font-size: 11.5px;
+  font-weight: 650;
+}
+
+.voice-setup-provider-openrouter .voice-setup-provider-key-status {
+  grid-column: 1 / -1;
+}
+
+.voice-setup-provider-privacy,
+.voice-setup-provider-feedback {
+  width: min(540px, 100%);
+  margin: 0;
+  color: #64748b;
+  font-size: 10.5px;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.voice-setup-provider-feedback {
+  min-height: 14px;
+  color: #34d399;
+}
+
+.voice-setup-provider-feedback.is-error {
+  color: #f87171;
+}
+
+
+/* ── Cinematic Prologue / Intro Stage ────────────────────────────────────────── */
+
+.voice-setup-stage-intro {
+  gap: 16px;
+  animation: voice-setup-stage-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.voice-setup-visual-intro {
+  width: 154px;
+  height: 154px;
+  margin: 0 auto 6px;
+  position: relative;
+  animation: macha-float 4s ease-in-out infinite;
+}
+
+@keyframes macha-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Macha Hello Speech Bubble */
+.voice-setup-speech-bubble {
+  position: absolute;
+  top: -10px;
+  right: -28px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 750;
+  box-shadow:
+    0 8px 24px -4px rgba(16, 185, 129, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  animation: bubble-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s both;
+  transform-origin: bottom left;
+}
+
+.voice-setup-speech-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 18px;
+  width: 10px;
+  height: 10px;
+  background: #059669;
+  transform: rotate(45deg);
+  border-radius: 2px;
+}
+
+.voice-setup-speech-bubble-wave {
+  display: inline-block;
+  font-size: 15px;
+  animation: macha-wave 1.6s ease-in-out infinite;
+  transform-origin: 70% 70%;
+}
+
+@keyframes macha-wave {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(14deg); }
+  40% { transform: rotate(-10deg); }
+  60% { transform: rotate(12deg); }
+  80% { transform: rotate(-4deg); }
+}
+
+@keyframes bubble-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) translateY(12px);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.08) translateY(-3px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Feature Preview Pills on Intro */
+.voice-setup-intro-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.voice-setup-intro-pills > span {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 550;
+  letter-spacing: 0.01em;
+}
+
+/* The Grand Hero "Let's Go!" Button */
+.voice-setup-lets-go-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 13px 38px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
+  color: #022616;
+  font-size: 15px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  box-shadow:
+    0 12px 30px -6px rgba(16, 185, 129, 0.55),
+    0 0 24px rgba(52, 211, 153, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  animation: lets-go-glow 3s ease-in-out infinite;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.voice-setup-lets-go-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow:
+    0 18px 40px -6px rgba(16, 185, 129, 0.7),
+    0 0 36px rgba(52, 211, 153, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  color: #011d11;
+}
+
+.voice-setup-lets-go-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.voice-setup-lets-go-arrow {
+  font-size: 18px;
+  line-height: 1;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.voice-setup-lets-go-btn:hover .voice-setup-lets-go-arrow {
+  transform: translateX(4px);
+}
+
+@keyframes lets-go-glow {
+  0%, 100% {
+    box-shadow:
+      0 12px 30px -6px rgba(16, 185, 129, 0.55),
+      0 0 24px rgba(52, 211, 153, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 14px 36px -4px rgba(16, 185, 129, 0.75),
+      0 0 32px rgba(52, 211, 153, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+}
+
+/* ── Avatar Choice & Completion Stage (Step 8) ────────────────────────────── */
+
+.voice-setup-stage-avatar {
+  gap: 12px;
+  padding: 10px 4px;
+}
+
+.voice-setup-stage-avatar .voice-setup-visual {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 0;
+}
+
+.voice-setup-stage-avatar .voice-setup-title {
+  font-size: 26px;
+  margin: 4px 0 0;
+}
+
+.voice-setup-avatar-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: min(540px, 100%);
+  padding: 16px 20px;
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(52, 211, 153, 0.1), transparent 70%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.015) 100%);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.5);
+}
+
+.voice-setup-avatar-picker-label {
+  color: #34d399;
+  font: 700 10.5px var(--mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.voice-setup-avatar-options {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+/* Individual Avatar Choice Card */
+.voice-setup-avatar-choice {
+  position: relative;
+  display: flex;
+  width: 130px;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.035);
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: visible;
+}
+
+.voice-setup-avatar-choice:hover:not(:disabled) {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #f8fafc;
+}
+
+.voice-setup-avatar-choice.selected {
+  border-color: #34d399;
+  background: rgba(52, 211, 153, 0.14);
+  color: #f8fafc;
+  box-shadow:
+    0 0 24px rgba(52, 211, 153, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Avatar Preview Container inside the Card */
+.voice-setup-avatar-choice .avatar-preview {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 50px;
+  overflow: visible;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.35));
+}
+
+/* STRICT OVERRIDE: Prevent Macha canvas from overflowing and overlapping the text */
+.voice-setup-avatar-choice .avatar-preview canvas,
+.voice-setup-avatar-choice .avatar-preview svg,
+.voice-setup-avatar-choice .avatar-preview > * {
+  display: block !important;
+  width: 50px !important;
+  height: 50px !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  margin: 0 auto !important;
+}
+
+.voice-setup-avatar-choice span:not(.voice-setup-avatar-selected-mark) {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #cbd5e1;
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+.voice-setup-avatar-choice.selected span:not(.voice-setup-avatar-selected-mark) {
+  color: #f8fafc;
+}
+
+.voice-setup-avatar-selected-mark {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #10b981;
+  color: #064e3b;
+  font-size: 11px;
+  font-weight: 800;
+  opacity: 0;
+  transform: scale(0.6);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transition: opacity 0.2s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.voice-setup-avatar-choice.selected .voice-setup-avatar-selected-mark {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.voice-setup-avatar-feedback {
+  text-align: center;
+  min-height: 16px;
+  margin: 0;
+  color: #34d399;
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.voice-setup-stage-avatar .voice-setup-summary {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: min(560px, 100%);
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.voice-setup-stage-avatar .voice-setup-summary-mark {
+  display: none !important;
+}
+
+.voice-setup-stage-avatar .voice-setup-summary > span:not(.voice-setup-summary-mark) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  color: #cbd5e1;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.voice-setup-stage-avatar .voice-setup-summary > span:not(.voice-setup-summary-mark)::before {
+  content: "✓";
+  display: inline-block;
+  color: #34d399;
+  font-weight: 700;
+  font-size: 11px;
+  margin-right: 2px;
+}
+
+/* ── Bottom Navigation Controls ───────────────────────────────────────────── */
+
+.voice-setup-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-top: 18px;
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.voice-setup-control-end {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Buttons */
+.voice-setup-secondary {
+  margin-top: 4px;
+  padding: 9px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.045);
+  color: #f1f5f9;
+  font-size: 12.5px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.voice-setup-secondary:hover:not(:disabled) {
+  border-color: rgba(52, 211, 153, 0.45);
+  background: rgba(52, 211, 153, 0.08);
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(52, 211, 153, 0.2);
+  transform: translateY(-1px);
+}
+
+.voice-setup-secondary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.voice-setup-controls > button:not(.primary) {
+  padding: 9px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 11px;
+  background: transparent;
+  color: #cbd5e1;
+  font-size: 12.5px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.voice-setup-controls > button:not(.primary):hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.voice-setup-skip {
+  background: transparent !important;
+  border: 0 !important;
+  color: #64748b !important;
+  font-size: 12px !important;
+  cursor: pointer;
+  padding: 8px 12px;
+  transition: color 0.2s;
+}
+
+.voice-setup-skip:hover {
+  color: #94a3b8 !important;
+}
+
+.voice-setup-controls .primary {
+  padding: 10px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 11px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  box-shadow:
+    0 0 24px rgba(52, 211, 153, 0.38),
+    0 4px 14px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.voice-setup-controls .primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+  box-shadow:
+    0 0 32px rgba(52, 211, 153, 0.55),
+    0 6px 18px rgba(0, 0, 0, 0.5);
+  transform: translateY(-1.5px);
+}
+
+.voice-setup-controls .primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.voice-setup-controls button[hidden] {
+  display: none;
+}
+
+/* ── Keyframe Animations ─────────────────────────────────────────────────── */
+
+@keyframes voice-setup-breathe {
+  0%, 100% { transform: scale(0.96); filter: brightness(0.95); }
+  50% { transform: scale(1.05); filter: brightness(1.1); }
+}
+
+@keyframes voice-setup-dialog-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes voice-setup-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes voice-setup-stage-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes voice-setup-stage-out {
+  to { opacity: 0; transform: translateY(-6px); }
+}
+
+@keyframes voice-setup-feature-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes voice-setup-ring {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes voice-setup-core {
+  0%, 100% { transform: scale(0.94); opacity: 0.7; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
+@keyframes progress-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes voice-setup-pulse-dot {
+  0%, 100% { opacity: 0.7; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+@keyframes voice-setup-pulse-subtle {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
+/* ── Responsive Adaptations ──────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .voice-setup-launcher {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .voice-setup-shell {
+    min-height: 0;
+    padding: 20px 20px 16px;
+  }
+
+  .voice-setup-stage-permissions {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "visual"
+      "title"
+      "description"
+      "microphone"
+      "camera"
+      "screen"
+      "note";
+  }
+
+  .voice-setup-stage-permissions > .voice-setup-visual,
+  .voice-setup-stage-permissions > .voice-setup-title,
+  .voice-setup-stage-permissions > .voice-setup-description {
+    justify-self: center;
+    text-align: center;
+  }
+
+  .voice-setup-features {
+    grid-template-columns: 1fr;
+  }
+
+  .voice-setup-title {
+    font-size: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .voice-setup-orb,
+  .voice-setup-visual-ring,
+  .voice-setup-visual-ring-outer,
+  .voice-setup-visual-ring-inner,
+  .voice-setup-mascot-glow,
+  .voice-setup-dialog[open],
+  .voice-setup-stage-enter,
+  .voice-setup-stage-exit,
+  .voice-setup-feature,
+  .voice-setup-dialog::backdrop,
+  .voice-setup-progress-fill {
+    animation: none;
+    transition: none;
+  }
+}

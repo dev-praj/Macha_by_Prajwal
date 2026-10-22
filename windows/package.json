@@ -9,7 +9,7 @@
     "test": "node --test --experimental-strip-types tests/*.test.ts",
     "preview": "vite preview",
     "icons": "node scripts/gen-icons.mjs",
-    "tauri": "tauri",
+    "tauri": "node scripts/tauri.mjs",
     "predev": "cargo build --release -p macha-hook",
     "prebuild": "cargo build --release -p macha-hook",
     "pack": "tauri build && node scripts/pack.mjs",

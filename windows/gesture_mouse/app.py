@@ -704,10 +704,28 @@ def draw_hand_skeleton(frame, landmarks):
 
 
 # ── Hand detection thread ─────────────────────────────────────────────────────
+def open_camera():
+    backends = (cv2.CAP_DSHOW, cv2.CAP_MSMF)
+    attempts = [(index, backend) for index in range(4) for backend in backends]
+
+    for index, backend in attempts:
+        cap = cv2.VideoCapture(index, backend)
+        if cap.isOpened():
+            if index or backend != cv2.CAP_DSHOW:
+                print(f"Using camera {index} with backend {backend}.")
+            return cap
+        cap.release()
+
+    raise RuntimeError(
+        "Could not open a webcam. Check Windows camera privacy settings and "
+        "close other apps that may be using the camera."
+    )
+
+
 def hand_detection_thread():
     cap = None
     try:
-        cap = cv2.VideoCapture(0)
+        cap = open_camera()
         _hand_detection_loop(cap)
     except Exception as error:
         with state.lock:

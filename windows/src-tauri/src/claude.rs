@@ -392,18 +392,12 @@ pub async fn send(
     let completion = match completion {
         Err(error) if is_multimodal_error(&error) && screen_image.is_some() => {
             crate::log::line(
-                "configured model does not support images/multimodal; retrying with text-only prompt",
+                "configured model does not support images/multimodal; refusing to answer without the selected screen image",
             );
-            let text_only_messages = strip_screen_images(request_messages.clone());
-            llm_client::chat(
-                text_only_messages,
-                tools,
-                provider_mode,
-                ollama_model,
-                model,
-                cancel,
+            Err(
+                "The selected AI model cannot analyze images. Choose a vision-capable model, then try the screen question again."
+                    .into(),
             )
-            .await
         }
         result => result,
     };
@@ -466,17 +460,6 @@ fn is_multimodal_error(error: &str) -> bool {
         || message.contains("images are not supported")
         || message.contains("unsupported image")
         || message.contains("has no image support")
-}
-
-fn strip_screen_images(mut messages: Vec<Value>) -> Vec<Value> {
-    for message in &mut messages {
-        if let Some(content) = message.get_mut("content").and_then(Value::as_array_mut) {
-            content.retain(|part| {
-                part.get("type").and_then(Value::as_str) != Some("image_url")
-            });
-        }
-    }
-    messages
 }
 
 fn has_empty_action_response(response: &Value) -> bool {

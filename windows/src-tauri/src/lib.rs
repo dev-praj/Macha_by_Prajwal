@@ -29,13 +29,13 @@ pub mod nixi_system;
 use std::process::Command;
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
 
 use serde::Serialize;
 use tauri::webview::{PermissionKind, PermissionResponse};
-use tauri::{AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder};
+use tauri::{
+    AppHandle, Emitter, LogicalSize, Manager, State, WebviewUrl, WebviewWindowBuilder,
+};
 use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
-use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 use claude::{Chat, ChatContext, ChatHistoryMessage, ChatReply, SharedConversationContext};
 use files::DroppedFile;
@@ -43,10 +43,6 @@ use hooks::{HookPreview, HookStatus};
 use island::{PollGate, ScreenInfo};
 use pipe::Pending;
 use settings::Settings;
-
-const HOTKEY: &str = "CTRL+ALT+SPACE";
-const HOTKEY_DEBOUNCE: Duration = Duration::from_millis(300);
-static LAST_VOICE_HOTKEY: std::sync::OnceLock<Mutex<Option<Instant>>> = std::sync::OnceLock::new();
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -58,17 +54,6 @@ struct ChatStreamDelta {
 pub struct Shared {
     pub settings: Mutex<Settings>,
     pub gate: Arc<PollGate>,
-}
-
-fn accept_voice_hotkey() -> bool {
-    let last = LAST_VOICE_HOTKEY.get_or_init(|| Mutex::new(None));
-    let mut last = last.lock().unwrap();
-    let now = Instant::now();
-    if last.is_some_and(|previous| now.duration_since(previous) < HOTKEY_DEBOUNCE) {
-        return false;
-    }
-    *last = Some(now);
-    true
 }
 
 #[derive(Serialize)]
@@ -640,25 +625,91 @@ fn open_settings_window(app: AppHandle) {
     show_settings_window(&app);
 }
 
+#[tauri::command]
+fn open_first_run_setup_window(app: AppHandle) -> Result<(), String> {
+    let window = app
+        .get_webview_window("settings")
+        .ok_or_else(|| "The Settings window is unavailable.".to_string())?;
+    window
+        .hide()
+        .map_err(|error| format!("Could not hide Settings before opening setup: {error}"))?;
+    window
+        .set_decorations(false)
+        .map_err(|error| format!("Could not hide the setup window frame: {error}"))?;
+    window
+        .set_resizable(false)
+        .map_err(|error| format!("Could not lock the setup window size: {error}"))?;
+    window
+        .set_size(LogicalSize::new(760.0, 740.0))
+        .map_err(|error| format!("Could not size the setup window: {error}"))?;
+    window
+        .center()
+        .map_err(|error| format!("Could not center the setup window: {error}"))?;
+    window
+        .show()
+        .map_err(|error| format!("Could not show the setup window: {error}"))?;
+    window
+        .set_focus()
+        .map_err(|error| format!("Could not focus the setup window: {error}"))?;
+    app.emit_to("settings", "first-run-setup-start", ())
+        .map_err(|error| format!("Could not start the setup-only view: {error}"))
+}
+
+#[tauri::command]
+fn finish_first_run_setup_window(app: AppHandle) -> Result<(), String> {
+    let window = app
+        .get_webview_window("settings")
+        .ok_or_else(|| "The Settings window is unavailable.".to_string())?;
+    window
+        .hide()
+        .map_err(|error| format!("Could not hide setup before restoring Settings: {error}"))?;
+    window
+        .set_decorations(true)
+        .map_err(|error| format!("Could not restore the Settings window frame: {error}"))?;
+    window
+        .set_resizable(true)
+        .map_err(|error| format!("Could not restore Settings resizing: {error}"))?;
+    window
+        .set_size(LogicalSize::new(560.0, 680.0))
+        .map_err(|error| format!("Could not restore the Settings window size: {error}"))?;
+    window
+        .center()
+        .map_err(|error| format!("Could not center the Settings window: {error}"))?;
+    window
+        .show()
+        .map_err(|error| format!("Could not show the Settings window: {error}"))?;
+    window
+        .set_focus()
+        .map_err(|error| format!("Could not focus the Settings window: {error}"))
+}
+
+#[tauri::command]
+fn start_vision_onboarding_test(app: AppHandle) -> Result<(), String> {
+    let settings = app
+        .get_webview_window("settings")
+        .ok_or_else(|| "The Settings window is unavailable.".to_string())?;
+    settings
+        .hide()
+        .map_err(|error| format!("Could not hide Settings for the Vision Mode test: {error}"))?;
+    app.emit_to(island::WINDOW_LABEL, "vision-onboarding-start", ())
+        .map_err(|error| format!("Could not start the Vision Mode test: {error}"))
+}
+
+/// Activates Vision Mode inline — the island is made ready without hiding Settings,
+/// so the user can try the Ctrl+Alt drag while the setup page remains visible.
+#[tauri::command]
+fn start_vision_onboarding_inline(app: AppHandle) -> Result<(), String> {
+    app.emit_to(island::WINDOW_LABEL, "vision-onboarding-start", ())
+        .map_err(|error| format!("Could not activate Vision Mode for the setup page: {error}"))
+}
+
 pub fn run() {
     platform::prepare_environment();
     let loaded = settings::load();
     let gate = Arc::new(PollGate::new(loaded.auto_hide));
 
     let builder = tauri::Builder::default()
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(
-            tauri_plugin_global_shortcut::Builder::new()
-                .with_handler(|app, _shortcut, event| {
-                    if event.state == ShortcutState::Pressed && accept_voice_hotkey() {
-                        if let Some(shared) = app.try_state::<Shared>() {
-                            island::request_auto_reveal(app, &shared.gate);
-                        }
-                        let _ = app.emit_to(island::WINDOW_LABEL, "voice-hotkey", ());
-                    }
-                })
-                .build(),
-        );
+        .plugin(tauri_plugin_dialog::init());
 
     // Keep a running release instance from absorbing a development launch.
     #[cfg(not(debug_assertions))]
@@ -672,7 +723,7 @@ pub fn run() {
             None,
         ))
         .on_permission_request(|_, permission| match permission {
-            PermissionKind::Microphone => PermissionResponse::Allow,
+            PermissionKind::Microphone => PermissionResponse::Default,
             _ => PermissionResponse::Default,
         })
         .manage(Shared {
@@ -738,10 +789,17 @@ pub fn run() {
             spotify::spotify_control,
             refresh_spotify,
             open_settings_window,
+            open_first_run_setup_window,
+            finish_first_run_setup_window,
+            start_vision_onboarding_test,
+            start_vision_onboarding_inline,
             set_paused,
             toggle_auto_hide,
             nixi_status,
+            nixi_dictation::nixi_foreground_application,
             nixi_dictation::nixi_dictate_insert,
+            nixi_hotkeys::set_dictation_setup_test_active,
+            nixi_hotkeys::dictation_setup_test_active,
             nixi_commands::nixi_run_command,
             nixi_commands::nixi_undo_last_command,
             nixi_search::nixi_search_files,
@@ -750,6 +808,7 @@ pub fn run() {
             nixi_system::nixi_send_media,
             nixi_system::nixi_toggle_theme,
             nixi_system::nixi_capture_screenshot,
+            nixi_system::nixi_capture_screen_region,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();
@@ -760,13 +819,6 @@ pub fn run() {
             }
             tray::build(&handle)?;
             nixi_hotkeys::start(&handle);
-            if let Ok(shortcut) = HOTKEY.parse::<Shortcut>() {
-                if let Err(error) = app.global_shortcut().register(shortcut) {
-                    log::line(format!("could not register {HOTKEY}: {error}"));
-                }
-            } else {
-                log::line(format!("invalid voice hotkey: {HOTKEY}"));
-            }
             voice::start_stt_server(&handle, &app.state::<voice::SttProcess>());
             tauri::async_runtime::spawn(async {
                 let _ = llm_client::ollama_status(false).await;
@@ -806,9 +858,6 @@ pub fn run() {
         .run(|app, event| {
             if matches!(event, tauri::RunEvent::Exit) {
                 nixi_hotkeys::stop();
-                if let Err(error) = app.global_shortcut().unregister_all() {
-                    log::line(format!("could not unregister global shortcuts: {error}"));
-                }
                 voice::stop_stt_server(&app.state::<voice::SttProcess>());
                 if let Err(error) = app.state::<gesture_mouse::GestureMouseProcess>().stop() {
                     log::line(format!("could not stop Gesture Mouse: {error}"));

@@ -6,7 +6,12 @@ import { invoke } from "@tauri-apps/api/core";
 import { emit, listen } from "@tauri-apps/api/event";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { open } from "@tauri-apps/plugin-dialog";
-import type { ChatMessage, Settings, SharedConversationContext } from "./state";
+import type {
+  ChatMessage,
+  DictationReplacement,
+  Settings,
+  SharedConversationContext,
+} from "./state";
 
 export const IS_TAURI =
   typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -86,6 +91,35 @@ export const Bridge = {
   quit: () => call<void>("quit_app"),
 
   openSettingsWindow: () => call<void>("open_settings_window"),
+  openFirstRunSetupWindow: () => callOrThrow<void>("open_first_run_setup_window"),
+  finishFirstRunSetupWindow: () => callOrThrow<void>("finish_first_run_setup_window"),
+  startVisionOnboardingTest: () => callOrThrow<void>("start_vision_onboarding_test"),
+  /** Activates the island for Vision Mode without hiding the Settings window. */
+  startVisionOnboardingInline: () => callOrThrow<void>("start_vision_onboarding_inline"),
+  completeVisionOnboardingTest: async (success: boolean, message?: string) => {
+    if (!IS_TAURI) return;
+    try {
+      await emit("vision-onboarding-result", { success, message });
+    } finally {
+      await callOrThrow<void>("open_settings_window");
+    }
+  },
+  setDictationSetupTestActive: async (active: boolean) => {
+    if (!IS_TAURI) return;
+    try {
+      await callOrThrow<void>("set_dictation_setup_test_active", { active });
+    } catch (error) {
+      console.error("[macha] could not synchronize setup dictation state", error);
+      await emit("dictation-setup-test-active", active);
+    }
+  },
+  getDictationSetupTestActive: async () => {
+    if (!IS_TAURI) return false;
+    return await callOrThrow<boolean>("dictation_setup_test_active");
+  },
+  completeDictationSetupTest: async (transcript: string, error?: string) => {
+    if (IS_TAURI) await emit("dictation-setup-test-result", { transcript, error });
+  },
 
   /** Writes to %LOCALAPPDATA%\Macha\macha.log, next to the Rust lines. */
   log: (message: string) => call<void>("log_line", { message }),
@@ -232,8 +266,13 @@ export const Bridge = {
     callOrThrow<NixiCommandResult>("nixi_run_command", { input }),
   nixiUndoLastCommand: () =>
     callOrThrow<string>("nixi_undo_last_command"),
-  nixiDictateInsert: (text: string) =>
-    callOrThrow<string>("nixi_dictate_insert", { text }),
+  nixiForegroundApplication: () =>
+    callOrThrow<string | null>("nixi_foreground_application"),
+  nixiDictateInsert: (
+    text: string,
+    replacements: DictationReplacement[],
+    style: "standard" | "verbatim",
+  ) => callOrThrow<string>("nixi_dictate_insert", { text, replacements, style }),
   nixiSearchFiles: (query: string, limit?: number) =>
     callOrThrow<NixiFileMatch[]>("nixi_search_files", { query, limit }),
   nixiRevealFile: (path: string) =>
@@ -246,6 +285,8 @@ export const Bridge = {
     callOrThrow<boolean>("nixi_toggle_theme", { enableDark }),
   nixiCaptureScreenshot: () =>
     callOrThrow<ScreenshotResult>("nixi_capture_screenshot"),
+  nixiCaptureScreenRegion: (region: { x: number; y: number; width: number; height: number }) =>
+    callOrThrow<string>("nixi_capture_screen_region", region),
 };
 
 export interface IntegrationUpdate {

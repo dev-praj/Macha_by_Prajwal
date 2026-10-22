@@ -1007,6 +1007,20 @@ export class Island {
   }
 
   setNixiDictate(active: boolean) {
+    if (active) {
+      if (this.fsm.state === "hidden") this.fsm.reveal();
+      this.fsm.cancelTimers();
+    } else {
+      switch (this.fsm.state) {
+        case "petit":
+        case "home":
+          this.fsm.mouseLeft();
+          break;
+        case "macha":
+          this.fsm.greetComplete();
+          break;
+      }
+    }
     State.nixiDictateActive = active;
     State.stateOverride = active
       ? "searching"

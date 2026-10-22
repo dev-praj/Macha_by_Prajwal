@@ -15,7 +15,11 @@ import { Sound } from "../core/sound";
 import { State, type ChatMessage } from "../core/state";
 import { sanitizeAssistantText } from "../core/text";
 import * as TTS from "../core/tts";
-import { isPartialVisionModeActivation, isVisionModeActivation } from "../core/voiceCommands";
+import {
+  canStartHoldToTalk,
+  isPartialVisionModeActivation,
+  isVisionModeActivation,
+} from "../core/voiceCommands";
 import {
   createWakeWordListener,
   extractWakeCommand,
@@ -36,6 +40,7 @@ const VOICE_MAX_RECORDING_MS = 30_000;
 const WAKE_RETRY_INITIAL_MS = 2_000;
 const WAKE_RETRY_MAX_MS = 30_000;
 const WAKE_PARTIAL_TIMEOUT_MS = 3_000;
+const CAMERA_CONSENT_KEY = "macha.permission.camera.v1";
 const WORKFLOW_MAX_ITERATIONS = 60;
 const WORKFLOW_MAX_RETRIES = 2;
 const WORKFLOW_SETTLE_MS = Math.max(0, Number(import.meta.env.VITE_WORKFLOW_SETTLE_MS) || 1_500);
@@ -45,6 +50,9 @@ const WORKFLOW_LAUNCH_SETTLE_MS = Math.max(
 );
 type VoiceState = "idle" | "wake" | "listening" | "transcribing" | "speaking";
 type WorkflowRunPayload = { id: string; name: string; prompt: string };
+type VoiceChordStop = {
+  selectedRegion: { x: number; y: number; width: number; height: number } | null;
+};
 type WorkflowStep = { name: string; successCriteria: string };
 type WorkflowSignal =
   | { kind: "complete" }
@@ -332,6 +340,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
   let historyOpen = false;
   let renderedKey = "";
   let voiceState: VoiceState = "idle";
+  let voiceStartGeneration = 0;
   let mediaStream: MediaStream | null = null;
   let recorder: MediaRecorder | null = null;
   let voiceMonitorContext: AudioContext | null = null;
@@ -339,6 +348,10 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
   let voiceRecordingStartedAt = 0;
   let voiceSpeechStartedAt = 0;
   let voiceLastSpeechAt = 0;
+  let holdToTalkActive = false;
+  let objectCapturePending = false;
+  let selectedRegionCaptureFailed = false;
+  let visionOnboardingActive = false;
   let audioChunks: Blob[] = [];
   let voiceNotice = "";
   let voiceNoticeIsError = false;
@@ -515,22 +528,29 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     let notice = "Vision Mode is active.";
     let failed = false;
     try {
-      try {
-        await TTS.speak("Activating Vision Mode.");
-      } catch (error) {
-        console.error("[macha] could not speak Vision Mode activation", error);
-      }
+      if (window.localStorage.getItem(CAMERA_CONSENT_KEY) !== "true") {
+        notice = "Camera gesture controls are off. Allow camera use in Settings before starting Vision Mode.";
+        await TTS.speak(notice).catch((error: unknown) => {
+          console.error("[macha] could not speak the camera-consent notice", error);
+        });
+      } else {
+        try {
+          await TTS.speak("Activating Vision Mode.");
+        } catch (error) {
+          console.error("[macha] could not speak Vision Mode activation", error);
+        }
 
-      const alreadyRunning = await Bridge.gestureMouseIsRunning();
-      if (!alreadyRunning) {
-        setVoiceState("transcribing", "Starting Vision Mode…");
-        await Bridge.gestureMouseStart();
-      }
-      notice = alreadyRunning ? "Vision Mode is already running." : "Vision Mode is active.";
-      try {
-        await TTS.speak(notice);
-      } catch (error) {
-        console.error("[macha] could not speak Vision Mode status", error);
+        const alreadyRunning = await Bridge.gestureMouseIsRunning();
+        if (!alreadyRunning) {
+          setVoiceState("transcribing", "Starting Vision Mode…");
+          await Bridge.gestureMouseStart();
+        }
+        notice = alreadyRunning ? "Vision Mode is already running." : "Vision Mode is active.";
+        try {
+          await TTS.speak(notice);
+        } catch (error) {
+          console.error("[macha] could not speak Vision Mode status", error);
+        }
       }
     } catch (error) {
       failed = true;
@@ -850,8 +870,10 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       const recordingDuration = now - voiceRecordingStartedAt;
       const speechDuration = voiceSpeechStartedAt ? now - voiceSpeechStartedAt : 0;
       if (recordingDuration >= VOICE_MAX_RECORDING_MS
-        || (!voiceSpeechStartedAt && recordingDuration >= VOICE_NO_SPEECH_TIMEOUT_MS)
-        || (speechDuration >= 250 && now - voiceLastSpeechAt >= VOICE_SILENCE_MS)) {
+        || (!holdToTalkActive && !objectCapturePending && !voiceSpeechStartedAt
+          && recordingDuration >= VOICE_NO_SPEECH_TIMEOUT_MS)
+        || (!holdToTalkActive && !objectCapturePending && speechDuration >= 250
+          && now - voiceLastSpeechAt >= VOICE_SILENCE_MS)) {
         stopListening();
       }
     };
@@ -965,6 +987,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
 
   async function startListening() {
     if (voiceState === "transcribing" || (sending && voiceState !== "speaking")) return;
+    const generation = ++voiceStartGeneration;
     stopWakeWord();
     voiceNotice = "";
     voiceNoticeIsError = false;
@@ -972,6 +995,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     try {
       await TTS.stop();
     } catch (error) {
+      if (generation !== voiceStartGeneration) return;
       suppressWakeRestart = false;
       console.error("[macha] could not stop speech before microphone recording", error);
       setVoiceState("speaking", "Could not stop speech before recording.", true);
@@ -980,10 +1004,11 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     setVoiceState("listening", "I'm listening — speak now.");
     try {
       await Bridge.setVoiceActive(true);
+      if (generation !== voiceStartGeneration) return;
       if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
         throw new Error("Microphone recording is not available in this window.");
       }
-      mediaStream = await navigator.mediaDevices.getUserMedia({
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,
           echoCancellation: true,
@@ -991,8 +1016,17 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
           autoGainControl: true,
         },
       });
+      if (generation !== voiceStartGeneration) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      mediaStream = stream;
       voiceMonitorContext = new AudioContext();
       await voiceMonitorContext.resume();
+      if (generation !== voiceStartGeneration) {
+        stopMediaTracks();
+        return;
+      }
       const source = voiceMonitorContext.createMediaStreamSource(mediaStream);
       const analyser = voiceMonitorContext.createAnalyser();
       const mutedOutput = voiceMonitorContext.createGain();
@@ -1027,6 +1061,10 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       monitorVoiceActivity(analyser);
       input.blur();
     } catch (error) {
+      if (generation !== voiceStartGeneration) {
+        stopMediaTracks();
+        return;
+      }
       stopMediaTracks();
       const name = error instanceof DOMException ? error.name : "";
       const message = name === "NotAllowedError" || name === "SecurityError"
@@ -1047,6 +1085,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     const activeRecorder = recorder;
     if (!activeRecorder || activeRecorder.state !== "recording") {
       if (voiceState === "listening") {
+        voiceStartGeneration += 1;
         stopMediaTracks();
         void releaseVoiceSession();
       }
@@ -1063,10 +1102,19 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     }
   }
 
+  function reportVisionOnboardingResult(success: boolean, message?: string) {
+    if (!visionOnboardingActive) return;
+    visionOnboardingActive = false;
+    void Bridge.completeVisionOnboardingTest(success, message).catch((error: unknown) => {
+      console.error("[macha] could not report the Vision Mode setup result", error);
+    });
+  }
+
   async function transcribe(audio: Blob) {
     if (audio.size === 0) {
       await releaseVoiceSession();
       setVoiceState("idle", "No speech detected.");
+      reportVisionOnboardingResult(false, "No speech was detected. Try again and speak after the voice prompt opens.");
       return;
     }
     const form = new FormData();
@@ -1100,6 +1148,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       if (!transcript || confidence === null) {
         await releaseVoiceSession();
         setVoiceState("idle", "No speech detected. Please try again.");
+        reportVisionOnboardingResult(false, "No speech was detected. Try again and speak after the voice prompt opens.");
         return;
       }
       if (confidence < -8) {
@@ -1109,6 +1158,15 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
           "I could not understand that clearly. Please try again.",
           true,
         );
+        reportVisionOnboardingResult(false, "Macha could not understand the question. Try speaking clearly and a little closer to the microphone.");
+        return;
+      }
+      if (selectedRegionCaptureFailed) {
+        selectedRegionCaptureFailed = false;
+        const message = voiceNotice || "Could not capture the selected screen region.";
+        await releaseVoiceSession();
+        setVoiceState("idle", message, true);
+        reportVisionOnboardingResult(false, message);
         return;
       }
       if (wakeConversationHeld && isVisionModeActivation(transcript)) {
@@ -1131,6 +1189,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
             : "Voice transcription failed.";
       await releaseVoiceSession();
       setVoiceState("idle", message, true);
+      reportVisionOnboardingResult(false, message);
     } finally {
       window.clearTimeout(timeout);
     }
@@ -1148,7 +1207,61 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
   }
 
   voiceButton.addEventListener("click", () => void toggleVoice());
-  void onEvent<null>("voice-hotkey", () => void toggleVoice());
+  void onEvent<null>("vision-onboarding-start", () => {
+    visionOnboardingActive = true;
+    voiceNotice = "Vision Mode test: hold left Ctrl + left Alt, drag over something, ask Macha about it, then release.";
+    voiceNoticeIsError = false;
+    State.notify();
+  });
+  void onEvent<null>("voice-chord-start", () => {
+    if (!canStartHoldToTalk(
+      voiceState,
+      actionConfirmationActive || workflowAutomationActive,
+    )) {
+      if (visionOnboardingActive) {
+        reportVisionOnboardingResult(false, "Macha could not start voice capture. Finish the current action and try the Vision Mode test again.");
+      }
+      return;
+    }
+    holdToTalkActive = true;
+    selectedRegionCaptureFailed = false;
+    void startListening().then(() => {
+      if (holdToTalkActive && voiceState === "listening") {
+        setVoiceState("listening", "Ask your question; drag over an object to include it.");
+      } else if (visionOnboardingActive && voiceState !== "listening") {
+        reportVisionOnboardingResult(false, "Microphone capture could not start. Check microphone access and try the Vision Mode test again.");
+      }
+    });
+  });
+  void onEvent<VoiceChordStop>("voice-chord-stop", async ({ selectedRegion }) => {
+    holdToTalkActive = false;
+    if (selectedRegion && voiceState === "listening") {
+      objectCapturePending = true;
+      try {
+        if (window.localStorage.getItem("macha.permission.screenRegion.v1") !== "true") {
+          throw new Error(
+            "Screen-region access is off. Enable it in Settings → Macha Setup → Permissions to use Vision Mode.",
+          );
+        }
+        setVoiceState("listening", "Capturing the selected screen region…");
+        screenImage = await Bridge.nixiCaptureScreenRegion(selectedRegion);
+        voiceNotice = "Selected screen region attached to your question.";
+        voiceNoticeIsError = false;
+        State.notify();
+      } catch (error) {
+        selectedRegionCaptureFailed = true;
+        voiceNotice = error instanceof Error
+          ? error.message
+          : "Could not capture the selected screen region.";
+        voiceNoticeIsError = true;
+        console.error("[macha] could not capture selected screen region", error);
+        State.notify();
+      } finally {
+        objectCapturePending = false;
+      }
+    }
+    if (voiceState === "listening") stopListening();
+  });
   void onEvent<WorkflowRunPayload>("workflow-run", enqueueWorkflow);
 
   const el = h(
@@ -1249,7 +1362,21 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         }
         : undefined;
       await showReply(reply, conversationId, voiceRequest, acknowledgement, prepareStreamSpeech);
+      if (visionOnboardingActive) {
+        reportVisionOnboardingResult(
+          Boolean(screenImageForRequest),
+          screenImageForRequest
+            ? undefined
+            : "No screen region was attached. Try again and drag a region while holding the voice shortcut.",
+        );
+      }
     } catch (err) {
+      if (visionOnboardingActive) {
+        reportVisionOnboardingResult(
+          false,
+          err instanceof Error ? err.message : String(err),
+        );
+      }
       if (streamedSpeech || pendingSpeechText) await TTS.stop();
       const lastMessage = State.chatHistory[State.chatHistory.length - 1];
       if (lastMessage?.role === "user" && lastMessage.content === query) {

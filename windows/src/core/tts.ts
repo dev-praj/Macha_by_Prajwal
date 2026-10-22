@@ -1,13 +1,8 @@
 import { Bridge, IS_TAURI } from "./bridge";
 import { State } from "./state";
+import { isEnglishVoice, preferredVoice } from "./voiceSelection";
 
 const ENGINE_ORDER = ["webSpeech", "sapi"] as const;
-const VOICE_PREFERENCE = [
-  "Microsoft Aria Natural",
-  "Microsoft Jenny",
-  "Microsoft Zira",
-  "Microsoft David",
-];
 const MAX_UTTERANCE_LENGTH = 190;
 const VOICE_TIMEOUT_MS = 2000;
 const POLL_INTERVAL_MS = 100;
@@ -61,29 +56,9 @@ export async function availableVoices(): Promise<SpeechSynthesisVoice[]> {
   });
 }
 
-function isEnglishVoice(voice: SpeechSynthesisVoice): boolean {
-  return /^en(?:-|$)/i.test(voice.lang.trim());
-}
-
 void availableVoices().catch((error: unknown) => {
   console.error("[macha] could not initialize local speech voices", error);
 });
-
-function preferredVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | undefined {
-  const selected = State.settings.ttsVoice;
-  if (selected) {
-    const match = voices.find((voice) => voice.voiceURI === selected && isEnglishVoice(voice));
-    if (match) return match;
-  }
-  for (const preferred of VOICE_PREFERENCE) {
-    const match = voices.find((voice) =>
-      isEnglishVoice(voice) && voice.name.toLowerCase().includes(preferred.toLowerCase()));
-    if (match) return match;
-  }
-  return voices.find((voice) => /^en-us\b/i.test(voice.lang))
-    ?? voices.find((voice) => /^en-in\b/i.test(voice.lang))
-    ?? voices.find(isEnglishVoice);
-}
 
 export function cleanSpeechText(text: string): string {
   return text
@@ -239,7 +214,7 @@ export async function stop(): Promise<void> {
 }
 
 async function speakWithWebSpeech(text: string, utteranceGeneration: number): Promise<void> {
-  const voice = preferredVoice(await availableVoices());
+  const voice = preferredVoice(await availableVoices(), State.settings.ttsVoice);
   if (!voice) throw new Error("No local Web Speech voice is available.");
   if (utteranceGeneration !== generation) return;
 

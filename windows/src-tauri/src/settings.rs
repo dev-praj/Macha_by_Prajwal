@@ -2,6 +2,7 @@
 // No secret ever lands here — API keys live in the OS keychain (see secrets.rs).
 
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -48,6 +49,26 @@ pub struct Settings {
     pub wake_word_pronunciation: String,
     #[serde(default = "default_wake_word_threshold")]
     pub wake_word_threshold: f64,
+    #[serde(default)]
+    pub dictation_vocabulary: Vec<String>,
+    #[serde(default)]
+    pub dictation_replacements: Vec<DictationReplacement>,
+    #[serde(default)]
+    pub dictation_app_styles: Vec<DictationAppStyle>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DictationAppStyle {
+    pub application: String,
+    pub style: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DictationReplacement {
+    pub spoken: String,
+    pub replacement: String,
 }
 
 fn default_provider_mode() -> String {
@@ -129,6 +150,9 @@ impl Default for Settings {
             wake_word_enabled: default_wake_word_enabled(),
             wake_word_pronunciation: default_wake_word_pronunciation(),
             wake_word_threshold: default_wake_word_threshold(),
+            dictation_vocabulary: Vec::new(),
+            dictation_replacements: Vec::new(),
+            dictation_app_styles: Vec::new(),
         }
     }
 }
@@ -205,12 +229,68 @@ fn migrate_model(model: String) -> String {
     }
 }
 
+fn validate_dictation_app_styles(styles: &[DictationAppStyle]) -> Result<(), &'static str> {
+    if styles.len() > 50 {
+        return Err("At most 50 dictation app styles are allowed.");
+    }
+    let mut applications = HashSet::new();
+    for entry in styles {
+        let application = entry.application.trim();
+        if application.len() <= 4
+            || application.len() > 128
+            || !application.to_ascii_lowercase().ends_with(".exe")
+            || !application
+                .chars()
+                .all(|character| character.is_ascii_alphanumeric() || "._-".contains(character))
+            || !matches!(entry.style.as_str(), "standard" | "verbatim")
+        {
+            return Err("Dictation app styles require an executable name and a supported style.");
+        }
+        if !applications.insert(application.to_ascii_lowercase()) {
+            return Err("Each application can have only one dictation style.");
+        }
+    }
+    Ok(())
+}
+
 pub fn save(settings: &Settings) -> std::io::Result<()> {
     if !matches!(settings.avatar.as_str(), "macha" | "cubee" | "onee") {
         return Err(std::io::Error::new(
             std::io::ErrorKind::InvalidInput,
             "Unknown avatar selection.",
         ));
+    }
+    if settings.dictation_vocabulary.len() > 50
+        || settings.dictation_vocabulary.iter().any(|word| {
+            let word = word.trim();
+            word.is_empty()
+                || word.len() > 64
+                || word
+                    .chars()
+                    .any(|character| matches!(character, '\r' | '\n' | '\0'))
+        })
+    {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "Dictation vocabulary must contain at most 50 words of 64 characters or fewer.",
+        ));
+    }
+    if settings.dictation_replacements.len() > 100
+        || settings.dictation_replacements.iter().any(|entry| {
+            entry.spoken.trim().is_empty()
+                || entry.spoken.len() > 100
+                || entry.replacement.len() > 500
+                || entry.spoken.contains('\0')
+                || entry.replacement.contains('\0')
+        })
+    {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "Dictation replacements must contain at most 100 entries; spoken phrases are required and limited to 100 characters.",
+        ));
+    }
+    if let Err(error) = validate_dictation_app_styles(&settings.dictation_app_styles) {
+        return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, error));
     }
     let dir = config_dir();
     crate::platform::ensure_private_dir(&dir)?;
@@ -231,7 +311,8 @@ fn migrate_avatar(avatar: String) -> String {
 mod tests {
     use super::{
         default_auto_hide, default_avatar, default_model, default_speak_replies_mode,
-        migrate_avatar, migrate_integrations, migrate_model, migrate_speech_settings, Settings,
+        migrate_avatar, migrate_integrations, migrate_model, migrate_speech_settings,
+        validate_dictation_app_styles, DictationAppStyle, Settings,
     };
 
     #[test]
@@ -299,6 +380,53 @@ mod tests {
     #[test]
     fn autostart_is_enabled_by_default() {
         assert!(super::Settings::default().autostart);
+    }
+
+    #[test]
+    fn dictation_settings_default_and_load_from_older_settings() {
+        let current = Settings::default();
+        assert!(current.dictation_vocabulary.is_empty());
+        assert!(current.dictation_replacements.is_empty());
+
+        let mut older = serde_json::to_value(current).unwrap();
+        let fields = older.as_object_mut().unwrap();
+        fields.remove("dictationVocabulary");
+        fields.remove("dictationReplacements");
+        fields.remove("dictationAppStyles");
+        let migrated: Settings = serde_json::from_value(older).unwrap();
+        assert!(migrated.dictation_vocabulary.is_empty());
+        assert!(migrated.dictation_replacements.is_empty());
+        assert!(migrated.dictation_app_styles.is_empty());
+    }
+
+    #[test]
+    fn app_dictation_styles_validate_executable_names_and_uniqueness() {
+        let valid = vec![DictationAppStyle {
+            application: "code.exe".into(),
+            style: "verbatim".into(),
+        }];
+        assert!(validate_dictation_app_styles(&valid).is_ok());
+        assert!(validate_dictation_app_styles(&[DictationAppStyle {
+            application: "../code.exe".into(),
+            style: "standard".into(),
+        }])
+        .is_err());
+        assert!(validate_dictation_app_styles(&[DictationAppStyle {
+            application: "code.exe".into(),
+            style: "rewrite".into(),
+        }])
+        .is_err());
+        assert!(validate_dictation_app_styles(&[
+            DictationAppStyle {
+                application: "code.exe".into(),
+                style: "standard".into(),
+            },
+            DictationAppStyle {
+                application: "CODE.EXE".into(),
+                style: "verbatim".into(),
+            },
+        ])
+        .is_err());
     }
 
     #[test]

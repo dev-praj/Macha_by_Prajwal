@@ -1,10 +1,11 @@
-// Settings window — the place where anything that writes to disk is confirmed.
+﻿// Settings window — the place where anything that writes to disk is confirmed.
 // Stage 2 covers the Claude Code hooks and the general preferences; API keys and
 // integrations land here too in a later stage.
 
 import "./settings.css";
 import {
   Bridge,
+  IS_TAURI,
   onEvent,
   type HookStatus,
   type MemoryRecord,
@@ -15,9 +16,11 @@ import {
 import { DEFAULT_SETTINGS, type Settings } from "../core/state";
 import { State } from "../core/state";
 import { BotEngine } from "../macha/engine";
-import { avatarLabel, mountAvatar } from "../macha/avatar";
+import { avatarLabel, mountAvatar, setAvatarSelection } from "../macha/avatar";
 import * as TTS from "../core/tts";
 import { recordWakePronunciation } from "../core/wakeWord";
+import { insertTextAtCursor } from "../nixi/setupDictation";
+import { registerSetupDictationTest } from "../nixi/setupDictationTest";
 import { h, clear } from "../views/dom";
 
 let settings: Settings = { ...DEFAULT_SETTINGS };
@@ -710,6 +713,47 @@ function gestureMouseSection(): HTMLElement {
   const liveStatus = h("div", { class: "gesture-live-status" });
   const start = h("button", { text: "Start Vision Mode" });
   const stop = h("button", { text: "Stop Vision Mode" });
+  const cameraConsentKey = "macha.permission.camera.v1";
+  let cameraConsent = false;
+  try {
+    cameraConsent = window.localStorage.getItem(cameraConsentKey) === "true";
+  } catch (error) {
+    feedback.textContent = "Could not read camera permission settings.";
+    console.error("[macha] could not read camera permission", error);
+  }
+  const cameraConsentToggle = h("input", {
+    type: "checkbox",
+    checked: cameraConsent,
+    "aria-label": "Allow camera use for gesture controls",
+  }) as HTMLInputElement;
+  cameraConsentToggle.addEventListener("change", async () => {
+    cameraConsent = cameraConsentToggle.checked;
+    try {
+      if (cameraConsent) window.localStorage.setItem(cameraConsentKey, "true");
+      else window.localStorage.removeItem(cameraConsentKey);
+    } catch (error) {
+      cameraConsent = !cameraConsent;
+      cameraConsentToggle.checked = cameraConsent;
+      feedback.textContent = "Could not save camera consent. Check browser storage permissions and try again.";
+      console.error("[macha] could not save camera consent", error);
+      return;
+    }
+    if (!cameraConsent && running) {
+      try {
+        await Bridge.gestureMouseStop();
+        feedback.textContent = "Camera consent revoked. Vision Mode stopped.";
+      } catch (error) {
+        feedback.textContent = `Camera consent was revoked, but Vision Mode could not be stopped: ${String(error).replace(/^Error:\s*/, "")}`;
+        console.error("[macha] could not stop Vision Mode after camera consent was revoked", error);
+      } finally {
+        await refresh();
+      }
+    } else {
+      feedback.textContent = cameraConsent
+        ? "Camera gesture controls are allowed. Macha requests camera access when you enable Vision Mode."
+        : "Camera gesture controls are off.";
+    }
+  });
   const pinchSlider = h("input", {
     type: "range", min: "0.02", max: "0.15", step: "0.01", value: "0.05",
   }) as HTMLInputElement;
@@ -906,15 +950,38 @@ function gestureMouseSection(): HTMLElement {
   }
 
   start.addEventListener("click", async () => {
+    if (!cameraConsent) {
+      feedback.textContent = "Allow camera use for gesture controls before starting Vision Mode.";
+      return;
+    }
     busy = true;
     stopRequested = false;
     clear(feedback);
     update();
+    let startedHere = false;
     try {
       await Bridge.gestureMouseStart();
+      startedHere = true;
+      if (window.localStorage.getItem(cameraConsentKey) !== "true") {
+        await Bridge.gestureMouseStop();
+        startedHere = false;
+        throw new Error("Camera consent was revoked before Vision Mode could start.");
+      }
       feedback.textContent = "Starting camera preview and live controls…";
     } catch (error) {
+      let stopError: unknown;
+      if (startedHere) {
+        try {
+          await Bridge.gestureMouseStop();
+        } catch (errorWhileStopping) {
+          stopError = errorWhileStopping;
+          console.error("[macha] could not stop Vision Mode after a camera consent error", errorWhileStopping);
+        }
+      }
       feedback.textContent = `Could not start Vision Mode: ${String(error).replace(/^Error:\s*/, "")}`;
+      if (stopError !== undefined) {
+        feedback.textContent += ` Also could not stop it: ${String(stopError).replace(/^Error:\s*/, "")}`;
+      }
     } finally {
       busy = false;
       await refresh();
@@ -957,6 +1024,14 @@ function gestureMouseSection(): HTMLElement {
     h("div", {
       class: "hint",
       text: "Control the Windows cursor with your webcam: move your wrist to move, pinch thumb + index to click and hold, thumb + middle to right-click, and thumb + pinky to scroll. Hold an open palm steady for five seconds to lock or unlock the cursor; the camera preview shows a progress ring and confirms when it is done. To rotate a 3D view that supports mouse dragging, place the pointer over the model before locking, then hold thumb and index together or extend them, curl the other fingers, and turn your wrist clockwise or anticlockwise. While locked, move joined index and middle fingers to scroll in any direction. Start Vision Mode to open the camera preview and use its live controls here in Settings. You can also say “activate vision mode” while Hey Macha is listening.",
+    }),
+    h("div", { class: "row" },
+      h("label", { text: "Allow camera use for gesture controls" }),
+      cameraConsentToggle,
+    ),
+    h("p", {
+      class: "hint",
+      text: "Camera access is used only while Vision Mode is running. Turn this off to stop Vision Mode and revoke Macha’s app-level consent.",
     }),
     status,
     h("div", { class: "row" }, start, stop),
@@ -1006,7 +1081,10 @@ function liveStat(label: string, value: HTMLElement): HTMLElement {
 
 // ── General section ───────────────────────────────────────────────────────────
 
-function avatarPreview(choice: Settings["avatar"]): HTMLElement {
+function avatarPreview(
+  choice: Settings["avatar"],
+  displays?: ReturnType<typeof mountAvatar>[],
+): HTMLElement {
   const preview = h("div", { class: "avatar-preview" });
   if (choice === "macha") {
     const canvas = h("canvas", {}) as HTMLCanvasElement;
@@ -1021,7 +1099,8 @@ function avatarPreview(choice: Settings["avatar"]): HTMLElement {
     }
     preview.append(canvas);
   } else {
-    mountAvatar(preview, choice);
+    const display = mountAvatar(preview, choice);
+    displays?.push(display);
   }
   return preview;
 }
@@ -1316,6 +1395,1625 @@ function generalSection(): HTMLElement {
       testVoice,
       voiceFeedback,
     ),
+  );
+}
+
+function dictationSection(): HTMLElement {
+  const feedback = h("p", { class: "hint", "aria-live": "polite" });
+  const vocabularyInput = h("input", {
+    type: "text",
+    maxlength: "64",
+    placeholder: "A name or technical term",
+    "aria-label": "Custom dictation spelling",
+  }) as HTMLInputElement;
+  const vocabularyList = h("div", { style: "display:flex;flex-direction:column;gap:8px" });
+  const replacementsList = h("div", { style: "display:flex;flex-direction:column;gap:8px" });
+  const appStylesList = h("div", { style: "display:flex;flex-direction:column;gap:8px" });
+  let saving = false;
+
+  async function saveDictationChange(patch: Partial<Settings>): Promise<boolean> {
+    if (saving) return false;
+    saving = true;
+    const updated = { ...settings, ...patch };
+    try {
+      await Bridge.saveSettingsStrict(updated);
+      settings = updated;
+      State.settings = { ...State.settings, ...updated };
+      feedback.textContent = "Dictation preferences saved.";
+      return true;
+    } catch (error) {
+      feedback.textContent = `Could not save dictation preferences: ${
+        error instanceof Error ? error.message : String(error)
+      }`;
+      console.error("[macha] could not save dictation preferences", error);
+      return false;
+    } finally {
+      saving = false;
+      render();
+    }
+  }
+
+  function render() {
+    clear(vocabularyList);
+    if (settings.dictationVocabulary.length === 0) {
+      vocabularyList.append(h("div", { class: "hint", text: "No custom spellings yet." }));
+    }
+    for (const [index, word] of settings.dictationVocabulary.entries()) {
+      const remove = h("button", { text: "Remove", "aria-label": `Remove ${word}` });
+      remove.disabled = saving;
+      remove.addEventListener("click", () => {
+        void saveDictationChange({
+          dictationVocabulary: settings.dictationVocabulary.filter((_, i) => i !== index),
+        });
+      });
+      vocabularyList.append(h("div", { class: "row" },
+        h("span", { style: "flex:1", text: word }),
+        remove,
+      ));
+    }
+
+    clear(replacementsList);
+    if (settings.dictationReplacements.length === 0) {
+      replacementsList.append(h("div", { class: "hint", text: "No phrase replacements yet." }));
+    }
+    for (const [index, entry] of settings.dictationReplacements.entries()) {
+      const spoken = h("input", {
+        type: "text",
+        maxlength: "100",
+        value: entry.spoken,
+        placeholder: "Phrase you say",
+        "aria-label": "Spoken phrase",
+        style: "flex:1;min-width:120px",
+      }) as HTMLInputElement;
+      const replacement = h("input", {
+        type: "text",
+        maxlength: "500",
+        value: entry.replacement,
+        placeholder: "Text to insert",
+        "aria-label": "Replacement text",
+        style: "flex:1;min-width:120px",
+      }) as HTMLInputElement;
+      const save = h("button", { text: "Save" });
+      save.disabled = saving;
+      save.addEventListener("click", () => {
+        const phrase = spoken.value.trim();
+        if (!phrase) {
+          feedback.textContent = "Enter a phrase to replace.";
+          spoken.focus();
+          return;
+        }
+        const updated = [...settings.dictationReplacements];
+        updated[index] = { spoken: phrase, replacement: replacement.value };
+        void saveDictationChange({ dictationReplacements: updated });
+      });
+      const remove = h("button", {
+        text: "Remove",
+        "aria-label": `Remove replacement ${entry.spoken}`,
+      });
+      remove.disabled = saving;
+      remove.addEventListener("click", () => {
+        void saveDictationChange({
+          dictationReplacements: settings.dictationReplacements.filter((_, i) => i !== index),
+        });
+      });
+      replacementsList.append(h("div", { class: "row" }, spoken, replacement, save, remove));
+    }
+
+    clear(appStylesList);
+    if (settings.dictationAppStyles.length === 0) {
+      appStylesList.append(h("div", { class: "hint", text: "No app-specific styles yet." }));
+    }
+    for (const [index, entry] of settings.dictationAppStyles.entries()) {
+      const application = h("input", {
+        type: "text",
+        maxlength: "128",
+        value: entry.application,
+        placeholder: "application.exe",
+        "aria-label": "Application executable",
+        style: "flex:1;min-width:120px",
+      }) as HTMLInputElement;
+      const style = h("select", {
+        "aria-label": "Dictation style",
+      }) as HTMLSelectElement;
+      style.append(
+        h("option", { value: "standard", text: "Standard cleanup" }),
+        h("option", { value: "verbatim", text: "Verbatim" }),
+      );
+      style.value = entry.style;
+      const save = h("button", { text: "Save" });
+      save.disabled = saving;
+      save.addEventListener("click", () => {
+        const applicationName = application.value.trim().toLowerCase();
+        if (!/^[a-z0-9._-]+\.exe$/.test(applicationName) || applicationName.length > 128) {
+          feedback.textContent = "Enter an executable name such as code.exe.";
+          application.focus();
+          return;
+        }
+        if (settings.dictationAppStyles.some((saved, i) =>
+          i !== index && saved.application.toLowerCase() === applicationName
+        )) {
+          feedback.textContent = "That application already has a dictation style.";
+          application.focus();
+          return;
+        }
+        const updated = [...settings.dictationAppStyles];
+        updated[index] = {
+          application: applicationName,
+          style: style.value as "standard" | "verbatim",
+        };
+        void saveDictationChange({ dictationAppStyles: updated });
+      });
+      const remove = h("button", {
+        text: "Remove",
+        "aria-label": `Remove ${entry.application} style`,
+      });
+      remove.disabled = saving;
+      remove.addEventListener("click", () => {
+        void saveDictationChange({
+          dictationAppStyles: settings.dictationAppStyles.filter((_, i) => i !== index),
+        });
+      });
+      appStylesList.append(h("div", { class: "row" }, application, style, save, remove));
+    }
+  }
+
+  const addWord = h("button", {
+    text: "Add spelling",
+    onclick: () => {
+      const word = vocabularyInput.value.trim();
+      if (!word) {
+        feedback.textContent = "Enter a word or name to add.";
+        vocabularyInput.focus();
+        return;
+      }
+      if (settings.dictationVocabulary.length >= 50) {
+        feedback.textContent = "You can add up to 50 custom spellings.";
+        return;
+      }
+      if (settings.dictationVocabulary.some((saved) => saved.toLowerCase() === word.toLowerCase())) {
+        feedback.textContent = "That spelling is already in your list.";
+        return;
+      }
+      void saveDictationChange({
+        dictationVocabulary: [...settings.dictationVocabulary, word],
+      }).then((saved) => {
+        if (saved) vocabularyInput.value = "";
+      });
+    },
+  });
+  const spokenInput = h("input", {
+    type: "text",
+    maxlength: "100",
+    placeholder: "Phrase you say",
+    "aria-label": "New spoken phrase",
+  }) as HTMLInputElement;
+  const replacementInput = h("input", {
+    type: "text",
+    maxlength: "500",
+    placeholder: "Text to insert",
+    "aria-label": "New replacement text",
+  }) as HTMLInputElement;
+  const addReplacement = h("button", {
+    text: "Add replacement",
+    onclick: () => {
+      const spoken = spokenInput.value.trim();
+      if (!spoken) {
+        feedback.textContent = "Enter a phrase to replace.";
+        spokenInput.focus();
+        return;
+      }
+      if (settings.dictationReplacements.length >= 100) {
+        feedback.textContent = "You can add up to 100 phrase replacements.";
+        return;
+      }
+      void saveDictationChange({
+        dictationReplacements: [
+          ...settings.dictationReplacements,
+          { spoken, replacement: replacementInput.value },
+        ],
+      }).then((saved) => {
+        if (saved) {
+          spokenInput.value = "";
+          replacementInput.value = "";
+        }
+      });
+    },
+  });
+  const applicationInput = h("input", {
+    type: "text",
+    maxlength: "128",
+    placeholder: "application.exe",
+    "aria-label": "Application executable",
+  }) as HTMLInputElement;
+  const applicationStyle = h("select", {
+    "aria-label": "New application dictation style",
+  }) as HTMLSelectElement;
+  applicationStyle.append(
+    h("option", { value: "standard", text: "Standard cleanup" }),
+    h("option", { value: "verbatim", text: "Verbatim" }),
+  );
+  const addAppStyle = h("button", {
+    text: "Add app style",
+    onclick: () => {
+      const application = applicationInput.value.trim().toLowerCase();
+      if (!/^[a-z0-9._-]+\.exe$/.test(application) || application.length > 128) {
+        feedback.textContent = "Enter an executable name such as code.exe.";
+        applicationInput.focus();
+        return;
+      }
+      if (settings.dictationAppStyles.length >= 50) {
+        feedback.textContent = "You can add up to 50 app-specific styles.";
+        return;
+      }
+      if (settings.dictationAppStyles.some(
+        (saved) => saved.application.toLowerCase() === application,
+      )) {
+        feedback.textContent = "That application already has a dictation style.";
+        return;
+      }
+      void saveDictationChange({
+        dictationAppStyles: [
+          ...settings.dictationAppStyles,
+          { application, style: applicationStyle.value as "standard" | "verbatim" },
+        ],
+      }).then((saved) => {
+        if (saved) applicationInput.value = "";
+      });
+    },
+  });
+
+  render();
+  return h("section", {},
+    h("h2", {}, h("span", { text: "Voice dictation" })),
+    h("div", {
+      class: "hint",
+      text: "Add names and technical terms as spelling hints for the local speech recognizer. Phrase replacements are applied on your device before text is inserted.",
+    }),
+    h("div", { class: "row" }, vocabularyInput, addWord),
+    vocabularyList,
+    h("h3", { text: "Phrase replacements" }),
+    h("div", { class: "row" }, spokenInput, replacementInput, addReplacement),
+    replacementsList,
+    h("h3", { text: "Styles by application" }),
+    h("div", {
+      class: "hint",
+      text: "Add an app’s executable name (for example, code.exe). Macha detects the focused app locally. Standard cleanup removes fillers and formats spoken punctuation; Verbatim inserts the recognizer’s text with only surrounding whitespace trimmed.",
+    }),
+    h("div", { class: "row" }, applicationInput, applicationStyle, addAppStyle),
+    appStylesList,
+    feedback,
+  );
+}
+
+function voiceSetupSection(
+  providerKeysPresent: Record<string, boolean>,
+  initialAccounts: OpenRouterAccount[],
+): HTMLElement {
+  const setupStorageKey = "macha.voiceSetup.v8";
+  const visionTestStorageKey = "macha.voiceSetup.visionTested.v1";
+  const screenRegionConsentKey = "macha.permission.screenRegion.v1";
+  const cameraConsentKey = "macha.permission.camera.v1";
+  let stepIndex = 0;
+  let microphoneStream: MediaStream | null = null;
+  let microphoneContext: AudioContext | null = null;
+  let animationFrame = 0;
+  let stopTimer = 0;
+  let microphoneAttempt = 0;
+  let mascotFrame = 0;
+  let mascotEngine: BotEngine | null = null;
+  let mascotCanvas: HTMLCanvasElement | null = null;
+  let mascotDisplay: ReturnType<typeof mountAvatar> | null = null;
+  let setupAvatarPreviews: ReturnType<typeof mountAvatar>[] = [];
+  let mascotFrameTime = 0;
+  let dictationPollTimer = 0;
+  let dictationText = "";
+  let setupDictationInput: HTMLTextAreaElement | null = null;
+  let setupDictationStatus: HTMLElement | null = null;
+  let stopSetupDictation: (() => void) | null = null;
+  let microphoneReady = false;
+  let microphonePermissionReady = false;
+  let cameraPermissionReady = false;
+  let dictationReady = false;
+  let screenRegionConsent = false;
+  let cameraConsent = false;
+  let visionTested = false;
+  let speechReady = false;
+  let speechPending = false;
+  let setupCompleted = false;
+  let standaloneSetupWindow = false;
+  let transitioning = false;
+
+  function setStandaloneSetupMode(enabled: boolean): void {
+    standaloneSetupWindow = enabled;
+    document.body.classList.toggle("voice-setup-only", enabled);
+    document.documentElement.classList.toggle("voice-setup-only", enabled);
+  }
+
+  try {
+    standaloneSetupWindow = IS_TAURI
+      && window.localStorage.getItem(setupStorageKey) === null;
+    cameraConsent = window.localStorage.getItem(cameraConsentKey) === "true";
+    if (standaloneSetupWindow) setStandaloneSetupMode(true);
+  } catch (error) {
+    console.error("[macha] could not read first-run setup mode", error);
+  }
+
+  const setupLabel = h("span", {
+    class: "voice-setup-label",
+    text: "Ready when you are",
+    hidden: IS_TAURI,
+  });
+  const openButton = h("button", { class: "primary", text: "Start Macha Setup" });
+  const dialog = h("dialog", {
+    class: "voice-setup-dialog",
+    "aria-labelledby": "voice-setup-title",
+    "aria-describedby": "voice-setup-description",
+  }) as HTMLDialogElement;
+  const progress = h("div", {
+    class: "voice-setup-progress-fill",
+    role: "progressbar",
+    "aria-label": "Setup progress",
+    "aria-valuemin": "0",
+    "aria-valuemax": "8",
+    "aria-valuenow": "0",
+  });
+  const progressTrack = h("div", { class: "voice-setup-progress" }, progress);
+  const stepLabel = h("span", { class: "voice-setup-step-label" });
+  const stage = h("div", { class: "voice-setup-stage", "aria-live": "polite" });
+  const backButton = h("button", { text: "Back" });
+  const skipButton = h("button", { class: "voice-setup-skip", text: "Set up later" });
+  const nextButton = h("button", { class: "primary", text: "Continue" });
+  const controls = h("div", { class: "voice-setup-controls" },
+    backButton,
+    h("div", { class: "voice-setup-control-end" }, skipButton, nextButton),
+  );
+  const shell = h("div", { class: "voice-setup-shell" },
+    h("div", { class: "voice-setup-topline" },
+      h("span", { text: "MACHA SETUP" }),
+      stepLabel,
+    ),
+    progressTrack,
+    stage,
+    controls,
+  );
+  dialog.append(shell);
+
+  function persistSetup(value: "completed" | "later"): void {
+    try {
+      window.localStorage.setItem(setupStorageKey, value);
+    } catch (error) {
+      console.error("[macha] could not save voice setup progress", error);
+    }
+  }
+
+  try {
+    visionTested = window.localStorage.getItem(visionTestStorageKey) === "true";
+    screenRegionConsent = window.localStorage.getItem(screenRegionConsentKey) === "true";
+  } catch (error) {
+    console.error("[macha] could not read setup consent state", error);
+  }
+
+  void onEvent<{ transcript?: string; error?: string }>("dictation-setup-test-result", ({ transcript, error }) => {
+    if (!dialog.open || stepIndex !== 3 || !setupDictationInput || !setupDictationStatus) return;
+    if (transcript) {
+      insertTextAtCursor(setupDictationInput, transcript);
+    } else {
+      setupDictationStatus.textContent = error
+        ? `Dictation test failed: ${error}`
+        : "No speech was transcribed. Try again.";
+    }
+  }).catch((error: unknown) => {
+    console.error("[macha] could not listen for setup dictation results", error);
+  });
+
+  void onEvent<{ success: boolean; message?: string }>("vision-onboarding-result", ({ success, message }) => {
+    visionTested = success;
+    try {
+      if (success) window.localStorage.setItem(visionTestStorageKey, "true");
+      else window.localStorage.removeItem(visionTestStorageKey);
+    } catch (error) {
+      console.error("[macha] could not update Vision Mode setup progress", error);
+    }
+    if (dialog.open && stepIndex === 4) {
+      const status = stage.querySelector<HTMLElement>("[data-vision-status]");
+      if (status) {
+        status.textContent = success
+          ? "Vision Mode worked! Macha answered a question using the screen region you selected."
+          : `Test not completed: ${message ?? "Macha did not receive a selected screen region."}`;
+        status.classList.toggle("is-ready", success);
+      }
+      const button = stage.querySelector<HTMLButtonElement>("[data-vision-test-button]");
+      if (button) {
+        button.disabled = false;
+        button.textContent = success ? "Try Vision Mode again" : "Activate Vision Mode";
+      }
+    }
+  }).catch((error: unknown) => {
+    console.error("[macha] could not listen for Vision Mode setup result", error);
+  });
+
+  void onEvent<null>("first-run-setup-start", () => {
+    setStandaloneSetupMode(true);
+    if (!dialog.open) openSetup();
+  }).catch((error: unknown) => {
+    console.error("[macha] could not listen for first-run setup window state", error);
+  });
+
+  function stopMicrophoneTest(message?: string) {
+    microphoneAttempt += 1;
+    window.cancelAnimationFrame(animationFrame);
+    window.clearTimeout(stopTimer);
+    animationFrame = 0;
+    stopTimer = 0;
+    for (const track of microphoneStream?.getTracks() ?? []) track.stop();
+    microphoneStream = null;
+    if (mascotEngine) mascotEngine.setState("idle");
+    const meter = stage.querySelector<HTMLElement>(".voice-setup-meter-fill");
+    meter?.style.setProperty("--meter-level", "0");
+    stage.querySelector(".voice-setup-visual")?.classList.remove("is-listening");
+    const context = microphoneContext;
+    microphoneContext = null;
+    if (context && context.state !== "closed") {
+      void context.close().catch((error: unknown) => {
+        console.error("[macha] could not close microphone test audio context", error);
+      });
+    }
+    if (message) {
+      const status = stage.querySelector<HTMLElement>("[data-microphone-status]");
+      if (status) status.textContent = message;
+    }
+  }
+
+  function stopSetupMascot() {
+    window.cancelAnimationFrame(mascotFrame);
+    mascotFrame = 0;
+    mascotEngine = null;
+    mascotCanvas = null;
+    mascotDisplay?.destroy();
+    mascotDisplay = null;
+    for (const display of setupAvatarPreviews) display.destroy();
+    setupAvatarPreviews = [];
+  }
+
+  function animateSetupMascot(now: number) {
+    const canvas = mascotCanvas;
+    const engine = mascotEngine;
+    if (!canvas || !engine || !canvas.isConnected) {
+      stopSetupMascot();
+      return;
+    }
+    const context = canvas.getContext("2d");
+    if (!context) {
+      console.error("[macha] could not create the setup mascot canvas context");
+      stopSetupMascot();
+      return;
+    }
+    const width = 184;
+    const height = 148;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+    }
+    const elapsed = mascotFrameTime ? Math.min(0.05, (now - mascotFrameTime) / 1000) : 1 / 60;
+    mascotFrameTime = now;
+    engine.update(elapsed);
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    context.clearRect(0, 0, width, height);
+    engine.draw(context, width, height);
+    mascotFrame = window.requestAnimationFrame(animateSetupMascot);
+  }
+
+  function followSetupPointer(event: PointerEvent) {
+    const lookTarget = settings.avatar === "macha"
+      ? mascotCanvas
+      : stage.querySelector<HTMLCanvasElement>(".voice-setup-avatar-host canvas");
+    if (!lookTarget) return;
+    const bounds = lookTarget.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return;
+    const x = Math.max(-1, Math.min(1, ((event.clientX - bounds.left) / bounds.width - 0.5) * 2));
+    const y = Math.max(-1, Math.min(1, ((event.clientY - bounds.top) / bounds.height - 0.5) * 2));
+    if (mascotEngine) {
+      mascotEngine.lookX = x;
+      mascotEngine.lookY = -y;
+    }
+    mascotDisplay?.setLook(x, -y);
+  }
+
+  dialog.addEventListener("pointermove", followSetupPointer);
+
+  function animateLevel(analyser: AnalyserNode, samples: Uint8Array<ArrayBuffer>) {
+    if (!microphoneStream) return;
+    analyser.getByteTimeDomainData(samples);
+    let sumSquares = 0;
+    for (const sample of samples) {
+      const value = (sample - 128) / 128;
+      sumSquares += value * value;
+    }
+    const level = Math.min(1, Math.sqrt(sumSquares / samples.length) * 5);
+    const meter = stage.querySelector<HTMLElement>(".voice-setup-meter-fill");
+    meter?.style.setProperty("--meter-level", String(Math.max(0.025, level)));
+    animationFrame = window.requestAnimationFrame(() => animateLevel(analyser, samples));
+  }
+
+  async function closeSetup(value: "completed" | "later"): Promise<void> {
+    void Bridge.setDictationSetupTestActive(false).catch((error: unknown) => {
+      console.error("[macha] could not stop setup dictation mode", error);
+    });
+    stopMicrophoneTest();
+    stopSetupMascot();
+    stopSetupDictation?.();
+    stopSetupDictation = null;
+    window.clearInterval(dictationPollTimer);
+    dictationPollTimer = 0;
+    if (speechPending) {
+      speechPending = false;
+      void TTS.stop().catch((error: unknown) => {
+        console.error("[macha] could not stop setup voice sample", error);
+      });
+    }
+    setupCompleted ||= value === "completed";
+    persistSetup(setupCompleted ? "completed" : value);
+    setupLabel.textContent = setupCompleted
+      ? "Macha Setup complete"
+      : "Setup can be started any time";
+    openButton.textContent = setupCompleted ? "Review Macha Setup" : "Start Macha Setup";
+    if (dialog.open) dialog.close(value);
+    if (standaloneSetupWindow) {
+      try {
+        await Bridge.finishFirstRunSetupWindow();
+        setStandaloneSetupMode(false);
+      } catch (error) {
+        console.error("[macha] could not restore the Settings window after setup", error);
+        window.alert(
+          `Setup is saved, but the normal Settings window could not be restored: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+    }
+  }
+
+  function renderStep(): void {
+    void Bridge.setDictationSetupTestActive(stepIndex === 3).catch((error: unknown) => {
+      console.error("[macha] could not update setup dictation mode", error);
+    });
+    stopSetupDictation?.();
+    stopSetupDictation = null;
+    setupDictationInput = null;
+    setupDictationStatus = null;
+    if (speechPending) {
+      speechPending = false;
+      void TTS.stop().catch((error: unknown) => {
+        console.error("[macha] could not stop setup voice sample", error);
+      });
+    }
+    stopMicrophoneTest();
+    stopSetupMascot();
+    window.clearInterval(dictationPollTimer);
+    dictationPollTimer = 0;
+    clear(stage);
+    stage.classList.remove("voice-setup-stage-welcome");
+    transitioning = false;
+    const isWelcome = stepIndex === 0;
+    const isPermissions = stepIndex === 1;
+    const isMicrophone = stepIndex === 2;
+    const isDictation = stepIndex === 3;
+    const isVision = stepIndex === 4;
+    const isWakePhrase = stepIndex === 5;
+    const isSpeech = stepIndex === 6;
+    const isProviderSetup = stepIndex === 7;
+    const isAvatar = stepIndex === 8;
+    const isComplete = isAvatar;
+    shell.classList.toggle("voice-setup-shell-vision", isVision);
+    shell.classList.toggle("voice-setup-shell-permissions", isPermissions);
+    stage.classList.toggle("voice-setup-stage-vision", isVision);
+    stage.classList.toggle("voice-setup-stage-permissions", isPermissions);
+    stage.classList.toggle("voice-setup-stage-provider", isProviderSetup);
+    stage.classList.toggle("voice-setup-stage-avatar", isComplete);
+    const titles = [
+      "Now let’s set up Macha",
+      "Privacy & Permissions",
+      "Check Your Microphone",
+      "Try Voice Dictation",
+      "Vision Mode",
+      "Choose How to Talk",
+      "Make Sure Macha Can Speak",
+      "Connect Your AI Provider",
+      "Choose Your Companion",
+    ];
+    const descriptions = [
+      "Your personal AI companion for Windows. In a few quick calibrations, we’ll get your microphone, voice dictation, and hand gesture vision mode ready.",
+      "You stay in full control. Macha only accesses what you explicitly grant, processing dictation and gestures locally on this device.",
+      "Say a few words to test your audio input. Audio level is measured in real time on your machine — nothing is recorded or sent.",
+      "Dictate anywhere with zero lag. Hold Right Alt while speaking, then release to transcribe and insert words directly.",
+      "Control your Windows cursor with hand gestures using your webcam. Move your hand to guide the cursor, pinch fingers to click, and scroll without touching the mouse.",
+      "With Hey Macha enabled, say the wake phrase to open voice chat. Prefer a button? Push-to-talk remains available either way.",
+      "Play a short sample using your selected local voice. You can tune speech speed, voice, and volume anytime in Settings.",
+      "Add a provider API key for cloud AI, or skip this step and use a local Ollama model if you have one installed.",
+      "Choose the companion you want by your side. Your choice is saved and can be changed anytime in Settings.",
+    ];
+    stepLabel.textContent = isComplete ? "FINAL STEP" : `STEP ${stepIndex + 1} OF 8`;
+    progress.style.width = `${(Math.min(stepIndex, 8) / 8) * 100}%`;
+    progress.setAttribute("aria-valuenow", String(Math.min(stepIndex, 8)));
+    backButton.hidden = isWelcome;
+    skipButton.hidden = isComplete;
+    nextButton.textContent = isComplete ? "Finish setup" : "Continue";
+    nextButton.disabled = false;
+
+    const visual = h("div", {
+      class: `voice-setup-visual ${isMicrophone && microphoneStream ? "is-listening" : ""}`,
+      "aria-hidden": "true",
+    },
+      h("div", { class: "voice-setup-visual-ring voice-setup-visual-ring-outer" }),
+      h("div", { class: "voice-setup-visual-ring voice-setup-visual-ring-inner" }),
+      h("div", { class: "voice-setup-mascot-glow" }),
+      h("canvas", { class: "voice-setup-mascot", width: "368", height: "296" }),
+      h("span", { class: "voice-setup-avatar-host" }),
+      h("span", { class: "voice-setup-mascot-caption", text: "M A C H A" }),
+    );
+
+    stage.append(
+      visual,
+      h("h2", {
+        class: "voice-setup-title",
+        id: "voice-setup-title",
+        tabindex: "-1",
+        text: titles[stepIndex],
+      }),
+      h("p", {
+        class: "voice-setup-description",
+        id: "voice-setup-description",
+        text: descriptions[stepIndex],
+      }),
+    );
+    mascotCanvas = visual.querySelector<HTMLCanvasElement>(".voice-setup-mascot");
+    const avatarHost = visual.querySelector<HTMLElement>(".voice-setup-avatar-host")!;
+    const mascotCaption = visual.querySelector<HTMLElement>(".voice-setup-mascot-caption")!;
+    if (isWelcome) {
+      visual.append(
+        h("div", { class: "voice-setup-speech-bubble" },
+          h("span", { class: "voice-setup-speech-bubble-wave", text: "👋" }),
+          h("span", { class: "voice-setup-speech-bubble-text", text: "Hello!" }),
+        ),
+      );
+    }
+    visual.dataset.avatarChoice = settings.avatar;
+    mascotCaption.textContent = avatarLabel(settings.avatar).toUpperCase().split("").join(" ");
+    setAvatarSelection(settings.avatar);
+    mascotDisplay = mountAvatar(avatarHost);
+    mascotDisplay.setState(isWelcome ? "finished" : isVision ? "question" : isSpeech || isComplete ? "finished" : "idle");
+    mascotEngine = new BotEngine();
+    mascotEngine.setState(
+      isMicrophone && microphoneStream
+        ? "working"
+        : isWelcome
+          ? "finished"
+          : isPermissions
+            ? "idle"
+            : isDictation
+              ? "working"
+              : isVision
+                ? "question"
+                : isWakePhrase
+                  ? "thinking"
+                  : isSpeech || isComplete
+                    ? "finished"
+                    : "idle",
+    );
+    mascotFrameTime = 0;
+    mascotFrame = window.requestAnimationFrame(animateSetupMascot);
+
+    if (isWelcome) {
+      stage.classList.add("voice-setup-stage-intro");
+      const letsGoButton = h("button", {
+        type: "button",
+        class: "voice-setup-lets-go-btn",
+      },
+        h("span", { text: "Let’s Go!" }),
+        h("span", { class: "voice-setup-lets-go-arrow", text: "→" }),
+      );
+      letsGoButton.addEventListener("click", () => moveToStep(1));
+
+      const introPills = h("div", { class: "voice-setup-intro-pills" },
+        h("span", { text: "🎙️ Natural Voice" }),
+        h("span", { text: "⚡ Instant Dictation" }),
+        h("span", { text: "🖐️ Gesture Vision" }),
+        h("span", { text: "🤖 AI Intelligence" }),
+      );
+
+      stage.append(
+        introPills,
+        letsGoButton,
+      );
+    }
+
+    if (isProviderSetup) {
+      const providerKeys: Array<{ key: string; name: string; placeholder: string }> = [
+        { key: "grok-api-key", name: "Grok", placeholder: "xai-…" },
+        { key: "anthropic-api-key", name: "Claude", placeholder: "sk-ant-…" },
+        { key: "openai-api-key", name: "OpenAI", placeholder: "sk-…" },
+        { key: "gemini-api-key", name: "Gemini", placeholder: "AIza…" },
+      ];
+      let setupAccounts = [...initialAccounts];
+      const feedback = h("p", {
+        class: "voice-setup-provider-feedback",
+        "aria-live": "polite",
+        text: "Keys are stored in the Windows credential manager and never included in Macha settings.",
+      });
+      const providerMode = h("select", {
+        class: "voice-setup-provider-mode",
+        "aria-label": "AI provider mode",
+      }) as HTMLSelectElement;
+      providerMode.append(
+        h("option", { value: "auto", text: "Automatic — local Ollama first, OpenRouter fallback" }),
+        h("option", { value: "ollamaOnly", text: "Local Ollama only — no API key" }),
+        h("option", { value: "openRouterOnly", text: "OpenRouter" }),
+        h("option", { value: "grokOnly", text: "Grok" }),
+        h("option", { value: "claudeOnly", text: "Claude" }),
+        h("option", { value: "openAiOnly", text: "OpenAI" }),
+        h("option", { value: "geminiOnly", text: "Gemini" }),
+      );
+      providerMode.value = settings.providerMode;
+      const saveMode = h("button", { class: "voice-setup-secondary", text: "Save AI preference" });
+      saveMode.addEventListener("click", async () => {
+        const selectedMode = providerMode.value as Settings["providerMode"];
+        const requiredKey = ({
+          openRouterOnly: setupAccounts.length > 0,
+          grokOnly: providerKeysPresent["grok-api-key"] ?? false,
+          claudeOnly: providerKeysPresent["anthropic-api-key"] ?? false,
+          openAiOnly: providerKeysPresent["openai-api-key"] ?? false,
+          geminiOnly: providerKeysPresent["gemini-api-key"] ?? false,
+        } as Partial<Record<Settings["providerMode"], boolean>>)[selectedMode];
+        if (requiredKey === false) {
+          feedback.textContent = "Add a key for the selected provider before saving this preference.";
+          feedback.classList.add("is-error");
+          return;
+        }
+        const previousMode = settings.providerMode;
+        settings.providerMode = selectedMode;
+        saveMode.disabled = true;
+        feedback.textContent = "Saving your AI preference…";
+        feedback.classList.remove("is-error");
+        try {
+          await Bridge.saveSettingsStrict(settings);
+          State.settings = { ...State.settings, ...settings };
+          feedback.textContent = "AI preference saved. You can change it any time in Settings.";
+        } catch (error) {
+          settings.providerMode = previousMode;
+          providerMode.value = previousMode;
+          feedback.textContent = `Could not save the AI preference: ${
+            error instanceof Error ? error.message : String(error)
+          }`;
+          feedback.classList.add("is-error");
+        } finally {
+          saveMode.disabled = false;
+        }
+      });
+
+      const keyCards = providerKeys.map(({ key, name, placeholder }) => {
+        const input = h("input", {
+          type: "password",
+          autocomplete: "off",
+          spellcheck: "false",
+          placeholder: providerKeysPresent[key] ? "Key stored securely" : placeholder,
+          "aria-label": `${name} API key`,
+        }) as HTMLInputElement;
+        const saveKey = h("button", { text: "Save" });
+        const status = h("span", {
+          class: "voice-setup-provider-key-status",
+          text: providerKeysPresent[key] ? "Connected" : "Optional",
+        });
+        saveKey.addEventListener("click", async () => {
+          const value = input.value.trim();
+          if (!value) {
+            feedback.textContent = `Enter a ${name} API key to save it.`;
+            feedback.classList.add("is-error");
+            input.focus();
+            return;
+          }
+          saveKey.disabled = true;
+          feedback.textContent = `Saving ${name} key securely…`;
+          feedback.classList.remove("is-error");
+          try {
+            await Bridge.secretSet(key, value);
+            providerKeysPresent[key] = true;
+            input.value = "";
+            input.placeholder = "Key stored securely";
+            status.textContent = "Connected";
+            feedback.textContent = `${name} key saved in the Windows credential manager.`;
+          } catch (error) {
+            feedback.textContent = `Could not save the ${name} key: ${
+              error instanceof Error ? error.message : String(error)
+            }`;
+            feedback.classList.add("is-error");
+          } finally {
+            saveKey.disabled = false;
+          }
+        });
+        return h("label", { class: "voice-setup-provider-key" },
+          h("span", { text: name }),
+          h("span", { class: "voice-setup-provider-key-input" }, input, saveKey),
+          status,
+        );
+      });
+
+      const accountName = h("input", {
+        type: "text",
+        maxlength: "80",
+        autocomplete: "off",
+        placeholder: "Account name",
+        "aria-label": "OpenRouter account name",
+      }) as HTMLInputElement;
+      const accountKey = h("input", {
+        type: "password",
+        autocomplete: "off",
+        spellcheck: "false",
+        placeholder: "sk-or-v1-…",
+        "aria-label": "OpenRouter API key",
+      }) as HTMLInputElement;
+      const accountStatus = h("span", {
+        class: "voice-setup-provider-key-status",
+        text: setupAccounts.length ? `${setupAccounts.length} account${setupAccounts.length === 1 ? "" : "s"} connected` : "Optional",
+      });
+      const saveAccount = h("button", { text: "Save account" });
+      saveAccount.addEventListener("click", async () => {
+        const name = accountName.value.trim();
+        const key = accountKey.value.trim();
+        if (!name || !key) {
+          feedback.textContent = "Enter both an OpenRouter account name and API key.";
+          feedback.classList.add("is-error");
+          return;
+        }
+        saveAccount.disabled = true;
+        feedback.textContent = "Saving OpenRouter account securely…";
+        feedback.classList.remove("is-error");
+        try {
+          await Bridge.openRouterAccountAdd(name, key);
+          accountName.value = "";
+          accountKey.value = "";
+          setupAccounts = await Bridge.openRouterAccounts();
+          accountStatus.textContent = `${setupAccounts.length} account${setupAccounts.length === 1 ? "" : "s"} connected`;
+          feedback.textContent = "OpenRouter account saved in the Windows credential manager.";
+        } catch (error) {
+          feedback.textContent = `Could not save the OpenRouter account: ${
+            error instanceof Error ? error.message : String(error)
+          }`;
+          feedback.classList.add("is-error");
+        } finally {
+          saveAccount.disabled = false;
+        }
+      });
+
+      stage.append(
+        h("div", { class: "voice-setup-provider-mode-row" }, providerMode, saveMode),
+        h("p", {
+          class: "voice-setup-provider-privacy",
+          text: "Direct-provider keys are used when their matching mode is selected. Automatic mode uses Ollama first, then OpenRouter.",
+        }),
+        h("div", { class: "voice-setup-provider-keys" }, ...keyCards),
+        h("div", { class: "voice-setup-provider-openrouter" },
+          h("span", { class: "voice-setup-provider-openrouter-title", text: "OpenRouter account" }),
+          accountName,
+          accountKey,
+          saveAccount,
+          accountStatus,
+        ),
+        h("p", {
+          class: "voice-setup-provider-privacy",
+          text: "Cloud providers process the prompts and any screen region you choose to send. No key is required for local Ollama. You can skip this step and configure providers later in Settings.",
+        }),
+        feedback,
+      );
+    }
+
+    if (isComplete) {
+      const avatarChoices: Settings["avatar"][] = ["macha", "cubee", "onee"];
+      const avatarFeedback = h("p", {
+        class: "voice-setup-avatar-feedback",
+        "aria-live": "polite",
+        text: `Selected: ${avatarLabel(settings.avatar)}`,
+      });
+      const avatarButtons = avatarChoices.map((choice) => {
+        const button = h("button", {
+          class: settings.avatar === choice
+            ? "voice-setup-avatar-choice selected"
+            : "voice-setup-avatar-choice",
+          "aria-pressed": String(settings.avatar === choice),
+          "aria-label": `${avatarLabel(choice)} avatar`,
+        }) as HTMLButtonElement;
+        button.append(
+          avatarPreview(choice, setupAvatarPreviews),
+          h("span", { text: avatarLabel(choice) }),
+          h("span", {
+            class: "voice-setup-avatar-selected-mark",
+            "aria-hidden": "true",
+            text: "✓",
+          }),
+        );
+        button.addEventListener("click", async () => {
+          if (settings.avatar === choice) return;
+          const previous = settings.avatar;
+          for (const option of avatarButtons) option.disabled = true;
+          settings.avatar = choice;
+          State.settings = { ...State.settings, ...settings };
+          setAvatarSelection(choice);
+          visual.dataset.avatarChoice = choice;
+          mascotCaption.textContent = avatarLabel(choice).toUpperCase().split("").join(" ");
+          for (const [index, option] of avatarButtons.entries()) {
+            const selected = avatarChoices[index] === choice;
+            option.classList.toggle("selected", selected);
+            option.setAttribute("aria-pressed", String(selected));
+          }
+          avatarFeedback.textContent = `Selected: ${avatarLabel(choice)}. Saving…`;
+          try {
+            if (IS_TAURI) await Bridge.saveSettingsStrict(settings);
+            avatarFeedback.textContent = `${avatarLabel(choice)} is now your avatar.`;
+          } catch (error) {
+            settings.avatar = previous;
+            State.settings = { ...State.settings, ...settings };
+            setAvatarSelection(previous);
+            visual.dataset.avatarChoice = previous;
+            mascotCaption.textContent = avatarLabel(previous).toUpperCase().split("").join(" ");
+            for (const [index, option] of avatarButtons.entries()) {
+              const selected = avatarChoices[index] === previous;
+              option.classList.toggle("selected", selected);
+              option.setAttribute("aria-pressed", String(selected));
+            }
+            avatarFeedback.textContent = `Could not save your avatar: ${
+              error instanceof Error ? error.message : String(error)
+            }`;
+            console.error("[macha] could not save setup avatar selection", error);
+          } finally {
+            for (const option of avatarButtons) option.disabled = false;
+          }
+        });
+        return button;
+      });
+      stage.append(
+        h("div", { class: "voice-setup-avatar-picker" },
+          h("span", { class: "voice-setup-avatar-picker-label", text: "PICK YOUR COMPANION" }),
+          h("div", { class: "voice-setup-avatar-options" }, ...avatarButtons),
+          avatarFeedback,
+        ),
+        h("div", { class: "voice-setup-summary" },
+          h("span", { class: "voice-setup-summary-mark", text: "✓", "aria-hidden": "true" }),
+          h("span", {
+            text: settings.wakeWordEnabled ? "Hey Macha is ready" : "Push-to-talk is ready",
+          }),
+          h("span", {
+            text: microphoneReady ? "Microphone checked" : "Microphone not checked",
+          }),
+          h("span", {
+            text: dictationReady ? "Dictation tested" : "Right Alt dictation ready",
+          }),
+          h("span", {
+            text: visionTested ? "Vision Mode tested" : "Vision Mode not tested",
+          }),
+          h("span", {
+            text: speechReady ? "Spoken replies tested" : "Voice sample skipped",
+          }),
+        ),
+      );
+    }
+
+    if (isPermissions) {
+      const microphoneStatus = h("p", {
+        class: "voice-setup-permission-status",
+        "aria-live": "polite",
+        "data-permission-microphone-status": "",
+        text: microphonePermissionReady
+          ? "Microphone access was granted. The permission check is finished; the microphone is off."
+          : "Not granted yet. You can allow it now or continue without voice features.",
+      });
+      const microphoneButton = h("button", {
+        class: "voice-setup-secondary",
+        text: microphonePermissionReady ? "Check microphone permission again" : "Allow microphone",
+      });
+      microphoneButton.addEventListener("click", async () => {
+        microphoneButton.disabled = true;
+        microphoneStatus.textContent = "Waiting for Windows/WebView microphone permission…";
+        try {
+          if (!navigator.mediaDevices?.getUserMedia) {
+            throw new Error("Microphone access is unavailable in this app environment.");
+          }
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          for (const track of stream.getTracks()) track.stop();
+          microphonePermissionReady = true;
+          microphoneStatus.textContent = "Microphone access was granted. The permission check is finished; the microphone is off.";
+          microphoneButton.textContent = "Check microphone permission again";
+        } catch (error) {
+          microphoneStatus.textContent = error instanceof DOMException && error.name === "NotAllowedError"
+            ? "Microphone access was denied. You can change it later in Windows microphone privacy settings."
+            : `Could not request microphone access: ${error instanceof Error ? error.message : String(error)}`;
+          console.error("[macha] microphone permission request failed", error);
+        } finally {
+          microphoneButton.disabled = false;
+        }
+      });
+
+      const cameraConsentToggle = h("input", {
+        type: "checkbox",
+        checked: cameraConsent,
+        "aria-label": "Allow camera use for gesture controls",
+      }) as HTMLInputElement;
+      const cameraStatus = h("p", {
+        class: "voice-setup-permission-status",
+        "aria-live": "polite",
+        "data-permission-camera-status": "",
+        text: cameraPermissionReady
+          ? "Camera permission was granted. The camera is off now."
+          : cameraConsent
+            ? "App consent is on. Request camera access to use gesture controls."
+            : "Off. Camera gesture controls remain disabled until you allow them.",
+      });
+      const cameraButton = h("button", {
+        class: "voice-setup-secondary",
+        text: cameraPermissionReady ? "Check camera permission again" : "Allow camera",
+      });
+      cameraConsentToggle.addEventListener("change", () => {
+        cameraConsent = cameraConsentToggle.checked;
+        try {
+          if (cameraConsent) window.localStorage.setItem(cameraConsentKey, "true");
+          else window.localStorage.removeItem(cameraConsentKey);
+          cameraStatus.textContent = cameraConsent
+            ? "App consent is on. Request camera access to use gesture controls."
+            : "Off. Camera gesture controls remain disabled until you allow them.";
+        } catch (error) {
+          cameraConsent = !cameraConsent;
+          cameraConsentToggle.checked = cameraConsent;
+          cameraStatus.textContent = "Could not save this choice. Check browser storage permissions and try again.";
+          console.error("[macha] could not save camera consent", error);
+        }
+      });
+      cameraButton.addEventListener("click", async () => {
+        cameraButton.disabled = true;
+        cameraStatus.textContent = "Waiting for Windows/WebView camera permission…";
+        try {
+          if (!navigator.mediaDevices?.getUserMedia) {
+            throw new Error("Camera access is unavailable in this app environment.");
+          }
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          for (const track of stream.getTracks()) track.stop();
+          cameraPermissionReady = true;
+          cameraConsent = true;
+          cameraConsentToggle.checked = true;
+          window.localStorage.setItem(cameraConsentKey, "true");
+          cameraStatus.textContent = "Camera access was granted. The permission check is finished; the camera is off.";
+          cameraButton.textContent = "Check camera permission again";
+        } catch (error) {
+          if (cameraConsent) {
+            try {
+              window.localStorage.removeItem(cameraConsentKey);
+            } catch (storageError) {
+              console.error("[macha] could not clear camera consent after permission failure", storageError);
+            }
+          }
+          cameraConsent = false;
+          cameraConsentToggle.checked = false;
+          cameraStatus.textContent = error instanceof DOMException && error.name === "NotAllowedError"
+            ? "Camera access was denied. Gesture controls stay off; you can change access in Windows camera privacy settings."
+            : `Could not request camera access: ${error instanceof Error ? error.message : String(error)}`;
+          console.error("[macha] camera permission request failed", error);
+        } finally {
+          cameraButton.disabled = false;
+        }
+      });
+
+      const screenConsent = h("input", {
+        type: "checkbox",
+        checked: screenRegionConsent,
+        "aria-label": "Allow selected screen-region capture",
+      }) as HTMLInputElement;
+      const screenStatus = h("p", {
+        class: "voice-setup-permission-status",
+        "aria-live": "polite",
+        text: screenRegionConsent
+          ? "Allowed. Macha captures a crop only after you deliberately select it."
+          : "Off. Vision Mode will not capture screen regions until you enable this.",
+      });
+      screenConsent.addEventListener("change", () => {
+        screenRegionConsent = screenConsent.checked;
+        try {
+          if (screenRegionConsent) window.localStorage.setItem(screenRegionConsentKey, "true");
+          else window.localStorage.removeItem(screenRegionConsentKey);
+          screenStatus.textContent = screenRegionConsent
+            ? "Allowed. Macha captures a crop only after you deliberately select it."
+            : "Off. Vision Mode will not capture screen regions until you enable this.";
+        } catch (error) {
+          screenConsent.checked = !screenRegionConsent;
+          screenRegionConsent = screenConsent.checked;
+          screenStatus.textContent = "Could not save this choice. Check browser storage permissions and try again.";
+          console.error("[macha] could not save screen-region permission choice", error);
+        }
+      });
+
+      stage.append(
+        h("div", { class: "voice-setup-permission-card voice-setup-permission-card-microphone" },
+          h("div", { class: "voice-setup-permission-heading" },
+            h("h3", { text: "Microphone" }),
+            h("span", { text: microphonePermissionReady ? "Granted" : "Optional" }),
+          ),
+          h("p", { text: "Used for voice chat, wake-word listening when enabled, and Right Alt dictation. Macha transcribes dictation on this device." }),
+          microphoneStatus,
+          microphoneButton,
+        ),
+        h("div", { class: "voice-setup-permission-card voice-setup-permission-card-camera" },
+          h("label", { class: "voice-setup-permission-heading" },
+            h("h3", { text: "Camera" }),
+            cameraConsentToggle,
+          ),
+          h("p", { text: "Optional hand-gesture controls use the webcam while Vision Mode runs. Camera frames are processed locally for hand tracking." }),
+          cameraStatus,
+          cameraButton,
+        ),
+        h("div", { class: "voice-setup-permission-card voice-setup-permission-card-screen" },
+          h("label", { class: "voice-setup-permission-heading" },
+            h("h3", { text: "Selected screen regions" }),
+            screenConsent,
+          ),
+          h("p", { text: "Vision Mode can send only the rectangle you deliberately drag-select while holding left Ctrl + left Alt. Macha does not capture the whole screen in this feature." }),
+          screenStatus,
+        ),
+        h("div", { class: "voice-setup-permission-note" },
+          h("strong", { text: "Other access is limited and explained when used." }),
+          h("p", { text: "Files and desktop actions: accessed for tasks you start; workflow actions may run automatically as configured. Clipboard: may be used briefly for dictation insertion, then restored. Macha detects Right Alt and left Ctrl + left Alt while running. Windows notifications and autostart are separate Settings options." }),
+        ),
+      );
+    }
+
+    if (isMicrophone) {
+      const meterFill = h("div", { class: "voice-setup-meter-fill" });
+      const microphoneStatus = h("p", {
+        class: "voice-setup-status",
+        "data-microphone-status": "",
+        "aria-live": "polite",
+        text: microphoneReady
+          ? "Microphone check passed. You can test it again or continue."
+          : "The microphone stays active only while this check is running.",
+      });
+      const microphoneButton = h("button", {
+        class: "voice-setup-secondary",
+        text: microphoneStream ? "Stop microphone check" : microphoneReady ? "Test again" : "Allow microphone & test",
+      });
+      const meter = h("div", { class: "voice-setup-meter", "aria-label": "Microphone input level" }, meterFill);
+      microphoneButton.addEventListener("click", async () => {
+        if (microphoneStream) {
+          stopMicrophoneTest("Microphone check stopped. No audio was recorded or sent.");
+          microphoneButton.textContent = "Test again";
+          return;
+        }
+        const attempt = ++microphoneAttempt;
+        microphoneButton.disabled = true;
+        microphoneStatus.textContent = "Requesting microphone access…";
+        try {
+          if (!navigator.mediaDevices?.getUserMedia) {
+            throw new Error("Microphone access is unavailable in this app environment.");
+          }
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          if (attempt !== microphoneAttempt || !dialog.open || stepIndex !== 2) {
+            for (const track of stream.getTracks()) track.stop();
+            return;
+          }
+          microphoneStream = stream;
+          mascotEngine?.setState("working");
+          microphoneContext = new AudioContext();
+          const analyser = microphoneContext.createAnalyser();
+          analyser.fftSize = 256;
+          microphoneContext.createMediaStreamSource(microphoneStream).connect(analyser);
+          microphoneReady = true;
+          microphoneButton.textContent = "Stop microphone check";
+          microphoneStatus.textContent = "Microphone ready. Speak to see your level.";
+          visual.classList.add("is-listening");
+          animateLevel(analyser, new Uint8Array(new ArrayBuffer(analyser.fftSize)));
+          stopTimer = window.setTimeout(() => {
+            stopMicrophoneTest("Microphone check complete. Access was granted; no audio was recorded or sent.");
+            microphoneButton.textContent = "Test again";
+            visual.classList.remove("is-listening");
+          }, 12000);
+        } catch (error) {
+          if (attempt !== microphoneAttempt || !dialog.open || stepIndex !== 2) return;
+          stopMicrophoneTest();
+          microphoneStatus.textContent =
+            error instanceof Error && error.name === "NotAllowedError"
+              ? "Microphone access was denied. Allow it in Windows privacy settings, then try again."
+              : `Microphone check failed: ${error instanceof Error ? error.message : String(error)}`;
+          console.error("[macha] microphone setup check failed", error);
+        } finally {
+          microphoneButton.disabled = false;
+        }
+      });
+      stage.append(meter, microphoneStatus, microphoneButton);
+    }
+
+    if (isWakePhrase) {
+      const wakeStatus = h("p", {
+        class: "voice-setup-status",
+        "aria-live": "polite",
+        text: settings.wakeWordEnabled
+          ? "Hey Macha is enabled and ready."
+          : "Hey Macha is off. You can turn it on now or use push-to-talk.",
+      });
+      const wakeButton = h("button", {
+        class: "voice-setup-secondary",
+        text: settings.wakeWordEnabled ? "Turn off Hey Macha" : "Enable Hey Macha",
+      });
+      const wakeCheck = h("span", {
+        class: "voice-setup-check",
+        text: settings.wakeWordEnabled ? "Ready" : "Optional",
+      });
+      wakeButton.addEventListener("click", async () => {
+        const previous = settings.wakeWordEnabled;
+        settings.wakeWordEnabled = !previous;
+        wakeButton.disabled = true;
+        wakeStatus.textContent = settings.wakeWordEnabled ? "Enabling Hey Macha…" : "Disabling Hey Macha…";
+        try {
+          await Bridge.saveSettingsStrict(settings);
+          State.settings = { ...State.settings, ...settings };
+          wakeButton.textContent = settings.wakeWordEnabled ? "Turn off Hey Macha" : "Enable Hey Macha";
+          wakeCheck.textContent = settings.wakeWordEnabled ? "Ready" : "Optional";
+          wakeStatus.textContent = settings.wakeWordEnabled
+            ? "Hey Macha is enabled and ready."
+            : "Hey Macha is off. Push-to-talk remains available.";
+        } catch (error) {
+          settings.wakeWordEnabled = previous;
+          wakeStatus.textContent = `Could not update Hey Macha: ${
+            error instanceof Error ? error.message : String(error)
+          }`;
+          console.error("[macha] could not update wake phrase during setup", error);
+        } finally {
+          wakeButton.disabled = false;
+        }
+      });
+      stage.append(h("div", { class: "voice-setup-choice" }, wakeCheck, wakeStatus), wakeButton);
+    }
+
+    if (isDictation) {
+      const dictationStatus = h("p", {
+        class: "voice-setup-status",
+        "aria-live": "polite",
+        text: dictationReady
+          ? "Dictation inserted successfully. You can try another phrase."
+          : "Click the field, hold Right Alt while speaking, and release. The test transcription appears here.",
+      });
+      const dictationInput = h("textarea", {
+        class: "voice-setup-dictation-input",
+        rows: "2",
+        maxlength: "500",
+        placeholder: "Click here, then hold Right Alt and speak…",
+        "aria-label": "Dictation test field",
+      }) as HTMLTextAreaElement;
+      dictationInput.value = dictationText;
+      setupDictationInput = dictationInput;
+      setupDictationStatus = dictationStatus;
+      const updateDictationStatus = () => {
+        dictationText = dictationInput.value;
+        dictationReady = dictationText.trim().length > 0;
+        if (dictationReady) {
+          dictationStatus.textContent = "Dictation inserted successfully. You can try another phrase.";
+          return;
+        }
+        const current = dictationStatus.textContent ?? "";
+        if (
+          current.startsWith("Listening")
+          || current === "Transcribing…"
+          || current.startsWith("Microphone")
+          || current.startsWith("No dictation")
+          || current.startsWith("No speech")
+          || current.startsWith("Dictation test failed")
+        ) {
+          return;
+        }
+        dictationStatus.textContent =
+          "Click the field, hold Right Alt while speaking, and release. The test transcription appears here.";
+      };
+      dictationInput.addEventListener("input", updateDictationStatus);
+      dictationPollTimer = window.setInterval(updateDictationStatus, 200);
+      const clearDictation = h("button", {
+        class: "voice-setup-skip",
+        text: "Clear",
+        onclick: () => {
+          dictationInput.value = "";
+          dictationText = "";
+          dictationInput.focus();
+          dictationReady = false;
+          dictationStatus.textContent =
+            "Click the field, hold Right Alt while speaking, and release. The test transcription appears here.";
+        },
+      });
+      stage.append(
+        h("div", { class: "voice-setup-shortcut" },
+          h("span", { text: "HOLD" }),
+          h("kbd", { text: "Right Alt" }),
+          h("span", { text: "SPEAK, THEN RELEASE" }),
+        ),
+        dictationInput,
+        h("div", { class: "voice-setup-dictation-footer" }, dictationStatus, clearDictation),
+      );
+      stopSetupDictation = registerSetupDictationTest({
+        input: dictationInput,
+        status: dictationStatus,
+        visual: stage.querySelector<HTMLElement>(".voice-setup-visual"),
+      });
+      dictationInput.focus();
+    }
+
+    if (isVision) {
+      let isRunning = false;
+      const visionStatus = h("p", {
+        class: `voice-setup-status ${visionTested ? "is-ready" : ""}`,
+        "aria-live": "polite",
+        "data-vision-status": "",
+        text: "Checking Vision Mode status…",
+      });
+      const visionSteps = h("ol", { class: "voice-setup-vision-steps" },
+        h("li", {},
+          h("span", { text: "1" }),
+          h("span", {},
+            h("strong", { text: "Move Cursor: " }),
+            h("span", { text: "Move your hand or wrist in front of your camera." }),
+          ),
+        ),
+        h("li", {},
+          h("span", { text: "2" }),
+          h("span", {},
+            h("strong", { text: "Left Click: " }),
+            h("span", { text: "Pinch your thumb and index finger together." }),
+          ),
+        ),
+        h("li", {},
+          h("span", { text: "3" }),
+          h("span", {},
+            h("strong", { text: "Right Click & Scroll: " }),
+            h("span", { text: "Pinch thumb + middle to right-click, or thumb + pinky to scroll." }),
+          ),
+        ),
+      );
+      const visionActiveNote = h("p", {
+        class: "voice-setup-vision-return",
+        hidden: true,
+        text: "Vision Mode is live! Move your hand in front of the camera to guide the cursor.",
+      });
+      const visionButton = h("button", {
+        class: "voice-setup-secondary",
+        text: "Activate Vision Mode",
+        "data-vision-test-button": "",
+      });
+
+      const updateVisionState = (running: boolean) => {
+        isRunning = running;
+        visionButton.textContent = running ? "Stop Vision Mode" : "Activate Vision Mode";
+        visionStatus.textContent = running
+          ? "Vision Mode is running! Wave your hand in front of the camera to test."
+          : "Click “Activate Vision Mode” to turn on webcam hand gestures.";
+        visionStatus.classList.toggle("is-ready", running);
+        visionActiveNote.hidden = !running;
+        visual.classList.toggle("is-listening", running);
+        if (running) {
+          visionTested = true;
+          try {
+            window.localStorage.setItem(visionTestStorageKey, "true");
+          } catch {}
+        }
+      };
+
+      // Poll current running state
+      void (async () => {
+        try {
+          const running = await Bridge.gestureMouseIsRunning();
+          updateVisionState(running);
+        } catch {
+          updateVisionState(false);
+        }
+      })();
+
+      visionButton.addEventListener("click", async () => {
+        visionButton.disabled = true;
+        try {
+          if (isRunning) {
+            visionStatus.textContent = "Stopping Vision Mode…";
+            await Bridge.gestureMouseStop();
+            updateVisionState(false);
+            visionStatus.textContent = "Vision Mode stopped. Click Activate to start again.";
+          } else {
+            // Grant camera consent and remember it
+            cameraConsent = true;
+            cameraPermissionReady = true;
+            try {
+              window.localStorage.setItem(cameraConsentKey, "true");
+            } catch (err) {
+              console.error("[macha] could not save camera consent", err);
+            }
+            visionStatus.textContent = "Starting camera and gesture engine…";
+            await Bridge.gestureMouseStart();
+            updateVisionState(true);
+          }
+        } catch (error) {
+          visionStatus.textContent = `Could not ${isRunning ? "stop" : "start"} Vision Mode: ${
+            error instanceof Error ? error.message : String(error)
+          }`;
+          visionStatus.classList.remove("is-ready");
+          console.error("[macha] could not toggle Vision Mode during setup", error);
+        } finally {
+          visionButton.disabled = false;
+        }
+      });
+
+      stage.append(
+        visionSteps,
+        h("p", {
+          class: "voice-setup-privacy",
+          text: "Camera frames are processed entirely on this device for hand tracking. Video is never saved, recorded, or sent to any server.",
+        }),
+        visionButton,
+        visionStatus,
+        visionActiveNote,
+      );
+    }
+
+    if (isSpeech) {
+      const speechStatus = h("p", {
+        class: "voice-setup-status",
+        "aria-live": "polite",
+        text: speechReady
+          ? "Voice sample played successfully."
+          : "Play a sample to check your local speech voice.",
+      });
+      const speechButton = h("button", {
+        class: "voice-setup-secondary",
+        text: speechReady ? "Play sample again" : "Play voice sample",
+      });
+      speechButton.addEventListener("click", async () => {
+        speechButton.disabled = true;
+        speechPending = true;
+        const testedStep = stepIndex;
+        speechStatus.textContent = "Playing a sample…";
+        let speechError: string | undefined;
+        let unsubscribeSpeech: (() => void) | undefined;
+        try {
+          State.settings = { ...State.settings, ...settings };
+          if (IS_TAURI) await Bridge.saveSettingsStrict(settings);
+          unsubscribeSpeech = TTS.onStateChange((speaking, error) => {
+            if (error) speechError = error;
+            else if (speaking) speechStatus.textContent = "Speaking…";
+          });
+          await TTS.speak("Your Macha voice is ready.");
+          if (!dialog.open || stepIndex !== testedStep) return;
+          if (speechError) throw new Error(speechError);
+          speechReady = true;
+          speechStatus.textContent = "Voice sample played successfully.";
+          speechButton.textContent = "Play sample again";
+        } catch (error) {
+          speechStatus.textContent = `Could not play the voice sample: ${
+            error instanceof Error ? error.message : String(error)
+          }`;
+          console.error("[macha] voice setup sample failed", error);
+        } finally {
+          unsubscribeSpeech?.();
+          speechPending = false;
+          speechButton.disabled = false;
+        }
+      });
+      stage.append(speechStatus, speechButton);
+    }
+
+    stage.classList.remove("voice-setup-stage-exit", "voice-setup-stage-enter");
+    void stage.offsetWidth;
+    stage.classList.add("voice-setup-stage-enter");
+  }
+
+  function moveToStep(nextStep: number): void {
+    if (transitioning) return;
+    transitioning = true;
+    stage.classList.add("voice-setup-stage-exit");
+    window.setTimeout(() => {
+      stepIndex = Math.max(0, Math.min(8, nextStep));
+      renderStep();
+      const title = stage.querySelector<HTMLElement>(".voice-setup-title");
+      title?.focus({ preventScroll: true });
+    }, 160);
+  }
+
+  function openSetup(): void {
+    if (!dialog.open) {
+      stepIndex = 0;
+      renderStep();
+      dialog.showModal();
+    }
+  }
+
+  function startFirstRunSetup(): void {
+    window.setTimeout(() => {
+      if (!IS_TAURI) {
+        openSetup();
+        return;
+      }
+
+      setStandaloneSetupMode(true);
+      void Bridge.openFirstRunSetupWindow()
+        .then(openSetup)
+        .catch((error: unknown) => {
+          console.error("[macha] could not open the first-run setup window", error);
+          openSetup();
+        });
+    }, 350);
+  }
+
+  openButton.addEventListener("click", async () => {
+    if (!IS_TAURI || standaloneSetupWindow) {
+      openSetup();
+      return;
+    }
+
+    openButton.disabled = true;
+    setupLabel.textContent = "Opening the setup guide…";
+    try {
+      await Bridge.openFirstRunSetupWindow();
+    } catch (error) {
+      setupLabel.textContent = `Could not open setup: ${
+        error instanceof Error ? error.message : String(error)
+      }`;
+      console.error("[macha] could not open the setup guide window", error);
+    } finally {
+      openButton.disabled = false;
+    }
+  });
+  backButton.addEventListener("click", () => moveToStep(stepIndex - 1));
+  skipButton.addEventListener("click", () => void closeSetup("later"));
+  nextButton.addEventListener("click", () => {
+    if (stepIndex >= 8) {
+      void closeSetup("completed");
+    } else {
+      moveToStep(stepIndex + 1);
+    }
+  });
+  dialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    void closeSetup("later");
+  });
+  window.addEventListener("pagehide", () => {
+    void Bridge.setDictationSetupTestActive(false).catch((error: unknown) => {
+      console.error("[macha] could not stop setup dictation mode during close", error);
+    });
+    stopMicrophoneTest();
+    stopSetupMascot();
+    stopSetupDictation?.();
+    stopSetupDictation = null;
+    if (speechPending) {
+      speechPending = false;
+      void TTS.stop().catch((error: unknown) => {
+        console.error("[macha] could not stop setup speech during close", error);
+      });
+    }
+  }, { once: true });
+
+  try {
+    const saved = window.localStorage.getItem(setupStorageKey);
+    setupCompleted = saved === "completed";
+    setupLabel.textContent = saved === "completed"
+      ? "Macha Setup complete"
+      : saved === "later" ? "Setup can be started any time" : "A few quick steps to get started";
+    openButton.textContent = setupCompleted ? "Review Macha Setup" : "Start Macha Setup";
+    if (!saved) {
+      startFirstRunSetup();
+    }
+  } catch (error) {
+    console.error("[macha] could not read voice setup progress", error);
+    startFirstRunSetup();
+  }
+
+  return h(
+    "section",
+    { class: `voice-setup-launcher${IS_TAURI ? " voice-setup-launcher-desktop" : ""}` },
+    h("div", { class: "voice-setup-launcher-copy" },
+      h("div", { class: "voice-setup-orb", "aria-hidden": "true" }),
+      h("div", {},
+        h("h2", {}, h("span", { text: "Macha Setup" })),
+        setupLabel,
+      ),
+    ),
+    openButton,
+    dialog,
   );
 }
 
@@ -1706,6 +3404,8 @@ async function main() {
   clear(root);
   root.append(
     h("h1", {}, h("span", { text: "Macha" }), h("span", { class: "version", text: version })),
+    voiceSetupSection(present, openRouterAccounts),
+    dictationSection(),
     claudeSection(status),
     avatarSection(),
     apiSection(openRouterAccounts, ollamaStatus, present, openRouterError),

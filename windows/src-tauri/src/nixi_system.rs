@@ -14,6 +14,107 @@ pub struct ScreenshotResult {
     pub message: String,
 }
 
+pub fn capture_screen_region(
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+) -> Result<String, String> {
+    if width < 12 || height < 12 || width > 7680 || height > 4320 {
+        return Err("The selected screen region is too small or too large.".into());
+    }
+    let pixels = u64::from(width) * u64::from(height);
+    if pixels > 16_777_216 {
+        return Err("Select a smaller screen region and try again.".into());
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        let script = format!(
+            r#"
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+$x = {x}
+$y = {y}
+$width = {width}
+$height = {height}
+$bounds = [System.Windows.Forms.SystemInformation]::VirtualScreen
+if ($x -lt $bounds.Left -or $y -lt $bounds.Top -or
+    ($x + $width) -gt $bounds.Right -or ($y + $height) -gt $bounds.Bottom) {{
+    throw "The selected region is outside the visible desktop."
+}}
+$source = New-Object System.Drawing.Bitmap($width, $height)
+$graphics = [System.Drawing.Graphics]::FromImage($source)
+$output = $null
+$outputGraphics = $null
+$stream = New-Object System.IO.MemoryStream
+try {{
+    $graphics.CopyFromScreen(
+        [System.Drawing.Point]::new($x, $y),
+        [System.Drawing.Point]::Empty,
+        [System.Drawing.Size]::new($width, $height)
+    )
+    $scale = [Math]::Min(1.0, [Math]::Min(1200.0 / $width, 900.0 / $height))
+    if ($scale -lt 1.0) {{
+        $outputWidth = [Math]::Max(1, [int][Math]::Round($width * $scale))
+        $outputHeight = [Math]::Max(1, [int][Math]::Round($height * $scale))
+        $output = New-Object System.Drawing.Bitmap($outputWidth, $outputHeight)
+        $outputGraphics = [System.Drawing.Graphics]::FromImage($output)
+        $outputGraphics.DrawImage($source, 0, 0, $outputWidth, $outputHeight)
+        $image = $output
+    }} else {{
+        $image = $source
+    }}
+    $codec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() |
+        Where-Object {{ $_.MimeType -eq "image/jpeg" }} |
+        Select-Object -First 1
+    $parameters = New-Object System.Drawing.Imaging.EncoderParameters(1)
+    $parameters.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter(
+        [System.Drawing.Imaging.Encoder]::Quality, [long]72
+    )
+    $image.Save($stream, $codec, $parameters)
+    [Console]::Out.Write("data:image/jpeg;base64," + [Convert]::ToBase64String($stream.ToArray()))
+}} finally {{
+    $stream.Dispose()
+    if ($outputGraphics) {{ $outputGraphics.Dispose() }}
+    if ($output) {{ $output.Dispose() }}
+    $graphics.Dispose()
+    $source.Dispose()
+}}
+"#
+        );
+
+        let output = Command::new("powershell")
+            .args(["-NoProfile", "-NonInteractive", "-Command", &script])
+            .output()
+            .map_err(|error| format!("Could not capture the selected screen region: {error}"))?;
+        if !output.status.success() {
+            let detail = String::from_utf8_lossy(&output.stderr).trim().to_string();
+            return Err(if detail.is_empty() {
+                "Could not capture the selected screen region.".into()
+            } else {
+                format!("Could not capture the selected screen region: {detail}")
+            });
+        }
+        if output.stdout.len() > 2_500_000 {
+            return Err("The selected image is too large to send. Select a smaller region.".into());
+        }
+        let data_url = String::from_utf8(output.stdout)
+            .map_err(|error| format!("Screen capture returned invalid image data: {error}"))?;
+        let data_url = data_url.trim();
+        if !data_url.starts_with("data:image/jpeg;base64,") {
+            return Err("Screen capture did not return a valid image.".into());
+        }
+        Ok(data_url.to_string())
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = (x, y);
+        Err("Screen-region capture is only supported on Windows.".into())
+    }
+}
+
 /// Changes system volume by simulating volume keys.
 /// `steps`: number of increments (typically 1 step = 2% on Windows).
 pub fn adjust_volume(action: &str, steps: u8) -> Result<String, String> {
@@ -249,4 +350,28 @@ pub fn nixi_toggle_theme(enable_dark: Option<bool>) -> Result<bool, String> {
 #[tauri::command]
 pub fn nixi_capture_screenshot() -> Result<ScreenshotResult, String> {
     capture_screenshot()
+}
+
+#[tauri::command]
+pub async fn nixi_capture_screen_region(
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || capture_screen_region(x, y, width, height))
+        .await
+        .map_err(|error| format!("Screen-region capture task failed: {error}"))?
+}
+
+#[cfg(test)]
+mod tests {
+    use super::capture_screen_region;
+
+    #[test]
+    fn rejects_screen_regions_that_are_too_small_or_large() {
+        assert!(capture_screen_region(0, 0, 11, 20).is_err());
+        assert!(capture_screen_region(0, 0, 4097, 4096).is_err());
+        assert!(capture_screen_region(0, 0, 7681, 100).is_err());
+    }
 }

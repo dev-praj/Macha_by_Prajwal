@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import inspect
+import json
 import sys
 import tempfile
 
@@ -61,6 +62,33 @@ def decode_audio(path):
     return pcm.astype(np.float32) / 32768.0
 
 
+def parse_vocabulary(raw):
+    if not raw.strip():
+        return []
+    try:
+        words = json.loads(raw)
+    except json.JSONDecodeError as error:
+        raise ValueError("Dictation vocabulary must be valid JSON.") from error
+    if not isinstance(words, list) or len(words) > 50:
+        raise ValueError("Dictation vocabulary must contain at most 50 words.")
+
+    normalized = []
+    seen = set()
+    for word in words:
+        if not isinstance(word, str):
+            raise ValueError("Dictation vocabulary entries must be text.")
+        word = word.strip()
+        if not word:
+            continue
+        if len(word) > 64 or any(ord(char) < 32 for char in word):
+            raise ValueError("Dictation vocabulary words must be 64 characters or fewer.")
+        key = word.casefold()
+        if key not in seen:
+            normalized.append(word)
+            seen.add(key)
+    return normalized
+
+
 @app.after_request
 def add_cors_headers(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
@@ -85,6 +113,10 @@ def transcribe():
     # wake_hint is accepted and ignored. Using it as Whisper's initial_prompt
     # makes noise and unrelated speech come back as "Hey Macha".
     is_wake = request.form.get("mode", "").strip() == "wake"
+    try:
+        vocabulary = parse_vocabulary(request.form.get("vocabulary", ""))
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
 
     temp_path = None
     try:
@@ -114,6 +146,12 @@ def transcribe():
         }
         if "no_speech_threshold" in TRANSCRIBE_PARAMS:
             kwargs["no_speech_threshold"] = 0.6
+        if vocabulary and "initial_prompt" in TRANSCRIBE_PARAMS:
+            kwargs["initial_prompt"] = (
+                "Use these spellings for names and terms only when they are spoken: "
+                + ", ".join(vocabulary)
+                + "."
+            )
         if is_wake and "vad_parameters" in TRANSCRIBE_PARAMS:
             kwargs["vad_parameters"] = {
                 "min_silence_duration_ms": 300,

@@ -63,7 +63,12 @@ async function main() {
 
   await onEvent<null>("screen-changed", () => void Bridge.reposition());
 
-  await onEvent<null>("voice-hotkey", () => {
+  await onEvent<null>("vision-onboarding-start", () => {
+    setPaused(false);
+    island.alert("prompt");
+  });
+
+  await onEvent<null>("voice-chord-start", () => {
     setPaused(false);
     island.alert("prompt");
   });
