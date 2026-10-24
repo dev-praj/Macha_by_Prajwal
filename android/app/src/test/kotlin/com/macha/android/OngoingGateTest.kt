@@ -4,7 +4,7 @@ import com.macha.android.core.Glance
 import com.macha.android.core.GlanceLine
 import com.macha.android.core.GlanceTone
 import com.macha.android.core.OngoingGate
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test

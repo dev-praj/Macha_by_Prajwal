@@ -2,7 +2,7 @@ package com.macha.android.core
 
 import com.macha.android.link.ApprovalRequest
 import com.macha.android.link.SessionInfo
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 
 /**
  * Which session the island is about, and whether it may show at all. Pure: the same inputs always

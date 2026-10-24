@@ -72,7 +72,7 @@ class WidgetPreviewTest {
             assertFalse("$n description spans lines", d.contains("\n") || d.contains("\\n"))
             assertTrue("$n description should end with a full stop", d.endsWith("."))
             assertFalse("$n label is the description", l == d)
-            assertTrue("$n label says Macha although the picker already shows the app", !l.startsWith("Macha"))
+            assertFalse("$n label duplicates the app name", l == "Macha for Android")
             labels += l
         }
         assertEquals("two Widgets with the same name", providers.size, labels.size)
@@ -80,9 +80,9 @@ class WidgetPreviewTest {
 
     @Test fun theNamesAreTheOnesInTheBrief() {
         val expected = mapOf(
-            "widget_solo_label" to "Mochi at a glance", "widget_list_label" to "All your agents", "widget_big_label" to "Mochi, big",
+            "widget_solo_label" to "Macha at a glance", "widget_list_label" to "All your agents", "widget_big_label" to "Macha, big",
             "widget_pill_label" to "One-line status", "widget_alert_label" to "Approvals waiting", "widget_ring_label" to "Plan usage",
-            "widget_today_label" to "Finished today", "widget_mood_label" to "Mochi's mood", "widget_glance_label" to "Agents summary",
+            "widget_today_label" to "Finished today", "widget_mood_label" to "Macha's mood", "widget_glance_label" to "Agents summary",
         )
         for ((k, v) in expected) assertEquals(k, v, strings[k])
     }
@@ -134,7 +134,7 @@ class WidgetPreviewTest {
         assertEquals("Waiting for you", list.first())
         assertEquals(listOf("Waiting for you", "1", "Claude Code", "Waiting for your approval", "Codex", "Working", "Gemini CLI", "Finished"), list)
         assertEquals(3, Regex("""android:minHeight="@dimen/widget_row_min"""").findAll(preview("list")).count())
-        // Mochi Big: Mochi, the agent and its state on the left; Claude 68% and Codex 41% on the right; the six tiles.
+        // Macha Big: Macha, the agent and its state on the left; Claude 68% and Codex 41% on the right; the six tiles.
         assertEquals(
             listOf("Claude Code", "Working", "Claude · 5 h", "68%", "Codex · week", "41%", "Home", "Chat", "Settings", "Recent", "Top agent", "Pair again"),
             text("big"),
@@ -148,15 +148,15 @@ class WidgetPreviewTest {
         assertTrue(text("today").containsAll(listOf("5", "done today")))
         assertTrue("the Mood preview shows only a face", text("mood").isEmpty())
         // The tones of the samples: waiting orange, working blue, finished green.
-        assertTrue(preview("solo").contains("widget_tone_attention") && preview("solo").contains("preview_mochi_waiting"))
+        assertTrue(preview("solo").contains("widget_tone_attention") && preview("solo").contains("preview_macha_waiting"))
         assertTrue(preview("pill").contains("widget_tone_working"))
         assertTrue(preview("alert").contains("widget_card_attention"))
-        assertTrue(preview("big").contains("preview_mochi_working") && preview("big").contains("widget_tint_working"))
+        assertTrue(preview("big").contains("preview_macha_working") && preview("big").contains("widget_tint_working"))
         assertEquals("six tiles", 6, Regex("""@drawable/widget_tile_bg"""").findAll(preview("big")).count())
         assertEquals("two thin bars", 2, Regex("""@drawable/preview_bar_calm"""").findAll(preview("big")).count())
         assertFalse("no speech bubble", preview("big").contains("bubble", ignoreCase = true))
-        assertTrue(preview("glance").contains("preview_mochi_working") && preview("glance").contains("widget_tint_working"))
-        assertTrue(preview("mood").contains("preview_mochi_done") && preview("today").contains("preview_mochi_done"))
+        assertTrue(preview("glance").contains("preview_macha_working") && preview("glance").contains("widget_tint_working"))
+        assertTrue(preview("mood").contains("preview_macha_done") && preview("today").contains("preview_macha_done"))
         assertTrue(preview("list").let { it.contains("preview_face_waiting") && it.contains("preview_face_working") && it.contains("preview_face_done") })
         assertTrue(preview("ring").contains("preview_ring_68"))
     }
@@ -168,21 +168,21 @@ class WidgetPreviewTest {
         assertTrue(preview("alert").contains("""android:textColor="@color/widget_tone_attention_text""""))
     }
 
-    // ── The vector Mochi ───────────────────────────────────────────────────────────────────────────
+    // ── The vector Macha ───────────────────────────────────────────────────────────────────────────
 
     private val states = mapOf("working" to WidgetTone.WORKING, "waiting" to WidgetTone.ATTENTION, "done" to WidgetTone.DONE, "idle" to WidgetTone.MUTED)
     private fun hex(t: WidgetTone) = t.argb.toUInt().toString(16).uppercase().padStart(8, '0').substring(2)
 
-    @Test fun everyStateHasAVectorFaceAGlowAndTheLayeredMochi() {
+    @Test fun everyStateHasAVectorFaceAGlowAndTheLayeredMacha() {
         for ((state, tone) in states) {
             val face = read("${res}drawable/preview_face_$state.xml")
             val glow = read("${res}drawable/preview_glow_$state.xml")
-            val mochi = read("${res}drawable/preview_mochi_$state.xml")
+            val macha = read("${res}drawable/preview_macha_$state.xml")
             assertTrue(state, face.contains("<vector") && glow.contains("<vector"))
             // The glow is in the state's colour and fades to nothing, and sits behind the face.
             assertTrue("$state glow colour", glow.contains(hex(tone)))
             assertTrue("$state glow fades out", glow.contains("""android:type="radial"""") && Regex("""android:color="#00${hex(tone)}"""").containsMatchIn(glow))
-            assertTrue(mochi.indexOf("preview_glow_$state") in 0 until mochi.indexOf("preview_face_$state"))
+            assertTrue(macha.indexOf("preview_glow_$state") in 0 until macha.indexOf("preview_face_$state"))
             // The body, its light gradient, the pink cheeks and two dark eyes.
             assertTrue(face.contains("#EDEDEF") && face.contains("#C4C5CA"))
             assertTrue(face.contains("#59FF7896"))
@@ -227,7 +227,7 @@ class WidgetPreviewTest {
         }
     }
 
-    @Test fun theFallbackImageIsTheCardWithMochiInIt() {
+    @Test fun theFallbackImageIsTheCardWithMachaInIt() {
         for (n in providers) {
             val d = read("${res}drawable/widget_preview_image_$n.xml")
             assertTrue(n, d.contains("<layer-list"))
@@ -239,11 +239,11 @@ class WidgetPreviewTest {
 
     // ── The initial layout is never a blank box ────────────────────────────────────────────────────
 
-    @Test fun everyInitialLayoutShowsMochiOrAFaceAndAShortLineUntilTheFirstUpdate() {
+    @Test fun everyInitialLayoutShowsMachaOrAFaceAndAShortLineUntilTheFirstUpdate() {
         val real = mapOf("solo" to "solo", "list" to "list", "big" to "big", "pill" to "pill", "alert" to "alert", "ring" to "ring", "today" to "today", "mood" to "mood", "glance" to "glance")
         for ((n, layout) in real) {
             val xml = read("${res}layout/widget_$layout.xml")
-            assertTrue("$n has no starting face", xml.contains("@drawable/preview_mochi_idle") || xml.contains("@drawable/preview_face_idle") || n == "pill")
+            assertTrue("$n has no starting face", xml.contains("@drawable/preview_macha_idle") || xml.contains("@drawable/preview_face_idle") || n == "pill")
             if (n != "mood") assertTrue("$n has no starting line", xml.contains("@string/widget_initial_"))
         }
         assertEquals("Macha", strings["widget_initial_title"])
@@ -281,7 +281,7 @@ class WidgetPreviewTest {
     }
 
     @Test fun theSummaryPreviewFitsItsHeadlineAndItsLinesInTheRightColumn() {
-        // A 3x2 about 250dp wide: padding 12 + 12, Mochi 64 and 8 beside it.
+        // A 3x2 about 250dp wide: padding 12 + 12, Macha 64 and 8 beside it.
         val room = 250 - 24 - 64 - 8
         assertTrue("headline ${width(sample("widget_sample_two_agents"), 16.0, true).toInt()}dp of $room", width(sample("widget_sample_two_agents"), 16.0, true) <= room)
         for ((name, state) in listOf("widget_sample_claude" to "widget_sample_working", "widget_sample_codex" to "widget_sample_thinking", "widget_sample_gemini" to "widget_sample_idle")) {
@@ -290,8 +290,8 @@ class WidgetPreviewTest {
         }
     }
 
-    @Test fun theMochiBigPreviewFitsItsTwoSidesAtTheWidthOfA4x4() {
-        // A 4x4 about 300dp wide: padding 12 + 12, so 276; Mochi's side is 45% of it, the usage side 55% less its 8dp margin.
+    @Test fun theMachaBigPreviewFitsItsTwoSidesAtTheWidthOfA4x4() {
+        // A 4x4 about 300dp wide: padding 12 + 12, so 276; Macha's side is 45% of it, the usage side 55% less its 8dp margin.
         val left = 0.45 * (300 - 24)
         val right = 0.55 * (300 - 24) - 8
         val name = 10 + 6 + width(sample("widget_sample_claude"), 16.0, true)

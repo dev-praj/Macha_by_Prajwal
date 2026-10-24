@@ -18,7 +18,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** The plan-usage side of Mochi Big, in pure Kotlin: which rows, which colour, and which of the three things it shows. */
+/** The plan-usage side of Macha Big, in pure Kotlin: which rows, which colour, and which of the three things it shows. */
 class WidgetUsageSideTest {
     private val now = 1_000_000L
     private val later = now + 3_600_000

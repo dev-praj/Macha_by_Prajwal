@@ -103,6 +103,40 @@ pub async fn ollama_status(refresh: bool) -> OllamaStatus {
     ensure_ollama().await
 }
 
+/// A phone turn uses one explicitly allowed provider/model and never receives the island's action tools.
+pub async fn phone_chat(
+    provider: &str,
+    model: &str,
+    messages: Vec<Value>,
+    cancel: &mut watch::Receiver<bool>,
+) -> Result<String, String> {
+    let (response, _) = match provider {
+        "anthropic" => claude_completion_for_model(messages, None, model, cancel).await?,
+        "google" => compatible_provider_completion(
+            "gemini", "gemini-api-key", GEMINI_OPENAI_BASE, model, messages, None, cancel,
+        ).await?,
+        "grok" => compatible_provider_completion(
+            "grok", "grok-api-key", GROK_BASE, model, messages, None, cancel,
+        ).await?,
+        "openai" => compatible_provider_completion(
+            "openai", "openai-api-key", OPENAI_BASE, model, messages, None, cancel,
+        ).await?,
+        "openrouter" => openrouter_completion(messages, None, model, cancel).await?,
+        "ollama" => (
+            ollama_completion(messages, None, model, true, cancel, None, None)
+                .await
+                .map_err(|error| error.message)?,
+            model.to_string(),
+        ),
+        _ => return Err("Unsupported phone chat provider.".into()),
+    };
+    response["choices"][0]["message"]["content"]
+        .as_str()
+        .filter(|text| !text.is_empty())
+        .map(str::to_string)
+        .ok_or_else(|| "The provider returned an empty reply.".into())
+}
+
 pub async fn chat(
     messages: Vec<Value>,
     tools: Option<Value>,
@@ -688,10 +722,19 @@ async fn claude_completion(
     tools: Option<Value>,
     cancel: &mut watch::Receiver<bool>,
 ) -> Result<(Value, String), String> {
+    claude_completion_for_model(messages, tools, CLAUDE_MODEL, cancel).await
+}
+
+async fn claude_completion_for_model(
+    messages: Vec<Value>,
+    tools: Option<Value>,
+    model: &str,
+    cancel: &mut watch::Receiver<bool>,
+) -> Result<(Value, String), String> {
     let key = secrets::get("anthropic-api-key")
         .ok_or_else(|| "No Claude API key is configured in the OS credential manager.".to_string())?;
     let client = client(Duration::from_secs(60)).map_err(|error| format!("Claude: {error}"))?;
-    let body = claude_request_body(messages, tools)?;
+    let body = claude_request_body_for_model(messages, tools, model)?;
     let response = send_json(
         &client,
         format!("{ANTHROPIC_BASE}/messages"),
@@ -702,11 +745,19 @@ async fn claude_completion(
     )
     .await
     .map_err(|error| error.message)?;
-    let model = response["model"].as_str().unwrap_or(CLAUDE_MODEL).to_string();
-    Ok((normalize_claude_response(response)?, model))
+    let actual_model = response["model"].as_str().unwrap_or(model).to_string();
+    Ok((normalize_claude_response(response)?, actual_model))
 }
 
 fn claude_request_body(messages: Vec<Value>, tools: Option<Value>) -> Result<Value, String> {
+    claude_request_body_for_model(messages, tools, CLAUDE_MODEL)
+}
+
+fn claude_request_body_for_model(
+    messages: Vec<Value>,
+    tools: Option<Value>,
+    model: &str,
+) -> Result<Value, String> {
     let mut system = Vec::new();
     let mut converted = Vec::new();
     for message in messages {
@@ -755,7 +806,7 @@ fn claude_request_body(messages: Vec<Value>, tools: Option<Value>) -> Result<Val
         }
     }
     let mut body = json!({
-        "model": CLAUDE_MODEL,
+        "model": model,
         "max_tokens": OPENROUTER_MAX_TOKENS,
         "messages": converted,
     });

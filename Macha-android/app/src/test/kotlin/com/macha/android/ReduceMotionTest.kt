@@ -4,9 +4,9 @@ import com.macha.android.core.KeyValueStore
 import com.macha.android.core.MotionChoice
 import com.macha.android.core.MotionPolicy
 import com.macha.android.core.UserSettings
-import com.macha.android.mochi.BotState
-import com.macha.android.mochi.MochiEngine
-import com.macha.android.mochi.SoundSink
+import com.macha.android.macha.BotState
+import com.macha.android.macha.MachaEngine
+import com.macha.android.macha.SoundSink
 import java.io.File
 import kotlin.random.Random
 import org.junit.Assert.assertEquals
@@ -17,8 +17,8 @@ import org.junit.Test
 class ReduceMotionTest {
     private class Clock { var ms = 10_000.0 }
     private fun engine(clock: Clock, state: BotState) =
-        MochiEngine({ clock.ms }, Random(1), SoundSink { }).apply { setState(state, force = true) }
-    private fun MochiEngine.run(clock: Clock, ms: Int) { repeat(ms / 16) { clock.ms += 16; update(0.016) } }
+        MachaEngine({ clock.ms }, Random(1), SoundSink { }).apply { setState(state, force = true) }
+    private fun MachaEngine.run(clock: Clock, ms: Int) { repeat(ms / 16) { clock.ms += 16; update(0.016) } }
 
     @Test fun followsTheSystemUnlessTheUserChoseOtherwise() {
         assertTrue(MotionPolicy.reduced(MotionChoice.SYSTEM, 0f))
@@ -45,7 +45,7 @@ class ReduceMotionTest {
         assertEquals(MotionChoice.REDUCE, UserSettings.load(store).motion)
     }
 
-    @Test fun anIdleBouncingMochiStopsWhenMotionIsReduced() {
+    @Test fun anIdleBouncingMachaStopsWhenMotionIsReduced() {
         val clock = Clock()
         val moving = engine(clock, BotState.APPROVAL) // bounces for as long as he waits
         moving.run(clock, 3_000)
@@ -57,7 +57,7 @@ class ReduceMotionTest {
         assertEquals(0.0, still.oy, 1e-3)
     }
 
-    @Test fun aSleepingMochiEmitsNoFloatingZsWhenMotionIsReduced() {
+    @Test fun aSleepingMachaEmitsNoFloatingZsWhenMotionIsReduced() {
         val clock = Clock()
         val still = engine(clock, BotState.SLEEPING).apply { reduceMotion = true }
         still.run(clock, 6_000)
@@ -68,7 +68,7 @@ class ReduceMotionTest {
         assertTrue("normally the Zs float up", moving.particles.isNotEmpty() || moving.busy)
     }
 
-    @Test fun aChangeOfStateStillPlaysThenMochiIsStill() {
+    @Test fun aChangeOfStateStillPlaysThenMachaIsStill() {
         val clock = Clock()
         val e = engine(clock, BotState.IDLE).apply { reduceMotion = true }
         e.run(clock, 1_000)
@@ -80,9 +80,9 @@ class ReduceMotionTest {
     @Test fun settingsOffersTheChoice() {
         val ui = File("src/main/kotlin/com/macha/android/ui/SettingsScreens.kt").readText()
         assertTrue(ui.contains("MotionChoice.REDUCE") && ui.contains("R.string.settings_motion"))
-        // The island and the Mochi view both ask the one policy.
+        // The island and the Macha view both ask the one policy.
         assertTrue(File("src/main/kotlin/com/macha/android/ui/IslandOverlay.kt").readText().contains("MotionPolicy.reduced"))
         assertTrue(File("src/main/kotlin/com/macha/android/ui/DesignSystem.kt").readText().contains("MotionPolicy.reduced"))
-        assertTrue(File("src/main/kotlin/com/macha/android/mochi/MochiView.kt").readText().contains("engine.reduceMotion"))
+        assertTrue(File("src/main/kotlin/com/macha/android/macha/MachaView.kt").readText().contains("engine.reduceMotion"))
     }
 }

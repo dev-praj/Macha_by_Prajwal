@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The picture the Widget picker shows on Android 11 (no previewLayout there): the card, its gradient and Mochi in the state of the sample. -->
+<!-- The picture the Widget picker shows on Android 11 (no previewLayout there): the card, its gradient and Macha in the state of the sample. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@drawable/widget_card_working" />
     <item

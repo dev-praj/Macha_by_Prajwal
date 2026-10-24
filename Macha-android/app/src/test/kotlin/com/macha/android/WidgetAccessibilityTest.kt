@@ -13,7 +13,7 @@ class WidgetAccessibilityTest {
     private val main = "src/main/"
     private val ns = "http://schemas.android.com/apk/res/android"
     private val widgets = listOf(
-        "SoloWidget", "ListWidget", "MochiBigWidget", "StatusPillWidget", "WaitingAlertWidget", "UsageRingWidget", "TodayWidget", "MoodWidget", "TeamWidget", "GlanceWidget",
+        "SoloWidget", "ListWidget", "MachaBigWidget", "StatusPillWidget", "WaitingAlertWidget", "UsageRingWidget", "TodayWidget", "MoodWidget", "TeamWidget", "GlanceWidget",
     )
 
     private fun layouts() = File(main + "res/layout").listFiles { f -> f.name.startsWith("widget_") && !f.name.startsWith("widget_preview_") }!!.sortedBy { it.name }
@@ -58,8 +58,8 @@ class WidgetAccessibilityTest {
     @Test fun spokenTextIsWordsNotEngineKeys() {
         for (name in widgets) {
             val src = File(main + "kotlin/com/macha/android/app/$name.kt").readText()
-            assertFalse("$name speaks a raw key", Regex("""widget_mochi_description,\s*[\w.]*mood\.key""").containsMatchIn(src))
-            assertFalse("$name speaks a raw key", Regex("""widget_mochi_description,\s*[\w.]*Mood\.key""").containsMatchIn(src))
+            assertFalse("$name speaks a raw key", Regex("""widget_macha_description,\s*[\w.]*mood\.key""").containsMatchIn(src))
+            assertFalse("$name speaks a raw key", Regex("""widget_macha_description,\s*[\w.]*Mood\.key""").containsMatchIn(src))
         }
     }
 

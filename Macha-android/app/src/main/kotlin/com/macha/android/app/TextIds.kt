@@ -21,7 +21,7 @@ internal object TextIds {
         "widget_list_label" to R.string.widget_list_label,
         "widget_solo_description" to R.string.widget_solo_description,
         "widget_list_description" to R.string.widget_list_description,
-        "widget_mochi_description" to R.string.widget_mochi_description,
+        "widget_macha_description" to R.string.widget_macha_description,
         "widget_badge_description" to R.string.widget_badge_description,
         "widget_big_label" to R.string.widget_big_label,
         "widget_big_description" to R.string.widget_big_description,

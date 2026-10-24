@@ -60,6 +60,6 @@ class TextsSourceTest {
         val ids = File("src/main/kotlin/com/macha/android/app/TextIds.kt").readText()
         for (k in strings.keys()) assertTrue("TextIds has $k", ids.contains("\"$k\" to R.string.$k,"))
         for (k in plurals.keys()) assertTrue("TextIds has plural $k", ids.contains("\"$k\" to R.plurals.$k,"))
-        assertTrue(File("src/main/kotlin/com/macha/android/app/CoucouApp.kt").readText().contains("Texts.source = AppLanguage.texts(this)"))
+        assertTrue(File("src/main/kotlin/com/macha/android/app/MachaApp.kt").readText().contains("Texts.source = AppLanguage.texts(this)"))
     }
 }

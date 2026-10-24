@@ -5,7 +5,7 @@ import com.macha.android.core.GlanceBuilder
 import com.macha.android.core.GlanceTone
 import com.macha.android.link.LinkState
 import com.macha.android.link.SessionInfo
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

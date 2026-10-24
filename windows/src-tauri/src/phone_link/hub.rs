@@ -160,7 +160,7 @@ pub struct ApprovalIn {
     pub command: String,
 }
 
-/// The values the island stores for Mochi's wardrobe ("auto" follows the seasons on the phone's own calendar).
+/// The values the island stores for Macha's wardrobe ("auto" follows the seasons on the phone's own calendar).
 /// Same raw values as the Mac and the PC; anything else is not sent.
 pub const OUTFIT_CHOICES: [&str; 13] = [
     "auto", "none", "partyHat", "beanie", "crown", "sunglasses", "roundGlasses",
@@ -500,7 +500,7 @@ struct Sub {
     details: bool,
     /// The phone asked for `answers` and the user's switch was on when it connected.
     answers: bool,
-    /// The phone asked for `prefs` (the outfit Mochi wears on the computer).
+    /// The phone asked for `prefs` (the outfit Macha wears on the computer).
     prefs: bool,
     /// The phone asked for `diffs` and the user's switch was on when it connected.
     diffs: bool,
@@ -536,7 +536,7 @@ struct Inner {
     sessions: Vec<Session>,
     approval: Option<Approval>,
     question: Option<Question>,
-    /// What Mochi wears on the computer: one of [`OUTFIT_CHOICES`]; None until the island has said.
+    /// What Macha wears on the computer: one of [`OUTFIT_CHOICES`]; None until the island has said.
     outfit: Option<&'static str>,
     /// The last `usage` line (None: the island has nothing to say).
     usage: Option<Arc<str>>,
@@ -890,7 +890,7 @@ impl Hub {
         }
     }
 
-    /// What Mochi wears on the computer ("auto" or an outfit, see [`OUTFIT_CHOICES`]); anything else is ignored.
+    /// What Macha wears on the computer ("auto" or an outfit, see [`OUTFIT_CHOICES`]); anything else is ignored.
     /// Only phones that have `prefs` hear of it, and a new one at once.
     pub fn publish_outfit(&self, outfit: &str) {
         let Some(choice) = OUTFIT_CHOICES.iter().find(|c| **c == outfit) else { return };

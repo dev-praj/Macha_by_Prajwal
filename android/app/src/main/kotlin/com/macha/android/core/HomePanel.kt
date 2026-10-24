@@ -1,8 +1,8 @@
 package com.macha.android.core
 
 import com.macha.android.link.SessionInfo
-import com.macha.android.mochi.BotState
-import com.macha.android.mochi.Rgb
+import com.macha.android.macha.BotState
+import com.macha.android.macha.Rgb
 
 /**
  * What the Home screen shows, like the PC's Home panel: one agent card for the agent that matters
@@ -44,7 +44,7 @@ object HomePanel {
     /** Newest first, as the detail screen lists them. */
     fun stepsNewestFirst(s: SessionInfo): List<String> = s.steps.asReversed()
 
-    /** "#8AB4F8" to a colour for a mini Mochi's body; a malformed value gives null (the default body). */
+    /** "#8AB4F8" to a colour for a mini Macha's body; a malformed value gives null (the default body). */
     fun rgb(hex: String): Rgb? {
         val h = hex.trim().removePrefix("#")
         if (h.length != 6) return null

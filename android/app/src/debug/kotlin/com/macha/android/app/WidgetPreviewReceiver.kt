@@ -19,7 +19,7 @@ import com.macha.android.core.WidgetSample
  *   adb shell am broadcast -n com.macha.android/.app.WidgetPreviewReceiver -a com.macha.android.debug.WIDGET_STATE --es state done
  *   adb shell am broadcast -n com.macha.android/.app.WidgetPreviewReceiver -a com.macha.android.debug.WIDGET_STATE --es state live
  *
- * Optional `--ei usage <percent>` sets Claude's plan usage on Mochi Big and the Usage Ring (it resets in 2 h, shown as a clock time), to see the near-limit look
+ * Optional `--ei usage <percent>` sets Claude's plan usage on Macha Big and the Usage Ring (it resets in 2 h, shown as a clock time), to see the near-limit look
  * (red from 90, large rate, "Near limit", "resets at 14:30"). Without `--es state` it uses `working`; ignored for `disconnected` and `live`:
  *
  *   adb shell am broadcast -n com.macha.android/.app.WidgetPreviewReceiver -a com.macha.android.debug.WIDGET_STATE --es state working --ei usage 92

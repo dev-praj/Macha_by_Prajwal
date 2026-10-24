@@ -106,9 +106,9 @@ class LightThemeTest {
         assertTrue(s.contains("ThemePolicy.dynamicAvailable(android.os.Build.VERSION.SDK_INT)") && s.contains("R.string.settings_dynamic"))
     }
 
-    @Test fun mochiAndTheStateColoursDoNotDependOnTheTheme() {
+    @Test fun machaAndTheStateColoursDoNotDependOnTheTheme() {
         val home = ui("HomePanel.kt")
-        assertTrue(home.contains("MochiConst.STATES[state]?.color?.let(::rgbColor)"))
-        assertFalse(File("src/main/kotlin/com/macha/android/mochi/MochiPainter.kt").readText().contains("LocalTokens"))
+        assertTrue(home.contains("MachaConst.STATES[state]?.color?.let(::rgbColor)"))
+        assertFalse(File("src/main/kotlin/com/macha/android/macha/MachaPainter.kt").readText().contains("LocalTokens"))
     }
 }

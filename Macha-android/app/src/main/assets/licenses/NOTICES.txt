@@ -1,14 +1,14 @@
 MACHA FOR ANDROID: LICENCES AND NOTICES
 
-Macha for Android is an unofficial port by Rhytam Biswas, based on Macha by Prajwal (https://github.com/dev-praj/Macha_by_Prajwal.git). It is free, has no ads and no analytics.
+Macha for Android is an unofficial port by Prajwal, based on Macha by Prajwal (https://github.com/dev-praj/Macha_by_Prajwal.git). It is free, has no ads and no analytics.
 
 1. The code of Macha for Android
 
-The Android port's code is Copyright (c) 2026 Rhytam Biswas and is released under the MIT License. The full text is below ("MIT License").
+The Android port's code is Copyright (c) 2026 Prajwal and is released under the MIT License. The full text is below ("MIT License").
 
 2. Macha's name, character, icon and sounds
 
-Macha's name and the Mochi character (its design, look, expressions and animations), the app icon and sounds are Copyright (c) 2026 Prajwal. All rights reserved and NOT covered by the MIT License. They are used in this Android app with written permission, only under the terms in PERMISSION.md; they may not be reused elsewhere without permission.
+Macha's name and the Macha character (its design, look, expressions and animations), the app icon and sounds are Copyright (c) 2026 Prajwal. All rights reserved and NOT covered by the MIT License. They are used in this Android app with written permission, only under the terms in PERMISSION.md; they may not be reused elsewhere without permission.
 
 3. ZXing
 

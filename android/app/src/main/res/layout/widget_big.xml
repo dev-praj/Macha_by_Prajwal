@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The Mochi Big widget (4x4). Top, in two sides: on the left Mochi with his glow and badge, then the agent's name and state word;
+<!-- The Macha Big widget (4x4). Top, in two sides: on the left Macha with his glow and badge, then the agent's name and state word;
      on the right the plan usage (up to two rows with a big percentage and a thin bar) or one calm message when it is off or the computer is
      not there. Under them, rounded buttons that only open a screen of the app: one row of four at the medium size, two rows of three
-     when large, none when small. Until the first update it shows a calm Mochi and a short line. Plain RemoteViews. -->
+     when large, none when small. Until the first update it shows a calm Macha and a short line. Plain RemoteViews. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/big_root"
     android:layout_width="match_parent"
@@ -38,13 +38,13 @@
                 android:orientation="vertical">
 
                 <ImageView
-                    android:id="@+id/big_mochi"
+                    android:id="@+id/big_macha"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
                     android:contentDescription="@string/widget_big_label"
                     android:scaleType="fitCenter"
-                    android:src="@drawable/preview_mochi_idle" />
+                    android:src="@drawable/preview_macha_idle" />
 
                 <LinearLayout
                     android:id="@+id/big_row"

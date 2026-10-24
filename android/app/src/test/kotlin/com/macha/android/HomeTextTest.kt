@@ -3,7 +3,7 @@ package com.macha.android
 import com.macha.android.core.HomeText
 import com.macha.android.core.ToolLabels
 import com.macha.android.link.SessionInfo
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test

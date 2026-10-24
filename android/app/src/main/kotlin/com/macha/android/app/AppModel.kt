@@ -58,7 +58,7 @@ import com.macha.android.link.ReconnectPolicy
 import com.macha.android.link.Wake
 import com.macha.android.link.SessionInfo
 import com.macha.android.sound.SoundPlayer
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 
 enum class Mode { NONE, DEMO, PAIRED }
 
@@ -184,17 +184,17 @@ class AppModel(private val context: Context) : LinkListener {
         com.macha.android.core.MotionState.choice = settings.motion
     }
 
-    /** What the computer says Mochi wears ("auto" or an outfit); the last one it told, kept for when it is away. */
-    var computerOutfit by mutableStateOf(com.macha.android.mochi.outfit.Wardrobe.parse(kv.getString("computer_outfit", "")))
+    /** What the computer says Macha wears ("auto" or an outfit); the last one it told, kept for when it is away. */
+    var computerOutfit by mutableStateOf(com.macha.android.macha.outfit.Wardrobe.parse(kv.getString("computer_outfit", "")))
         private set
 
     /** The selection in force: the phone's own choice, or the computer's when the phone follows it. */
     val outfitSelection: String
-        get() = com.macha.android.mochi.outfit.Wardrobe.choose(settings.outfit, computerOutfit)
+        get() = com.macha.android.macha.outfit.Wardrobe.choose(settings.outfit, computerOutfit)
 
-    /** What Mochi wears today ("auto" resolved with the phone's calendar). */
-    fun dress(today: java.time.LocalDate = java.time.LocalDate.now()): com.macha.android.mochi.outfit.Outfit =
-        com.macha.android.mochi.outfit.Wardrobe.resolve(outfitSelection, today)
+    /** What Macha wears today ("auto" resolved with the phone's calendar). */
+    fun dress(today: java.time.LocalDate = java.time.LocalDate.now()): com.macha.android.macha.outfit.Outfit =
+        com.macha.android.macha.outfit.Wardrobe.resolve(outfitSelection, today)
 
     /** The phone's own list of decisions. Never sent anywhere. */
     private val decisionLog = DecisionLog(kv)
@@ -736,7 +736,7 @@ class AppModel(private val context: Context) : LinkListener {
     }
 
     fun applyComputerOutfit(outfit: String) {
-        val v = com.macha.android.mochi.outfit.Wardrobe.parse(outfit)
+        val v = com.macha.android.macha.outfit.Wardrobe.parse(outfit)
         computerOutfit = v
         kv.put("computer_outfit", v)
     }
@@ -769,7 +769,7 @@ class AppModel(private val context: Context) : LinkListener {
                 // A task just finished (not one already finished when the link came back), on a real computer: the demo loops and never counts.
                 if (mode == Mode.PAIRED && prev != null && prev != BotState.FINISHED && s.state == BotState.FINISHED) todayCounter.increment()
                 val name = agentName(s.pillId)
-                val sound = com.macha.android.mochi.MochiConst.STATE_SOUND[s.state]
+                val sound = com.macha.android.macha.MachaConst.STATE_SOUND[s.state]
                 if (sound != null && StatusPolicy.stateSoundWanted(prev, s.state, settings)) sounds.play(sound)
                 val a = StatusPolicy.announce(prev, s.state, settings, minute, inForeground, s.pillId)
                 if (a.sound && sound != null) sounds.play(sound)

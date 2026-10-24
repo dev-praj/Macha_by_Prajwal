@@ -1,6 +1,6 @@
 package com.macha.android
 
-import com.macha.android.mochi.MochiConst
+import com.macha.android.macha.MachaConst
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -23,14 +23,14 @@ class AssetsTest {
 
     @Test fun everySoundTheAppPlaysIsBundled() {
         val code = File("src/main/kotlin").walkTopDown().filter { it.extension == "kt" }.joinToString("\n") { it.readText() }
-        val played = Regex("""\.play\("(\w+)"\)""").findAll(code).map { it.groupValues[1] }.toSet() + MochiConst.STATE_SOUND.values
+        val played = Regex("""\.play\("(\w+)"\)""").findAll(code).map { it.groupValues[1] }.toSet() + MachaConst.STATE_SOUND.values
         assertTrue(played.isNotEmpty())
         played.forEach { assertTrue("$it.wav", File(raw, "$it.wav").exists()) }
     }
 
     @Test fun noBundledSoundIsLeftUnused() {
         val code = File("src/main/kotlin").walkTopDown().filter { it.extension == "kt" && it.name != "SoundPlayer.kt" }.joinToString("\n") { it.readText() }
-        val played = Regex("""\.play\("(\w+)"\)""").findAll(code).map { it.groupValues[1] }.toSet() + MochiConst.STATE_SOUND.values
+        val played = Regex("""\.play\("(\w+)"\)""").findAll(code).map { it.groupValues[1] }.toSet() + MachaConst.STATE_SOUND.values
         assertEquals(raw.listFiles()!!.map { it.nameWithoutExtension }.toSet(), played)
     }
 
@@ -46,7 +46,7 @@ class AssetsTest {
     }
 
     @Test fun notificationIconIsMonochromeVector() {
-        assertTrue(File(res, "drawable/ic_stat_mochi.xml").readText().contains("#FFFFFFFF"))
+        assertTrue(File(res, "drawable/ic_stat_macha.xml").readText().contains("#FFFFFFFF"))
     }
 
     @Test fun launcherIconIsPresent() {

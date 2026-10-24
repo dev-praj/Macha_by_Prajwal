@@ -11,7 +11,7 @@ import com.macha.android.core.WidgetSpoken
 
 /**
  * The Waiting Alert widget: calm when nothing waits for you; a bright orange "N waiting", an orange border and an anxious
- * Mochi when something does. A tap opens the app and the sheet for the request rises by itself over whatever is on screen,
+ * Macha when something does. A tap opens the app and the sheet for the request rises by itself over whatever is on screen,
  * so there is no deep link here. It only opens things: a request waits for you in the app, behind the fingerprint.
  */
 class WaitingAlertWidget : AppWidgetProvider() {
@@ -22,8 +22,8 @@ class WaitingAlertWidget : AppWidgetProvider() {
         fun views(context: Context, c: WidgetContent): RemoteViews {
             val v = RemoteViews(context.packageName, R.layout.widget_alert)
             WidgetHub.paint(v, R.id.alert_root, R.id.alert_tint, c.look)
-            v.setImageViewBitmap(R.id.alert_face, MochiBitmap.of(c.mood, WidgetHub.px(context, 84), glow = true, tone = c.look))
-            v.setContentDescription(R.id.alert_face, context.getString(R.string.widget_mochi_description, WidgetSpoken.mood(c.mood)))
+            v.setImageViewBitmap(R.id.alert_face, MachaBitmap.of(c.mood, WidgetHub.px(context, 84), glow = true, tone = c.look))
+            v.setContentDescription(R.id.alert_face, context.getString(R.string.widget_macha_description, WidgetSpoken.mood(c.mood)))
             v.setViewVisibility(R.id.alert_offline, if (c.connected) View.GONE else View.VISIBLE)
             val waiting = c.waiting > 0
             v.setViewVisibility(R.id.alert_count, if (waiting) View.VISIBLE else View.GONE)

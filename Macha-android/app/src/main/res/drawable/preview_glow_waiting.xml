@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The soft light behind Mochi in the "waiting" state: the state's colour fading out, like the glow MochiBitmap draws at runtime. -->
+<!-- The soft light behind Macha in the "waiting" state: the state's colour fading out, like the glow MachaBitmap draws at runtime. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
     android:width="120dp"
     android:height="120dp"

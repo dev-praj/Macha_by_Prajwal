@@ -56,7 +56,7 @@ internal fun Long.c() = Color(this)
 
 /**
  * True when motion is reduced: Android's "Remove animations" (unless the user chose otherwise in Settings > Reduce motion), or the
- * Settings choice to always reduce it. Springs and slides become plain fades or jumps, and Mochi stops his idle animations.
+ * Settings choice to always reduce it. Springs and slides become plain fades or jumps, and Macha stops his idle animations.
  */
 @Composable
 fun reducedMotion(): Boolean {

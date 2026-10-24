@@ -87,9 +87,9 @@ import com.macha.android.core.IslandTimeline
 import com.macha.android.core.OverlayPolicy
 import com.macha.android.core.PxRect
 import com.macha.android.core.Tracked
-import com.macha.android.mochi.BotState
-import com.macha.android.mochi.MochiEngine
-import com.macha.android.mochi.MochiView
+import com.macha.android.macha.BotState
+import com.macha.android.macha.MachaEngine
+import com.macha.android.macha.MachaView
 
 /**
  * The notch of the desktop, for the phone: a black island hanging from the top of the screen,
@@ -359,12 +359,12 @@ class IslandOverlay(
 
     @Composable
     private fun WorkingStrip(s: IslandSpec) {
-        val engine = remember(s.state) { MochiEngine(clock).apply { setState(s.state, force = true) } }
+        val engine = remember(s.state) { MachaEngine(clock).apply { setState(s.state, force = true) } }
         Row(
             Modifier.fillMaxWidth().clickable { tap("the working strip") { onOpen() } }.padding(horizontal = 18.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            MochiView(engine, Modifier.size(34.dp))
+            MachaView(engine, Modifier.size(34.dp))
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
                 Text(s.agent, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -375,7 +375,7 @@ class IslandOverlay(
 
     @Composable
     private fun ResultCard(s: IslandSpec) {
-        val engine = remember(s.state) { MochiEngine(clock).apply { setState(s.state, force = true) } }
+        val engine = remember(s.state) { MachaEngine(clock).apply { setState(s.state, force = true) } }
         val label = when (s.kind) {
             IslandSpec.Kind.ERROR -> R.string.notif_error
             IslandSpec.Kind.RATELIMIT -> R.string.notif_ratelimit
@@ -386,7 +386,7 @@ class IslandOverlay(
             Modifier.fillMaxWidth().clickable { tap("the result card") { onOpen() } }.padding(horizontal = 18.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            MochiView(engine, Modifier.size(52.dp))
+            MachaView(engine, Modifier.size(52.dp))
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -402,11 +402,11 @@ class IslandOverlay(
 
     @Composable
     private fun RequestCard(s: IslandSpec) {
-        val engine = remember { MochiEngine(clock).apply { setState(BotState.APPROVAL, force = true) } }
+        val engine = remember { MachaEngine(clock).apply { setState(BotState.APPROVAL, force = true) } }
         val fingerprint = s.fingerprint ?: return
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(Modifier.clickable { tap("the request header") { onOpen() } }, verticalAlignment = Alignment.CenterVertically) {
-                MochiView(engine, Modifier.size(40.dp))
+                MachaView(engine, Modifier.size(40.dp))
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(s.agent, style = TypeScale.SECONDARY.style(dim), maxLines = 1, overflow = TextOverflow.Ellipsis)

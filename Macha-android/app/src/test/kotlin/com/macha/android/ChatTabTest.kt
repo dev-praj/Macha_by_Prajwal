@@ -96,7 +96,7 @@ class ChatTabSourceTest {
     @Test fun theChatScreenShowsAnEmptyStateWhenThereIsNothingToChatWithOrRead() {
         assertTrue(chat.contains("if (tabState != ChatTabState.READY && messages.isEmpty())"))
         assertTrue(chat.contains("ChatEmpty(tabState, onHome, onSettings)"))
-        assertTrue("a sleeping Mochi", chat.contains("BotState.SLEEPING"))
+        assertTrue("a sleeping Macha", chat.contains("BotState.SLEEPING"))
     }
 
     @Test fun anExistingConversationStaysReadableWithTheReasonAboveIt() {

@@ -1,6 +1,6 @@
 package com.macha.android.core
 
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 
 /** What the island shows. [pillId] is the session it is about (or the request's pill). */
 data class IslandSpec(

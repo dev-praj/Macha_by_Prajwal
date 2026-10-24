@@ -411,7 +411,7 @@ class RustDesktopInteropTest {
         }
     }
 
-    // ── Mochi's outfit (cap prefs) ─────────────────────────────────────────────────
+    // ── Macha's outfit (cap prefs) ─────────────────────────────────────────────────
 
     @Test fun theOutfitReachesAnAppThatAsksAndNobodyElse() {
         val info = startDesktop()

@@ -1,6 +1,6 @@
 package com.macha.android.link
 
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

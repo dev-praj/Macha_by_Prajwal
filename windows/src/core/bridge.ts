@@ -67,6 +67,36 @@ export interface SpotifySnapshot {
   track: SpotifyTrack | null;
 }
 
+export interface NoteSpeaker {
+  id: string;
+  name: string;
+}
+
+export interface NoteLine {
+  id: string;
+  speaker: string;
+  start: number;
+  end: number;
+  text: string;
+}
+
+export interface Note {
+  id: string;
+  title: string;
+  start: number;
+  end: number | null;
+  status: "recording" | "processing" | "ready" | "failed";
+  speakers: NoteSpeaker[];
+  lines: NoteLine[];
+  error: string | null;
+}
+
+export interface NotesState {
+  notes: Note[];
+  recording: string | null;
+  working: string[];
+}
+
 export const Bridge = {
   boot: () => call<BootInfo>("boot"),
 
@@ -230,6 +260,20 @@ export const Bridge = {
   phoneLinkNewPairing: () => callOrThrow<PhoneLinkPairing>("phone_link_new_pairing"),
   phoneDetailsSetEnabled: (enabled: boolean) =>
     callOrThrow<{ enabled: boolean }>("phone_details_set_enabled", { enabled }),
+  phoneChatStatus: () => callOrThrow<PhoneChatStatus>("phone_chat_status"),
+  phoneChatSetEnabled: (enabled: boolean) =>
+    callOrThrow<PhoneChatStatus>("phone_chat_set_enabled", { enabled }),
+  phoneChatSetModels: (models: string[]) =>
+    callOrThrow<PhoneChatStatus>("phone_chat_set_models", { models }),
+  notesState: () => callOrThrow<NotesState>("notes_state"),
+  notesStart: () => callOrThrow<string>("notes_start"),
+  notesStop: () => callOrThrow<void>("notes_stop"),
+  notesRename: (id: string, title: string) => callOrThrow<void>("notes_rename", { id, title }),
+  notesRenameSpeaker: (id: string, speaker: string, name: string) =>
+    callOrThrow<void>("notes_rename_speaker", { id, speaker, name }),
+  notesDelete: (id: string) => callOrThrow<void>("notes_delete", { id }),
+  notesRetry: (id: string) => callOrThrow<void>("notes_retry", { id }),
+  notesMarkdown: (id: string) => callOrThrow<string>("notes_markdown", { id }),
   phoneLinkPublish: (sessions: PhoneLinkSession[], approval: PhoneLinkApproval | null) =>
     call<void>("phone_link_publish", { sessions, approval }),
   chatReset: () => call<void>("chat_reset"),
@@ -375,6 +419,11 @@ export interface PhoneLinkPairing {
   port: number;
   name: string;
   relay: string | null;
+}
+
+export interface PhoneChatStatus {
+  enabled: boolean;
+  models: string[];
 }
 
 export interface PhoneLinkSession {

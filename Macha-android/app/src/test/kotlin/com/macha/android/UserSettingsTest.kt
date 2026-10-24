@@ -8,7 +8,7 @@ import com.macha.android.core.KeyValueStore
 import com.macha.android.core.QuietHours
 import com.macha.android.core.StatusPolicy
 import com.macha.android.core.UserSettings
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 import java.time.ZoneId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

@@ -26,7 +26,7 @@ import com.macha.android.core.Tokens
 
 /**
  * The look of the Macha website (docs/site.css): a near-black page (or a pale one in the light theme), slightly lighter cards with a
- * thin border, soft blue accent, rounded corners and pill-shaped buttons. Mochi itself is untouched.
+ * thin border, soft blue accent, rounded corners and pill-shaped buttons. Macha itself is untouched.
  */
 private fun scheme(p: Palette, t: Tokens): ColorScheme {
     // Surfaces and text come from the tokens, the accent from Palette.
@@ -63,7 +63,7 @@ object StatusColors {
 
 /**
  * The theme: light, dark or the phone's own ([theme]), and optionally the phone's own colours ([dynamic], Android 12 and later).
- * Mochi, his colours and the state colours are the same in both.
+ * Macha, his colours and the state colours are the same in both.
  */
 @Composable
 fun MachaTheme(theme: ThemeChoice = ThemeChoice.SYSTEM, dynamic: Boolean = false, content: @Composable () -> Unit) {

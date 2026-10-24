@@ -47,13 +47,13 @@ import com.macha.android.core.IconKind
 import com.macha.android.core.Radii
 import com.macha.android.core.Spacing
 import com.macha.android.core.TypeScale
-import com.macha.android.mochi.MochiEngine
-import com.macha.android.mochi.MochiView
-import com.macha.android.mochi.outfit.ComposeGfx
-import com.macha.android.mochi.outfit.Ctx2D
-import com.macha.android.mochi.outfit.Outfit
-import com.macha.android.mochi.outfit.Wardrobe
-import com.macha.android.mochi.outfit.drawIconMochi
+import com.macha.android.macha.MachaEngine
+import com.macha.android.macha.MachaView
+import com.macha.android.macha.outfit.ComposeGfx
+import com.macha.android.macha.outfit.Ctx2D
+import com.macha.android.macha.outfit.Outfit
+import com.macha.android.macha.outfit.Wardrobe
+import com.macha.android.macha.outfit.drawIconMacha
 import java.time.LocalDate
 
 /** The name of a wardrobe value, in the app's words. */
@@ -74,7 +74,7 @@ fun outfitLabelRes(id: String): Int = when (id) {
     else -> R.string.outfit_bunnyEars
 }
 
-/** A little Mochi wearing [outfit], the PC's wardrobe icon (drawn by the same code as the big one). */
+/** A little Macha wearing [outfit], the PC's wardrobe icon (drawn by the same code as the big one). */
 @Composable
 fun OutfitIcon(outfit: Outfit, size: Dp, modifier: Modifier = Modifier) {
     Canvas(modifier.size(size)) {
@@ -82,7 +82,7 @@ fun OutfitIcon(outfit: Outfit, size: Dp, modifier: Modifier = Modifier) {
             c.save()
             val k = this.size.width / 40f
             c.scale(k, k)
-            drawIconMochi(Ctx2D(ComposeGfx(c, Rect(0f, 0f, 40f, 40f))), 40.0, outfit)
+            drawIconMacha(Ctx2D(ComposeGfx(c, Rect(0f, 0f, 40f, 40f))), 40.0, outfit)
             c.restore()
         }
     }
@@ -102,7 +102,7 @@ private fun NoOutfitIcon(size: Dp) {
 }
 
 /**
- * Settings > Mochi's wardrobe: what Mochi wears on this phone. Either the same as on the computer (the default),
+ * Settings > Macha's wardrobe: what Macha wears on this phone. Either the same as on the computer (the default),
  * or one of the PC's thirteen choices ("Auto" follows the seasons on this phone's calendar). A preview on top.
  */
 @Composable
@@ -110,7 +110,7 @@ fun WardrobeScreen(model: AppModel, onBack: () -> Unit) {
     val t = tokens()
     val s = model.settings
     val clock = remember { { SystemClock.elapsedRealtimeNanos() / 1e6 } }
-    val preview = remember { MochiEngine(clock) }
+    val preview = remember { MachaEngine(clock) }
     val worn = model.dress()
     val first = remember { androidx.compose.runtime.mutableStateOf(true) }
     LaunchedEffect(worn) {
@@ -125,7 +125,7 @@ fun WardrobeScreen(model: AppModel, onBack: () -> Unit) {
         item {
             Panel {
                 Column(Modifier.fillMaxWidth().padding(Spacing.INSIDE.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    MochiView(preview, Modifier.size(120.dp))
+                    MachaView(preview, Modifier.size(120.dp))
                     Text(stringResource(outfitLabelRes(model.outfitSelection)), style = TypeScale.TITLE.style(t.text.c()), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(stringResource(R.string.wardrobe_note), style = TypeScale.SECONDARY.style(t.textDim.c()), textAlign = TextAlign.Center)
                 }

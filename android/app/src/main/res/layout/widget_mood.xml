@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The Mochi Mood widget: only Mochi's face in the current state, with his glow. Plain RemoteViews. -->
+<!-- The Macha Mood widget: only Macha's face in the current state, with his glow. Plain RemoteViews. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/mood_root"
     android:layout_width="match_parent"
@@ -15,7 +15,7 @@
 
     <ImageView
         android:id="@+id/mood_face"
-        android:src="@drawable/preview_mochi_idle"
+        android:src="@drawable/preview_macha_idle"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:contentDescription="@string/widget_mood_label"

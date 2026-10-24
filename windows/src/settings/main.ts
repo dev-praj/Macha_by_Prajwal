@@ -26,6 +26,7 @@ import { LANGUAGES, resolveLanguage, setLanguage, systemLanguages } from "../i18
 import { agentsSection } from "./agents";
 import { mountSettingsHub, weeklyRecapSection } from "./hub";
 import { phoneSection } from "./phone";
+import { notetakerSection } from "./notetaker";
 
 let settings: Settings = { ...DEFAULT_SETTINGS };
 let version = "";
@@ -3451,14 +3452,12 @@ async function main() {
 
   mountSettingsHub(root, {
     dictation: { sections: [voiceSetup, dictation] },
-    notetaker: {
-      unavailable: "The Coucou Notetaker recording and transcript backend has not been ported to Macha yet.",
-    },
+    notetaker: { sections: [notetakerSection()] },
     statistics: {
       sections: [
         featureNotice(
           "Dictation statistics",
-          "Coucou's dictation totals and usage charts have not been ported. Macha's local weekly recap is shown below.",
+          "Macha's dictation totals and usage charts have not been ported. Macha's local weekly recap is shown below.",
         ),
         weeklyRecapSection(),
       ],
@@ -3470,7 +3469,7 @@ async function main() {
       ],
     },
     snippets: {
-      unavailable: "Coucou's standalone text-snippet manager has not been ported to Macha yet.",
+      unavailable: "Macha's standalone text-snippet manager has not been ported to Macha yet.",
     },
     styles: {
       sections: [
@@ -3483,7 +3482,7 @@ async function main() {
     "active-pills": {
       sections: [featureNotice(
         "Active pills",
-        "Macha uses its own island and integration controls rather than Coucou's pill manager.",
+        "Macha uses its own island and integration controls rather than Macha's pill manager.",
       )],
     },
     agents: {

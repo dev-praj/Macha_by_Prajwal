@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The summary widget (3x2) on the shared card: a small Mochi in the state of the most urgent agent on the left; on the right a clear
+<!-- The summary widget (3x2) on the shared card: a small Macha in the state of the most urgent agent on the left; on the right a clear
      headline (with a badge for what waits for you), one detail line when there is room, and up to three short lines with a dot in the
-     state's tone. Until the first update it shows a calm Mochi and a short line. A tap anywhere opens the app. Plain RemoteViews. -->
+     state's tone. Until the first update it shows a calm Macha and a short line. A tap anywhere opens the app. Plain RemoteViews. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
@@ -23,12 +23,12 @@
         android:padding="12dp">
 
         <ImageView
-            android:id="@+id/glance_mochi"
+            android:id="@+id/glance_macha"
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:contentDescription="@string/widget_glance_label"
             android:scaleType="fitCenter"
-            android:src="@drawable/preview_mochi_idle" />
+            android:src="@drawable/preview_macha_idle" />
 
         <LinearLayout
             android:layout_width="0dp"

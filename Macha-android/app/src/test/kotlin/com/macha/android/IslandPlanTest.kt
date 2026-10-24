@@ -8,7 +8,7 @@ import com.macha.android.core.QuietHours
 import com.macha.android.core.UserSettings
 import com.macha.android.link.ApprovalRequest
 import com.macha.android.link.SessionInfo
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull

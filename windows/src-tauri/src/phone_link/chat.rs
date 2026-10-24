@@ -65,11 +65,12 @@ pub enum ChatFail {
 /// The computer's chat. The real one calls the same provider code as the island's chat.
 pub trait ChatBackend: Send + Sync {
     fn config(&self) -> ChatConfig;
-    /// One turn of the phone's conversation. `deltas` receives the answer **so far**
-    /// (the whole visible text each time), whenever the provider streams it. Returns the full answer.
-    fn send(&self, model_id: &str, text: String, deltas: mpsc::UnboundedSender<String>) -> BoxFuture<Result<String, ChatFail>>;
-    /// Forget the phone's conversation.
-    fn reset(&self);
+    /// One turn of the phone's conversation. Each delta is the answer **so far**; returns the full answer.
+    fn send(&self, conn: u64, model_id: &str, text: String, deltas: mpsc::UnboundedSender<String>) -> BoxFuture<Result<String, ChatFail>>;
+    /// Forget one phone's conversation.
+    fn reset(&self, conn: u64);
+    /// Forget every phone's conversation.
+    fn reset_all(&self);
 }
 
 /// The fixed code and message for a failure; never anything a provider wrote.
@@ -212,22 +213,6 @@ impl ChatLink {
         Arc::new(ChatLink { backend, gate: Mutex::new(Gate::default()) })
     }
 
-    pub fn disabled() -> Arc<ChatLink> {
-        struct Disabled;
-        impl ChatBackend for Disabled {
-            fn config(&self) -> ChatConfig {
-                ChatConfig::default()
-            }
-
-            fn send(&self, _model_id: &str, _text: String, _deltas: mpsc::UnboundedSender<String>) -> BoxFuture<Result<String, ChatFail>> {
-                Box::pin(async { Err(ChatFail::Internal) })
-            }
-
-            fn reset(&self) {}
-        }
-        Self::new(Arc::new(Disabled))
-    }
-
     /// Offered to a phone only while the user's switch is on.
     pub fn enabled(&self) -> bool {
         self.backend.config().enabled
@@ -236,12 +221,13 @@ impl ChatLink {
     /// The switch went off (or the link stopped): nothing keeps running and the conversation is forgotten.
     pub fn shutdown(&self) {
         self.cancel_where(|_| true);
-        self.backend.reset();
+        self.backend.reset_all();
     }
 
     /// A phone left: its answer, if any, stops.
     pub fn cancel_conn(&self, conn: u64) {
         self.cancel_where(|r| r.conn == conn);
+        self.backend.reset(conn);
     }
 
     fn cancel_where(&self, which: impl Fn(&Run) -> bool) -> Option<Run> {
@@ -276,7 +262,7 @@ impl ChatLink {
                 if let Some(r) = self.cancel_where(|r| r.conn == conn) {
                     say(error_line(&r.id, "canceled"));
                 }
-                self.backend.reset();
+                self.backend.reset(conn);
             }
             Some("chatCancel") => {
                 let id = msg["id"].as_str().unwrap_or("");
@@ -333,14 +319,14 @@ impl ChatLink {
         let task_id = id_owned.clone();
         let join = tokio::spawn(async move {
             let _slot = Slot { link: link.clone(), token };
-            answer(&link, &tx, &task_id, &model, text).await;
+            answer(&link, conn, &tx, &task_id, &model, text).await;
         });
         g.running = Some(Run { token, id: id_owned, conn, abort: join.abort_handle() });
     }
 }
 
 /// Runs one turn and writes its lines. Ends quietly if the phone's channel is gone.
-async fn answer(link: &ChatLink, tx: &mpsc::Sender<Out>, id: &str, model: &str, text: String) {
+async fn answer(link: &ChatLink, conn: u64, tx: &mpsc::Sender<Out>, id: &str, model: &str, text: String) {
     let (dtx, mut drx) = mpsc::unbounded_channel::<String>();
     let forward = {
         let (tx, id) = (tx.clone(), id.to_string());
@@ -357,7 +343,7 @@ async fn answer(link: &ChatLink, tx: &mpsc::Sender<Out>, id: &str, model: &str, 
             splitter
         })
     };
-    let result = link.backend.send(model, text, dtx).await;
+    let result = link.backend.send(conn, model, text, dtx).await;
     // The sender went with the future: the forwarder drains what is queued and ends.
     let Ok(mut splitter) = forward.await else { return };
     match result {

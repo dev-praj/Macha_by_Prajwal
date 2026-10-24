@@ -20,7 +20,7 @@ import com.macha.android.core.WidgetTone
 import kotlin.math.roundToInt
 
 /**
- * The one place that pushes the Widgets (Solo, List, Mochi Big, Status Pill, Waiting Alert, Usage Ring, Today, Mochi Mood and Team). The app calls [update] on every change of sessions, requests and
+ * The one place that pushes the Widgets (Solo, List, Macha Big, Status Pill, Waiting Alert, Usage Ring, Today, Macha Mood and Team). The app calls [update] on every change of sessions, requests and
  * link (from AppModel.pushGlance); a push whose content is the same as the last one is dropped, so a change that does not
  * show on a widget costs nothing. There is no timer: a widget is drawn when something changes or when it is added, and the Today
  * widget once at local midnight (one inexact alarm, see [scheduleMidnight]).
@@ -36,7 +36,7 @@ object WidgetHub {
     private val widgets = listOf(
         Kind(SoloWidget::class.java) { c, w -> SoloWidget.views(c, w) },
         Kind(ListWidget::class.java) { c, w -> ListWidget.views(c, w) },
-        Kind(MochiBigWidget::class.java) { c, w -> MochiBigWidget.views(c, w) },
+        Kind(MachaBigWidget::class.java) { c, w -> MachaBigWidget.views(c, w) },
         Kind(StatusPillWidget::class.java) { c, w -> StatusPillWidget.views(c, w) },
         Kind(WaitingAlertWidget::class.java) { c, w -> WaitingAlertWidget.views(c, w) },
         Kind(UsageRingWidget::class.java) { c, w -> UsageRingWidget.views(c, w) },
@@ -227,12 +227,12 @@ object WidgetHub {
     const val CODE_TODAY = 0x5800
     const val CODE_MOOD = 0x5900
 
-    /** The buttons: one code each, from these bases (the Status Pill has 4, Mochi Big 6, the summary none). */
+    /** The buttons: one code each, from these bases (the Status Pill has 4, Macha Big 6, the summary none). */
     const val CODE_PILL_BUTTON = 0x5A00
     const val CODE_BIG_BUTTON = 0x5B00
     const val CODE_GLANCE = 0x5C00
 
-    /** Mochi Big's usage side: Settings when plan usage is off, the app otherwise. */
+    /** Macha Big's usage side: Settings when plan usage is off, the app otherwise. */
     const val CODE_BIG_USAGE_SETTINGS = 0x5D00
     const val CODE_BIG_USAGE_APP = 0x5E00
     const val CODE_MIDNIGHT = 0x5F00

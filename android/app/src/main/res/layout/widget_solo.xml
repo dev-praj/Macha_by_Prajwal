@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The Solo widget: Mochi with a glow in the state's colour (over half the card), the top agent's name with its dot and a state word.
+<!-- The Solo widget: Macha with a glow in the state's colour (over half the card), the top agent's name with its dot and a state word.
      With no agent the name gives way to a note with an icon ("Not connected"). Plain RemoteViews, no library. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/solo_root"
@@ -22,8 +22,8 @@
         android:padding="10dp">
 
         <ImageView
-            android:id="@+id/solo_mochi"
-            android:src="@drawable/preview_mochi_idle"
+            android:id="@+id/solo_macha"
+            android:src="@drawable/preview_macha_idle"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"

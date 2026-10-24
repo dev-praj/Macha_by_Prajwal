@@ -17,7 +17,7 @@ class LicencesTest {
 
     @Test fun theMitTextIsTheRepositorysLicenceFileWord_for_word() {
         assertEquals(ReferenceFiles.file("android/LICENSE").readText(), asset("MIT.txt"))
-        assertTrue(asset("MIT.txt").contains("Copyright (c) 2026 Rhytam Biswas"))
+        assertTrue(asset("MIT.txt").contains("Copyright (c) 2026 Prajwal"))
         assertTrue(asset("MIT.txt").contains("Permission is hereby granted, free of charge"))
         assertTrue(asset("MIT.txt").contains("THE SOFTWARE IS PROVIDED \"AS IS\""))
     }
@@ -33,7 +33,7 @@ class LicencesTest {
 
     @Test fun theNoticesNameWhoOwnsWhatAndTheArtworkIsNotMit() {
         val n = asset("NOTICES.txt")
-        assertTrue(n.contains("unofficial port by Rhytam Biswas"))
+        assertTrue(n.contains("unofficial port by Prajwal"))
         assertTrue(n.contains("Macha by Prajwal"))
         assertTrue(n.contains("https://github.com/dev-praj/Macha_by_Prajwal.git"))
         assertTrue(n.contains("released under the MIT License"))

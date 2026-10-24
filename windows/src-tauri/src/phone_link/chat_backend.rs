@@ -1,34 +1,44 @@
-// The real chat behind the phone link (chat.rs holds the rules): the same provider code as the
-// island's chat, with the phone's own conversation. The key is read inside `claude`, `openai_compat`
-// or `local_chat` from the credential store; nothing in this file ever holds one.
+// The phone uses Macha's configured provider clients but receives no computer-action tools.
+// Credentials remain in the OS credential manager and never enter this module's settings.
 //
 // Failures are sorted into a few kinds here and only the kind goes on: a provider's message may
 // contain part of a key, so it is neither forwarded nor logged.
 
-use std::sync::Arc;
+use std::collections::HashMap;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Arc, Mutex};
 
+use serde_json::{json, Value};
 use tauri::{AppHandle, Manager};
 use tokio::sync::mpsc::UnboundedSender;
 
 use super::chat::{BoxFuture, ChatBackend, ChatConfig, ChatFail, ModelOption};
-use crate::chat::Chat;
 use crate::settings::Settings;
-use crate::{chat, claude, log, openai_compat, secrets, Shared};
+use crate::{llm_client, log, secrets, Shared};
 
 /// Most models the user can allow, and the longest model name taken.
 pub const MAX_ALLOWED: usize = 50;
 const MAX_MODEL_CHARS: usize = 200;
 
-const PROVIDERS: [&str; 7] = ["anthropic", "google", "openai", "openrouter", "ollama", "lmstudio", "custom"];
+const PROVIDERS: [&str; 6] = ["anthropic", "google", "grok", "openai", "openrouter", "ollama"];
+const HISTORY_MESSAGES: usize = 20;
+const SYSTEM_PROMPT: &str = "You are Macha, a helpful AI assistant. Answer the user's message clearly and directly. Do not claim to take actions on the computer.";
+
+#[derive(Default)]
+struct Conversation {
+    generation: u64,
+    messages: Vec<Value>,
+}
 
 pub struct AppChat {
     app: AppHandle,
-    chat: Arc<Chat>,
+    conversations: Arc<Mutex<HashMap<u64, Conversation>>>,
+    sequence: AtomicU64,
 }
 
 impl AppChat {
     pub fn new(app: AppHandle) -> Self {
-        Self { app, chat: Arc::new(Chat::default()) }
+        Self { app, conversations: Arc::new(Mutex::new(HashMap::new())), sequence: AtomicU64::new(0) }
     }
 
     fn settings(&self) -> Settings {
@@ -42,23 +52,52 @@ impl ChatBackend for AppChat {
         ChatConfig { enabled: s.phone_chat, allowed: options(&s.phone_chat_models) }
     }
 
-    fn send(&self, model_id: &str, text: String, deltas: UnboundedSender<String>) -> BoxFuture<Result<String, ChatFail>> {
+    fn send(&self, conn: u64, model_id: &str, text: String, deltas: UnboundedSender<String>) -> BoxFuture<Result<String, ChatFail>> {
         let settings = self.settings();
-        let chat = self.chat.clone();
+        let conversations = self.conversations.clone();
+        let generation = self.sequence.fetch_add(1, Ordering::Relaxed).wrapping_add(1);
+        let history = {
+            let mut conversations = self.conversations.lock().unwrap();
+            let conversation = conversations.entry(conn).or_default();
+            conversation.generation = generation;
+            conversation.messages.clone()
+        };
         let id = model_id.to_string();
         Box::pin(async move {
             let Some((provider, model)) = parse_model_id(&id) else { return Err(ChatFail::Internal) };
+            if !settings.phone_chat || !clean_models(&settings.phone_chat_models).contains(&id) {
+                return Err(ChatFail::Internal);
+            }
             if let Some(key) = key_name(provider) {
                 if secrets::get(key).is_none() {
                     return Err(ChatFail::NoKey);
                 }
             }
-            let result = chat::send_for_phone(&settings, &chat, provider, model, text, |so_far| {
-                let _ = deltas.send(so_far);
-            })
-            .await;
+            let mut messages = vec![json!({ "role": "system", "content": SYSTEM_PROMPT })];
+            messages.extend(history.iter().cloned());
+            messages.push(json!({ "role": "user", "content": text.clone() }));
+            let (cancel_tx, mut cancel_rx) = tokio::sync::watch::channel(false);
+            let result = llm_client::phone_chat(provider, model, messages, &mut cancel_rx).await;
+            drop(cancel_tx);
             match result {
-                Ok(reply) => Ok(reply.text),
+                Ok(answer) => {
+                    let mut conversations = conversations.lock().unwrap();
+                    let Some(conversation) = conversations.get_mut(&conn) else {
+                        return Err(ChatFail::Internal);
+                    };
+                    if conversation.generation != generation {
+                        return Err(ChatFail::Internal);
+                    }
+                    let mut history = history;
+                    history.push(json!({ "role": "user", "content": text }));
+                    history.push(json!({ "role": "assistant", "content": answer.clone() }));
+                    if history.len() > HISTORY_MESSAGES {
+                        history.drain(..history.len() - HISTORY_MESSAGES);
+                    }
+                    conversation.messages = history;
+                    let _ = deltas.send(answer.clone());
+                    Ok(answer)
+                }
                 Err(err) => {
                     let kind = classify(is_local(provider), &err);
                     // The kind only: the text may echo a key.
@@ -69,34 +108,41 @@ impl ChatBackend for AppChat {
         })
     }
 
-    fn reset(&self) {
-        self.chat.reset();
+    fn reset(&self, conn: u64) {
+        self.conversations.lock().unwrap().remove(&conn);
+    }
+
+    fn reset_all(&self) {
+        self.conversations.lock().unwrap().clear();
     }
 }
 
 // ── Pure helpers (tested below) ───────────────────────────────────────────────
 
 fn is_local(provider: &str) -> bool {
-    matches!(provider, "ollama" | "lmstudio" | "custom")
+    provider == "ollama"
 }
 
 /// The credential store entry a provider's key lives in; None for the model servers.
 fn key_name(provider: &str) -> Option<&'static str> {
-    if provider == chat::ANTHROPIC {
-        return Some(claude::KEY);
+    match provider {
+        "anthropic" => Some("anthropic-api-key"),
+        "google" => Some("gemini-api-key"),
+        "grok" => Some("grok-api-key"),
+        "openai" => Some("openai-api-key"),
+        _ => None,
     }
-    openai_compat::provider(provider).map(|p| p.key)
 }
 
 pub fn provider_name(provider: &str) -> String {
     match provider {
         "anthropic" => "Anthropic".into(),
         "google" => "Google".into(),
+        "grok" => "Grok".into(),
         "openai" => "OpenAI".into(),
         "openrouter" => "OpenRouter".into(),
         "ollama" => "Ollama".into(),
-        "lmstudio" => "LM Studio".into(),
-        _ => "Custom server".into(),
+        _ => "AI provider".into(),
     }
 }
 
@@ -122,6 +168,22 @@ pub fn clean_models(ids: &[String]) -> Vec<String> {
     out
 }
 
+pub fn validate_models(ids: &[String]) -> Result<Vec<String>, String> {
+    if ids.len() > MAX_ALLOWED {
+        return Err(format!("Choose no more than {MAX_ALLOWED} phone chat models."));
+    }
+    let mut out = Vec::new();
+    for id in ids {
+        if parse_model_id(id).is_none() {
+            return Err(format!("Invalid phone chat model {id:?}. Use a supported provider/model ID."));
+        }
+        if !out.contains(id) {
+            out.push(id.clone());
+        }
+    }
+    Ok(out)
+}
+
 pub fn options(ids: &[String]) -> Vec<ModelOption> {
     clean_models(ids)
         .into_iter()
@@ -133,10 +195,11 @@ pub fn options(ids: &[String]) -> Vec<ModelOption> {
         .collect()
 }
 
-/// Which kind of failure an error message from `chat::send_for_phone` stands for. The messages are
-/// written for people (and translated), so this looks only at what does not change with the language:
-/// an HTTP status in the text. A model server that answers with no status at all is one that did not answer.
+/// Provider errors are reduced to safe categories before any message reaches the phone.
 pub fn classify(local: bool, err: &str) -> ChatFail {
+    if err.starts_with("No ") && err.contains(" API key is configured") {
+        return ChatFail::NoKey;
+    }
     let has = |code: &str| err.split(|c: char| !c.is_ascii_digit()).any(|w| w == code);
     if has("401") || has("403") {
         return ChatFail::Auth;
@@ -145,7 +208,7 @@ pub fn classify(local: bool, err: &str) -> ChatFail {
     if local && !has_status {
         return ChatFail::Unreachable;
     }
-    if err.starts_with("Network error") {
+    if err.starts_with("Network error") || err.contains("connection failed") {
         return ChatFail::Unreachable;
     }
     ChatFail::Provider
@@ -178,10 +241,20 @@ mod tests {
     }
 
     #[test]
+    fn phone_chat_model_settings_reject_invalid_ids_and_deduplicate() {
+        assert_eq!(
+            validate_models(&ids(&["openai/gpt-4o", "openai/gpt-4o", "ollama/qwen2.5"])).unwrap(),
+            ids(&["openai/gpt-4o", "ollama/qwen2.5"]),
+        );
+        assert!(validate_models(&ids(&["not-a-provider/model"])).is_err());
+        assert!(validate_models(&(0..=MAX_ALLOWED).map(|i| format!("openai/m{i}")).collect::<Vec<_>>()).is_err());
+    }
+
+    #[test]
     fn what_the_phone_is_told_about_a_model_is_its_id_provider_and_label_only() {
-        let o = options(&ids(&["anthropic/claude-x", "lmstudio/qwen"]));
+        let o = options(&ids(&["anthropic/claude-x", "ollama/qwen"]));
         assert_eq!(o[0], ModelOption { id: "anthropic/claude-x".into(), provider: "anthropic".into(), label: "Anthropic · claude-x".into() });
-        assert_eq!(o[1].label, "LM Studio · qwen");
+        assert_eq!(o[1].label, "Ollama · qwen");
     }
 
     #[test]
@@ -202,6 +275,6 @@ mod tests {
         assert_eq!(key_name("anthropic"), Some("anthropic-api-key"));
         assert_eq!(key_name("openai"), Some("openai-api-key"));
         assert_eq!(key_name("ollama"), None);
-        assert!(is_local("custom") && !is_local("openai"));
+        assert!(is_local("ollama") && !is_local("openai"));
     }
 }

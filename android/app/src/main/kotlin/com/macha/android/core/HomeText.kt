@@ -1,7 +1,7 @@
 package com.macha.android.core
 
 import com.macha.android.link.SessionInfo
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 
 /** The words on Home: one plain line per agent, what you decided lately, how many are busy. Pure, so it is unit-tested. */
 object HomeText {

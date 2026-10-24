@@ -22,7 +22,7 @@
 
         <ImageView
             android:id="@+id/today_face"
-            android:src="@drawable/preview_mochi_idle"
+            android:src="@drawable/preview_macha_idle"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"

@@ -14,7 +14,7 @@ class WidgetSurfacesTest {
 
     /** Every widget source: the providers, the hub, the pictures, the pure logic and the day's count. */
     private val widgets = listOf(
-        "SoloWidget" to "macha_solo_widget_info", "ListWidget" to "macha_list_widget_info", "MochiBigWidget" to "macha_big_widget_info",
+        "SoloWidget" to "macha_solo_widget_info", "ListWidget" to "macha_list_widget_info", "MachaBigWidget" to "macha_big_widget_info",
         "StatusPillWidget" to "macha_pill_widget_info", "WaitingAlertWidget" to "macha_alert_widget_info",
         "UsageRingWidget" to "macha_ring_widget_info", "TodayWidget" to "macha_today_widget_info", "MoodWidget" to "macha_mood_widget_info",
         "TeamWidget" to "macha_team_widget_info",
@@ -23,7 +23,7 @@ class WidgetSurfacesTest {
     )
     private val sources = (
         widgets.map { "app/${it.first}.kt" } +
-            listOf("app/WidgetHub.kt", "app/TeamStore.kt", "core/TeamChoice.kt", "app/MochiBitmap.kt", "app/RingBitmap.kt", "app/BarBitmap.kt", "app/TodayStore.kt", "core/WidgetData.kt", "core/TodayCounter.kt", "core/LaunchScreen.kt")
+            listOf("app/WidgetHub.kt", "app/TeamStore.kt", "core/TeamChoice.kt", "app/MachaBitmap.kt", "app/RingBitmap.kt", "app/BarBitmap.kt", "app/TodayStore.kt", "core/WidgetData.kt", "core/TodayCounter.kt", "core/LaunchScreen.kt")
         ).associateWith { read(main + it) }
 
     @Test fun theWidgetsAreRegisteredAndNeverWakeOnATimer() {
@@ -100,7 +100,7 @@ class WidgetSurfacesTest {
     }
 
     @Test fun theImageAndTheBadgeAreDescribed() {
-        assertTrue(sources.getValue("app/SoloWidget.kt").contains("setContentDescription(R.id.solo_mochi"))
+        assertTrue(sources.getValue("app/SoloWidget.kt").contains("setContentDescription(R.id.solo_macha"))
         assertTrue(sources.getValue("app/SoloWidget.kt").contains("setContentDescription(R.id.solo_badge"))
         assertTrue(sources.getValue("app/ListWidget.kt").contains("setContentDescription(R.id.list_badge"))
         // Every Widget with a picture describes it; every layout image that is not decoration has a description or is hidden from it.
@@ -166,9 +166,9 @@ class WidgetSurfacesTest {
         assertTrue(read(main + "app/ListWidget.kt").contains("WidgetHub.paint("))
     }
 
-    @Test fun mochiHasAtLeastHalfOfTheSoloCard() {
+    @Test fun machaHasAtLeastHalfOfTheSoloCard() {
         val solo = read("src/main/res/layout/widget_solo.xml")
-        // Mochi takes the leftover height (weight 1) while the text rows wrap their content.
+        // Macha takes the leftover height (weight 1) while the text rows wrap their content.
         assertTrue(solo.contains("""android:layout_weight="1""""))
         assertTrue(read(main + "app/SoloWidget.kt").contains("glow = true"))
     }
@@ -281,7 +281,7 @@ class WidgetSurfacesTest {
         assertFalse(texts.contains("Wedge", ignoreCase = true))
         // The picker names: short, and the same ones in the README.
         val readme = File("../README.md").readText()
-        for (w in listOf("Mochi at a glance", "All your agents", "Mochi, big", "One-line status", "Approvals waiting", "Plan usage", "Finished today", "Mochi's mood")) {
+        for (w in listOf("Macha at a glance", "All your agents", "Macha, big", "One-line status", "Approvals waiting", "Plan usage", "Finished today", "Macha's mood")) {
             assertTrue(w, strings.contains(w))
             assertTrue("$w is not in the README", readme.contains(w))
         }

@@ -12,7 +12,7 @@ import com.macha.android.core.WidgetSpoken
 
 /**
  * The Team widget: up to four agents the user picked (a choice screen opens when it is added and from its long-press menu), two by two,
- * each with Mochi's small face in its state, its name and a state word. Drawn by [WidgetHub] when something changes (updatePeriodMillis = 0).
+ * each with Macha's small face in its state, its name and a state word. Drawn by [WidgetHub] when something changes (updatePeriodMillis = 0).
  * A tap on an agent that runs opens it; a tap on one that does not, or anywhere else, opens the app. It only opens things: a request waits
  * for you in the app, behind the fingerprint.
  */
@@ -50,8 +50,8 @@ class TeamWidget : AppWidgetProvider() {
                 // Nothing to show: the computer is not there, or nothing runs. The empty state fills the card.
                 v.setViewVisibility(R.id.team_grid, View.GONE)
                 v.setViewVisibility(R.id.team_empty, View.VISIBLE)
-                v.setImageViewBitmap(R.id.team_empty_face, MochiBitmap.of(c.mood, WidgetHub.px(context, 64), glow = true, tone = look))
-                v.setContentDescription(R.id.team_empty_face, context.getString(R.string.widget_mochi_description, WidgetSpoken.mood(c.mood)))
+                v.setImageViewBitmap(R.id.team_empty_face, MachaBitmap.of(c.mood, WidgetHub.px(context, 64), glow = true, tone = look))
+                v.setContentDescription(R.id.team_empty_face, context.getString(R.string.widget_macha_description, WidgetSpoken.mood(c.mood)))
                 v.setImageViewResource(R.id.team_empty_icon, if (c.connected) R.drawable.widget_dot else R.drawable.ic_widget_offline)
                 v.setInt(R.id.team_empty_icon, "setColorFilter", look.argb)
                 v.setTextViewText(R.id.team_empty_title, c.headline)
@@ -71,7 +71,7 @@ class TeamWidget : AppWidgetProvider() {
                     return@forEachIndexed
                 }
                 v.setViewVisibility(cell.cell, View.VISIBLE)
-                v.setImageViewBitmap(cell.face, MochiBitmap.of(tile.state, face))
+                v.setImageViewBitmap(cell.face, MachaBitmap.of(tile.state, face))
                 v.setTextViewText(cell.name, tile.name)
                 v.setTextViewText(cell.state, tile.stateWord)
                 v.setInt(cell.dot, "setColorFilter", tile.tone.argb)

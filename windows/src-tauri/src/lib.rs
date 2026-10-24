@@ -15,6 +15,7 @@ mod llm_client;
 mod log;
 mod memory;
 mod messages;
+mod notetaker;
 mod pipe;
 mod platform;
 mod phone_link;
@@ -819,6 +820,14 @@ pub fn run() {
             phone_link::phone_chat_status,
             phone_link::phone_chat_set_enabled,
             phone_link::phone_chat_set_models,
+            notetaker::notes_state,
+            notetaker::notes_start,
+            notetaker::notes_stop,
+            notetaker::notes_rename,
+            notetaker::notes_rename_speaker,
+            notetaker::notes_delete,
+            notetaker::notes_retry,
+            notetaker::notes_markdown,
             approval_decision,
             approval_ack,
             approval_decline,
@@ -888,6 +897,7 @@ pub fn run() {
         .setup(move |app| {
             let handle = app.handle().clone();
             app.manage(phone_link::PhoneLink::new(handle.clone()));
+            notetaker::setup(&handle);
             if loaded.autostart {
                 if let Err(error) = app.autolaunch().enable() {
                     eprintln!("[macha] autostart: {error}");
@@ -935,6 +945,7 @@ pub fn run() {
         .run(|app, event| {
             if matches!(event, tauri::RunEvent::Exit) {
                 phone_link::stop_on_exit(app);
+                notetaker::shutdown(app);
                 nixi_hotkeys::stop();
                 voice::stop_stt_server(&app.state::<voice::SttProcess>());
                 if let Err(error) = app.state::<gesture_mouse::GestureMouseProcess>().stop() {

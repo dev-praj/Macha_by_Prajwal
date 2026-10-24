@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Rhytam Biswas. MIT License, like the rest of Macha; see android/LICENSE for the text.
+// Copyright (c) 2026 Prajwal. MIT License, like the rest of Macha; see android/LICENSE for the text.
 // The phone link: lets the Android app ("Macha for Android") see the agents'
 // sessions and answer permission requests from the phone.
 // Protocol: docs/ANDROID_LINK.md.
@@ -16,6 +16,7 @@
 
 mod admission;
 mod chat;
+mod chat_backend;
 mod discovery;
 mod hub;
 #[cfg(test)]
@@ -136,7 +137,7 @@ pub struct PhoneLink {
 impl PhoneLink {
     pub fn new(app: AppHandle) -> Self {
         Self {
-            chat: chat::ChatLink::disabled(),
+            chat: chat::ChatLink::new(Arc::new(chat_backend::AppChat::new(app.clone()))),
             hub: Hub::new(Arc::new(TauriHost { app: app.clone() })),
             app,
             store: Arc::new(Keystore),
@@ -229,6 +230,7 @@ impl PhoneLink {
     }
 
     pub fn stop(&self) {
+        self.chat.shutdown();
         if let Some(relay) = self.relay.lock().unwrap().take() {
             relay.stop();
         }
@@ -794,8 +796,9 @@ fn only_island(window: &WebviewWindow) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn phone_chat_status(_shared: State<Shared>) -> ChatStatus {
-    ChatStatus { enabled: false, models: Vec::new() }
+pub fn phone_chat_status(shared: State<Shared>) -> ChatStatus {
+    let settings = shared.settings.lock().unwrap();
+    ChatStatus { enabled: settings.phone_chat, models: chat_backend::clean_models(&settings.phone_chat_models) }
 }
 
 /// The switch "Let the phone chat with my AI providers". Off by default. A change disconnects the
@@ -810,18 +813,44 @@ pub fn phone_chat_set_enabled(
     enabled: bool,
 ) -> Result<ChatStatus, String> {
     only_settings(&window)?;
-    let _ = (app, link, shared, enabled);
-    Err("Phone chat is not available in Macha yet.".into())
+    let updated = {
+        let mut current = shared.settings.lock().unwrap();
+        let mut updated = current.clone();
+        updated.phone_chat = enabled;
+        settings::save(&updated).map_err(|err| format!("Could not save phone chat settings: {err}"))?;
+        *current = updated.clone();
+        updated
+    };
+    link.chat.shutdown();
+    link.hub.kick_all("closed", "phone chat setting changed");
+    log::line(format!("phone link: chat {}", if enabled { "on" } else { "off" }));
+    let _ = app.emit("settings-changed", updated.clone());
+    Ok(ChatStatus { enabled: updated.phone_chat, models: chat_backend::clean_models(&updated.phone_chat_models) })
 }
 
 #[tauri::command]
 pub fn phone_chat_set_models(
+    app: AppHandle,
     window: WebviewWindow,
-    _shared: State<Shared>,
-    _models: Vec<String>,
+    link: State<PhoneLink>,
+    shared: State<Shared>,
+    models: Vec<String>,
 ) -> Result<ChatStatus, String> {
     only_settings(&window)?;
-    Err("Phone chat is not available in Macha yet.".into())
+    let models = chat_backend::validate_models(&models)?;
+    let updated = {
+        let mut current = shared.settings.lock().unwrap();
+        let mut updated = current.clone();
+        updated.phone_chat_models = models;
+        settings::save(&updated).map_err(|err| format!("Could not save phone chat models: {err}"))?;
+        *current = updated.clone();
+        updated
+    };
+    link.chat.shutdown();
+    link.hub.kick_all("closed", "phone chat models changed");
+    log::line(format!("phone link: {} chat model(s) allowed", updated.phone_chat_models.len()));
+    let _ = app.emit("settings-changed", updated.clone());
+    Ok(ChatStatus { enabled: updated.phone_chat, models: chat_backend::clean_models(&updated.phone_chat_models) })
 }
 
 /// The question Claude Code is waiting on (None: none), for phones that may answer it.
@@ -835,7 +864,7 @@ pub fn phone_link_publish_question(window: WebviewWindow, link: State<PhoneLink>
     Ok(())
 }
 
-/// What Mochi wears on the computer, for phones that asked for `prefs`.
+/// What Macha wears on the computer, for phones that asked for `prefs`.
 #[tauri::command]
 pub fn phone_link_publish_prefs(window: WebviewWindow, link: State<PhoneLink>, outfit: String) -> Result<(), String> {
     only_island(&window)?;

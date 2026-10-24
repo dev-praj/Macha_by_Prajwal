@@ -133,7 +133,7 @@ def transcribe():
             return jsonify({"error": "Could not decode the audio file."}), 400
 
         if audio_data.size == 0:
-            return jsonify({"text": "", "confidence": -100.0})
+            return jsonify({"text": "", "segments": [], "confidence": -100.0})
 
         kwargs = {
             "beam_size": BEAM_SIZE,
@@ -142,7 +142,7 @@ def transcribe():
             "task": "transcribe",
             "language": TRANSCRIPTION_LANGUAGE,
             "condition_on_previous_text": False,
-            "without_timestamps": True,
+            "without_timestamps": False,
         }
         if "no_speech_threshold" in TRANSCRIBE_PARAMS:
             kwargs["no_speech_threshold"] = 0.6
@@ -163,6 +163,7 @@ def transcribe():
         if not segments or not text:
             return jsonify({
                 "text": "",
+                "segments": [],
                 "confidence": -100.0,
                 "no_speech_prob": 1.0,
                 "compression_ratio": 0.0,
@@ -170,6 +171,15 @@ def transcribe():
         average_logprob = sum(segment.avg_logprob for segment in segments) / len(segments)
         no_speech_prob = max(segment.no_speech_prob for segment in segments)
         compression_ratio = max(segment.compression_ratio for segment in segments)
+        timed_segments = [
+            {
+                "start": max(0.0, float(segment.start)),
+                "end": max(float(segment.start), float(segment.end)),
+                "text": segment.text.strip(),
+            }
+            for segment in segments
+            if segment.text.strip()
+        ]
         # Keep the raw logprob. Clamping it hid unusable transcripts from the app.
         if is_wake and (
             no_speech_prob >= MAX_NO_SPEECH_PROB
@@ -179,6 +189,7 @@ def transcribe():
             text = ""
         return jsonify({
             "text": text,
+            "segments": timed_segments if text else [],
             "confidence": round(average_logprob, 3),
             "no_speech_prob": round(no_speech_prob, 3),
             "compression_ratio": round(compression_ratio, 3),

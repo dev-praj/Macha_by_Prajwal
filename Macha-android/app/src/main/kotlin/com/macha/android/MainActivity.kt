@@ -85,10 +85,10 @@ import com.macha.android.link.ApprovalRequest
 import com.macha.android.link.QuestionRequest
 import com.macha.android.link.LinkState
 import com.macha.android.link.PairingPayload
-import com.macha.android.mochi.BotEmote
-import com.macha.android.mochi.BotState
-import com.macha.android.mochi.MochiEngine
-import com.macha.android.mochi.MochiView
+import com.macha.android.macha.BotEmote
+import com.macha.android.macha.BotState
+import com.macha.android.macha.MachaEngine
+import com.macha.android.macha.MachaView
 import com.macha.android.ui.Panel
 import com.macha.android.ui.c
 import com.macha.android.ui.style
@@ -124,7 +124,7 @@ import com.macha.android.ui.PairConfirm
 import com.macha.android.ui.ScanScreen
 import com.macha.android.ui.SessionScreen
 import com.macha.android.ui.ChatScreen
-import com.macha.android.ui.MochiTouch
+import com.macha.android.ui.MachaTouch
 import com.macha.android.ui.HistoryScreen
 import com.macha.android.ui.SettingsScreen
 import com.macha.android.ui.StatusColors
@@ -328,9 +328,9 @@ private fun Home(
     model: AppModel, onApprove: (ApprovalRequest) -> Unit, onOverlay: (Boolean) -> Unit, onSession: (String) -> Unit,
     onScan: () -> Unit, onHistory: () -> Unit, onReview: () -> Unit, onQuestion: (String) -> Unit, onDiagnostics: () -> Unit,
 ) {
-    val engines = remember { HashMap<String, MochiEngine>() }
-    val miniEngines = remember { HashMap<String, MochiEngine>() }
-    val touches = remember { HashMap<String, MochiTouch>() }
+    val engines = remember { HashMap<String, MachaEngine>() }
+    val miniEngines = remember { HashMap<String, MachaEngine>() }
+    val touches = remember { HashMap<String, MachaTouch>() }
     val clock = remember { { SystemClock.elapsedRealtimeNanos() / 1e6 } }
     var selected by rememberSaveable { mutableStateOf<String?>(null) }
     val listState = rememberLazyListState()
@@ -348,16 +348,16 @@ private fun Home(
     // The PC's Home panel: the agent that matters in a big card, the others as pills.
     val focus = HomePanel.focus(model.sessions, selected)
     val key = focus?.pillId ?: HOME_KEY
-    val engine = engines.getOrPut(key) { MochiEngine(clock, sound = model.sounds) }
-    val touch = touches.getOrPut(key) { MochiTouch(engine, model.sounds) { model.sessions.firstOrNull { it.pillId == key }?.state ?: BotState.IDLE } }
-    val state = focus?.state ?: BotState.SLEEPING // no agent: a sleeping Mochi
+    val engine = engines.getOrPut(key) { MachaEngine(clock, sound = model.sounds) }
+    val touch = touches.getOrPut(key) { MachaTouch(engine, model.sounds) { model.sessions.firstOrNull { it.pillId == key }?.state ?: BotState.IDLE } }
+    val state = focus?.state ?: BotState.SLEEPING // no agent: a sleeping Macha
     if (engine.state != state && !touch.dizzy) engine.setState(state)
 
     // The hero wears what the computer says, or what the user picked here (a new engine starts dressed, a change animates).
-    val dressed = remember { HashSet<MochiEngine>() }
+    val dressed = remember { HashSet<MachaEngine>() }
     model.dress().let { outfit -> if (dressed.add(engine)) engine.setOutfit(outfit, animated = false) else engine.setOutfit(outfit) }
 
-    // The hero's Mochi wears its agent's colour, like the small ones (never white by default).
+    // The hero's Macha wears its agent's colour, like the small ones (never white by default).
     engine.bodyColor = focus?.let { HomePanel.colorHex(it) }?.let { HomePanel.rgb(it) }
 
     val pair = HomePanel.link(model.isPaired, model.mode == Mode.DEMO, hasApproval = model.approvals.isNotEmpty())
@@ -406,7 +406,7 @@ private fun Home(
                         others,
                         engineFor = { s ->
                             miniEngines.getOrPut(s.pillId) {
-                                MochiEngine(clock).apply {
+                                MachaEngine(clock).apply {
                                     isMini = true
                                     bodyColor = HomePanel.colorHex(s)?.let { HomePanel.rgb(it) }
                                 }
@@ -454,8 +454,8 @@ private fun OverlayHint(onOverlay: (Boolean) -> Unit) {
 @Composable
 private fun Gallery(onBack: () -> Unit) {
     val clock = remember { { SystemClock.elapsedRealtimeNanos() / 1e6 } }
-    val states = remember { BotState.entries.map { s -> s to MochiEngine(clock).apply { setState(s, force = true) } } }
-    val emotes = remember { BotEmote.entries.map { e -> e to MochiEngine(clock).apply { setPermanentEmote(e) } } }
+    val states = remember { BotState.entries.map { s -> s to MachaEngine(clock).apply { setState(s, force = true) } } }
+    val emotes = remember { BotEmote.entries.map { e -> e to MachaEngine(clock).apply { setPermanentEmote(e) } } }
     Column(Modifier.padding(horizontal = Gutter)) {
         ScreenTitle(stringResource(R.string.gallery), onBack)
         Spacer(Modifier.height(Gap))
@@ -467,10 +467,10 @@ private fun Gallery(onBack: () -> Unit) {
 }
 
 @Composable
-private fun GalleryCell(label: String, engine: MochiEngine) {
+private fun GalleryCell(label: String, engine: MachaEngine) {
     Box(Modifier.fillMaxWidth()) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            MochiView(engine, Modifier.fillMaxWidth().aspectRatio(1f))
+            MachaView(engine, Modifier.fillMaxWidth().aspectRatio(1f))
             Text(label, style = MaterialTheme.typography.labelSmall)
         }
     }

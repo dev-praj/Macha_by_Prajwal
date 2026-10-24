@@ -33,8 +33,8 @@ import com.macha.android.core.Spacing
 import com.macha.android.core.SpokenLabels
 import com.macha.android.core.Tab
 import com.macha.android.core.TypeScale
-import com.macha.android.mochi.BotState
-import com.macha.android.mochi.MochiConst
+import com.macha.android.macha.BotState
+import com.macha.android.macha.MachaConst
 
 private fun Tab.icon() = when (this) {
     Tab.HOME -> IconKind.HOME
@@ -77,7 +77,7 @@ fun BottomBar(tabs: List<Tab>, selected: Tab?, onSelect: (Tab) -> Unit, alert: B
                     Text(label, style = TypeScale.LABEL.style(if (on) t.text.c() else t.textDim.c()), maxLines = 1, softWrap = false)
                 }
                 if (alert && tab == Tab.HOME) {
-                    val amber = MochiConst.STATES[BotState.APPROVAL]?.color?.let(::rgbColor) ?: Color(0xFFF5A524)
+                    val amber = MachaConst.STATES[BotState.APPROVAL]?.color?.let(::rgbColor) ?: Color(0xFFF5A524)
                     Box(Modifier.align(Alignment.TopCenter).padding(start = 22.dp, top = 4.dp).size(9.dp).clip(CircleShape).background(amber).border(2.dp, t.panel.c(), CircleShape))
                 }
             }

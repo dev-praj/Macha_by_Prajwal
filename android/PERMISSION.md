@@ -1,14 +1,14 @@
-> Update 2026-10-11: Android is now part of the official Macha repository. Prajwal agreed (email) to the licence wording; the name, Mochi, the icon and the sounds are covered by `../LICENSE-ASSETS.md`, which includes Android. This file keeps the history of the original permission, which still applies: the app is free, and nothing is published before both parties agree.
+> Update 2026-10-11: Android is now part of the official Macha repository. Prajwal agreed (email) to the licence wording; the name, Macha, the icon and the sounds are covered by `../LICENSE-ASSETS.md`, which includes Android. This file keeps the history of the original permission, which still applies: the app is free, and nothing is published before both parties agree.
 
 # Permission from the author
 
-Macha's name, the Mochi character, the app icon, the sounds and the visuals are
+Macha's name, the Macha character, the app icon, the sounds and the visuals are
 (c) Prajwal and are NOT covered by the MIT License (see `LICENSE-ASSETS.md`).
 
-On 8 Oct 2026 Prajwal gave written permission (email, accepted by Rhytam Biswas)
+On 8 Oct 2026 Prajwal gave written permission (email, accepted by Prajwal)
 to use them in this Android port only, under these conditions:
 
-- Allowed: Mochi (look, expressions, animations), Macha sounds and visuals, app icon,
+- Allowed: Macha (look, expressions, animations), Macha sounds and visuals, app icon,
   and the name as "Macha for Android" with a clear mention that it is an unofficial
   port based on Macha by Prajwal, with a link to the GitHub repository.
 - The app must be free: no ads, no paid features, unless agreed otherwise in writing.

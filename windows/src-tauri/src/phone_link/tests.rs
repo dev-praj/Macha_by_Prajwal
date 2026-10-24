@@ -640,7 +640,7 @@ mod chat_tests {
         fn config(&self) -> ChatConfig {
             self.config.lock().unwrap().clone()
         }
-        fn send(&self, model_id: &str, text: String, deltas: UnboundedSender<String>) -> BoxFuture<Result<String, ChatFail>> {
+        fn send(&self, _conn: u64, model_id: &str, text: String, deltas: UnboundedSender<String>) -> BoxFuture<Result<String, ChatFail>> {
             self.calls.lock().unwrap().push((model_id.to_string(), text));
             let script = self.script.lock().unwrap().clone();
             let dropped = self.dropped.clone();
@@ -673,7 +673,10 @@ mod chat_tests {
                 }
             })
         }
-        fn reset(&self) {
+        fn reset(&self, _conn: u64) {
+            self.resets.fetch_add(1, Ordering::SeqCst);
+        }
+        fn reset_all(&self) {
             self.resets.fetch_add(1, Ordering::SeqCst);
         }
     }
@@ -1923,10 +1926,10 @@ fn only_the_right_window_may_call_a_command_that_changes_something() {
     use super::{caller_allowed, Caller};
     assert!(caller_allowed("settings", Caller::Settings));
     assert!(caller_allowed("island", Caller::Island));
-    for other in ["island", "mochi", "", "Settings", "settings ", "main", "settings2"] {
+    for other in ["island", "macha", "", "Settings", "settings ", "main", "settings2"] {
         assert!(!caller_allowed(other, Caller::Settings), "{other:?} must not act as the settings window");
     }
-    for other in ["settings", "mochi", "", "Island", "island ", "main"] {
+    for other in ["settings", "macha", "", "Island", "island ", "main"] {
         assert!(!caller_allowed(other, Caller::Island), "{other:?} must not act as the island");
     }
 }

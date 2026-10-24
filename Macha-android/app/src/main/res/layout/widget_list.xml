@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The List widget: a card with the headline and a badge, then rows of at least 48dp (stripe, Mochi's face, name, state word, dot).
+<!-- The List widget: a card with the headline and a badge, then rows of at least 48dp (stripe, Macha's face, name, state word, dot).
      With no agent the header and the rows give way to a centred empty state, so the card is never half blank. Plain RemoteViews. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/list_root"
@@ -373,7 +373,7 @@
 
             <ImageView
                 android:id="@+id/list_empty_face"
-                android:src="@drawable/preview_mochi_idle"
+                android:src="@drawable/preview_macha_idle"
                 android:contentDescription="@string/widget_list_label"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"

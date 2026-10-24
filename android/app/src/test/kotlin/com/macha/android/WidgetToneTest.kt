@@ -8,7 +8,7 @@ import com.macha.android.core.mood
 import com.macha.android.core.WidgetContent
 import com.macha.android.core.WidgetTile
 import com.macha.android.core.WidgetTone
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -41,7 +41,7 @@ class WidgetToneTest {
         for (s in BotState.values()) assertEquals(WidgetTone.MUTED, WidgetTone.of(s, connected = false))
     }
 
-    @Test fun theColoursAreOpaqueAndTheOnesOfMochi() {
+    @Test fun theColoursAreOpaqueAndTheOnesOfMacha() {
         assertEquals(0xFFF5A524.toInt(), WidgetTone.ATTENTION.argb)
         assertEquals(0xFF3B9EFF.toInt(), WidgetTone.WORKING.argb)
         assertEquals(0xFF34D499.toInt(), WidgetTone.DONE.argb)
@@ -120,7 +120,7 @@ class WidgetToneTest {
         assertEquals(WidgetTone.ATTENTION, Glance("h", "d", GlanceTone.ATTENTION, true, listOf(GlanceLine("A", "t", BotState.WORKING)), 1).look())
     }
 
-    @Test fun mochiOnTheSummaryFollowsTheMostUrgentLine() {
+    @Test fun machaOnTheSummaryFollowsTheMostUrgentLine() {
         assertEquals(BotState.APPROVAL, glance(true, BotState.APPROVAL, BotState.WORKING).mood())
         assertEquals(BotState.WORKING, glance(true, BotState.WORKING).mood())
         assertEquals(BotState.IDLE, glance(true).mood())

@@ -2,7 +2,7 @@ package com.macha.android
 
 import com.macha.android.core.HomePanel
 import com.macha.android.link.SessionInfo
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -49,7 +49,7 @@ class HomePanelTest {
         assertEquals(HomePanel.Link.NONE, HomePanel.link(paired = false, demo = true, hasApproval = false))
     }
 
-    @Test fun pillColoursBecomeMochiBodies() {
+    @Test fun pillColoursBecomeMachaBodies() {
         val c = HomePanel.rgb("#8AB4F8")!!
         assertEquals(0x8A / 255.0, c.r, 1e-9)
         assertEquals(0xB4 / 255.0, c.g, 1e-9)

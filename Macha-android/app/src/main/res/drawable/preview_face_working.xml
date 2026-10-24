@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Mochi's face in the "working" state, drawn with vectors for the Widget picker: the soft body with its light gradient and shade,
-     pink cheeks, dark eyes and the state badge, in the proportions of MochiPainter.drawMochi. No bitmap, so it stays sharp at any density. -->
+<!-- Macha's face in the "working" state, drawn with vectors for the Widget picker: the soft body with its light gradient and shade,
+     pink cheeks, dark eyes and the state badge, in the proportions of MachaPainter.drawMacha. No bitmap, so it stays sharp at any density. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
     android:width="120dp"
     android:height="120dp"

@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.heightIn
 import com.macha.android.core.HomeText
 import com.macha.android.core.IconKind
 import com.macha.android.core.TypeScale
-import com.macha.android.mochi.MochiConst
+import com.macha.android.macha.MachaConst
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -35,9 +35,9 @@ import com.macha.android.app.AppModel
 import com.macha.android.core.HomePanel
 import com.macha.android.core.Pills
 import com.macha.android.core.ToolLabels
-import com.macha.android.mochi.BotState
-import com.macha.android.mochi.MochiEngine
-import com.macha.android.mochi.MochiView
+import com.macha.android.macha.BotState
+import com.macha.android.macha.MachaEngine
+import com.macha.android.macha.MachaView
 
 /**
  * One agent in detail, from what the computer sends with "Show session details on the phone": the project's
@@ -48,7 +48,7 @@ import com.macha.android.mochi.MochiView
 fun SessionScreen(model: AppModel, pillId: String, onBack: () -> Unit) {
     val s = model.sessions.firstOrNull { it.pillId == pillId }
     val clock = remember { { SystemClock.elapsedRealtimeNanos() / 1e6 } }
-    val engine = remember(pillId) { MochiEngine(clock) }
+    val engine = remember(pillId) { MachaEngine(clock) }
     if (s == null) {
         Column(Modifier.fillMaxSize().padding(horizontal = Gutter)) {
             ScreenTitle(stringResource(R.string.session_details), onBack)
@@ -57,7 +57,7 @@ fun SessionScreen(model: AppModel, pillId: String, onBack: () -> Unit) {
         return
     }
     if (engine.state != s.state) engine.setState(s.state)
-    // Its own colour, like on Home: the Mochi's body, the glow's state colour stays Prajwal's.
+    // Its own colour, like on Home: the Macha's body, the glow's state colour stays Prajwal's.
     engine.bodyColor = HomePanel.colorHex(s)?.let { HomePanel.rgb(it) }
     val name = s.agent.ifBlank { Pills.byId(s.pillId)?.name.orEmpty() }
     val accent = HomePanel.colorHex(s)?.let { HomePanel.rgb(it) }?.let(::rgbColor) ?: tokens().text.c()
@@ -67,9 +67,9 @@ fun SessionScreen(model: AppModel, pillId: String, onBack: () -> Unit) {
     LazyColumn(Modifier.fillMaxSize().padding(horizontal = Gutter), verticalArrangement = Arrangement.spacedBy(Gap)) {
         item { ScreenTitle(name, onBack) }
         item {
-            Panel(wash = MochiConst.STATES[s.state]?.color?.let(::rgbColor)) {
+            Panel(wash = MachaConst.STATES[s.state]?.color?.let(::rgbColor)) {
                 Row(Modifier.padding(Gutter), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Gutter)) {
-                    MochiView(engine, Modifier.size(96.dp))
+                    MachaView(engine, Modifier.size(96.dp))
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(
                             HomeText.line(s) ?: stringResource(stateLabel(s.state)), style = TypeScale.HEADLINE.style(t.text.c()),
@@ -83,7 +83,7 @@ fun SessionScreen(model: AppModel, pillId: String, onBack: () -> Unit) {
         if (!s.finalLine.isNullOrBlank()) {
             item { SectionHeading(stringResource(R.string.session_last)) }
             item {
-                Panel(wash = MochiConst.STATES[BotState.FINISHED]?.color?.let(::rgbColor)) {
+                Panel(wash = MachaConst.STATES[BotState.FINISHED]?.color?.let(::rgbColor)) {
                     SelectionContainer { Text(s.finalLine, Modifier.padding(Gutter), style = TypeScale.BODY.style(t.text.c())) }
                 }
             }

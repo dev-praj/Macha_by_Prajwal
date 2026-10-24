@@ -1,6 +1,6 @@
 package com.macha.android.link
 
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 
 /**
  * Offline demo of the desktop link: a few fake sessions and one approval, so the app can be

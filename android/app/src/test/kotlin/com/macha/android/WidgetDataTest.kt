@@ -12,7 +12,7 @@ import com.macha.android.link.UsageSnapshot
 import com.macha.android.core.PlanUsageLook
 import com.macha.android.core.UsageRing
 import com.macha.android.core.WidgetTone
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull

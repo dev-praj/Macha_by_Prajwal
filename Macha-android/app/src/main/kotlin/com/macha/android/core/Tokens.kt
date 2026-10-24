@@ -4,7 +4,7 @@ package com.macha.android.core
  * The design tokens as plain numbers, so a test can check contrast and the scale without Compose. There are two sets, dark and light
  * (Settings > Theme); the island over other apps and the camera screen are always dark.
  *
- * Prajwal's Mochi, its state colours and the pill colours are not here and are not changed.
+ * Prajwal's Macha, its state colours and the pill colours are not here and are not changed.
  */
 data class Tokens(
     /** The screen. */

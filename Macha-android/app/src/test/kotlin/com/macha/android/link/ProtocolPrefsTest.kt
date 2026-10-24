@@ -1,6 +1,6 @@
 package com.macha.android.link
 
-import com.macha.android.mochi.outfit.Wardrobe
+import com.macha.android.macha.outfit.Wardrobe
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

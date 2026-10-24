@@ -4,10 +4,10 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.SoundPool
 import com.macha.android.R
-import com.macha.android.mochi.SoundSink
+import com.macha.android.macha.SoundSink
 
 /**
- * Plays Mochi's sounds (the .wav files in res/raw, (c) Prajwal, used with permission) through a
+ * Plays Macha's sounds (the .wav files in res/raw, (c) Prajwal, used with permission) through a
  * SoundPool. Short clips, no streaming; a sound that is not found is silently ignored.
  */
 class SoundPlayer(private val context: Context) : SoundSink {

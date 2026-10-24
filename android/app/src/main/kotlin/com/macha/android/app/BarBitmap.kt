@@ -15,7 +15,7 @@ import com.macha.android.core.UsageRing
 import kotlin.math.max
 
 /**
- * The thin bar of a plan-usage row on Mochi Big, drawn once into a bitmap like [RingBitmap] draws the Usage Ring's ring: a faint
+ * The thin bar of a plan-usage row on Macha Big, drawn once into a bitmap like [RingBitmap] draws the Usage Ring's ring: a faint
  * track and a rounded fill in the colour of the usage (teal, yellow from 75%, red from 90%: [com.macha.android.core.PlanUsageLook]). A few are kept so a push that changes
  * nothing about a bar draws nothing. No timer, no frame loop.
  */

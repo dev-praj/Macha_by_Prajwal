@@ -34,7 +34,7 @@ interface LinkListener {
     fun onApprovalResolved(fingerprint: String) {}
     /** A question to answer (only with the `answers` capability). It is removed by [onApprovalResolved] with the same fingerprint. */
     fun onQuestion(request: QuestionRequest) {}
-    /** What Mochi wears on the computer: "auto" or an outfit (only with the `prefs` capability). */
+    /** What Macha wears on the computer: "auto" or an outfit (only with the `prefs` capability). */
     fun onPrefs(outfit: String) {}
     /** A part of a file's diff the phone asked for (only with the `diffs` capability). */
     fun onDiff(part: ServerMsg.Diff) {}

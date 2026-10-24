@@ -26,7 +26,7 @@ class ScreenLayoutTest {
 
     @Test fun theNoticeNamesTheOriginalAuthorAndHisRepository() {
         val xml = File("src/main/res/values/strings.xml").readText()
-        assertTrue(xml.contains("Macha for Android, by Rhytam Biswas. Part of Macha by Prajwal"))
+        assertTrue(xml.contains("Macha for Android, by Prajwal. Part of Macha by Prajwal"))
         assertTrue(xml.contains("github.com/dev-praj/macha"))
         assertTrue(xml.contains("© Prajwal"))
         assertTrue(xml.contains("MIT License"))

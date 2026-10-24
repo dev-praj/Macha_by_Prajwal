@@ -11,8 +11,8 @@ import com.macha.android.core.WidgetContent
 import com.macha.android.core.WidgetSpoken
 
 /**
- * The List widget: the headline with a badge, then one row per agent of at least 48dp (a bar in its own colour, Mochi's
- * face, its name, a state word and a dot in the state's tone). With no agent it is a centred empty state: Mochi asleep and
+ * The List widget: the headline with a badge, then one row per agent of at least 48dp (a bar in its own colour, Macha's
+ * face, its name, a state word and a dot in the state's tone). With no agent it is a centred empty state: Macha asleep and
  * one clear line. Drawn by [WidgetHub] when something changes (updatePeriodMillis = 0). A tap on a row opens that agent; a
  * tap anywhere else opens the app. It only opens things: a request waits for you in the app, behind the fingerprint.
  */
@@ -45,12 +45,12 @@ class ListWidget : AppWidgetProvider() {
             v.setContentDescription(R.id.list_root, WidgetSpoken.list(c))
 
             if (c.tiles.isEmpty()) {
-                // The empty state fills the card: Mochi asleep (or calm) with his glow, the headline and one clear line.
+                // The empty state fills the card: Macha asleep (or calm) with his glow, the headline and one clear line.
                 v.setViewVisibility(R.id.list_header, View.GONE)
                 v.setViewVisibility(R.id.list_rows, View.GONE)
                 v.setViewVisibility(R.id.list_empty, View.VISIBLE)
-                v.setImageViewBitmap(R.id.list_empty_face, MochiBitmap.of(c.mood, WidgetHub.px(context, 96), glow = true, tone = c.look))
-                v.setContentDescription(R.id.list_empty_face, context.getString(R.string.widget_mochi_description, WidgetSpoken.mood(c.mood)))
+                v.setImageViewBitmap(R.id.list_empty_face, MachaBitmap.of(c.mood, WidgetHub.px(context, 96), glow = true, tone = c.look))
+                v.setContentDescription(R.id.list_empty_face, context.getString(R.string.widget_macha_description, WidgetSpoken.mood(c.mood)))
                 v.setImageViewResource(R.id.list_empty_icon, if (c.connected) R.drawable.widget_dot else R.drawable.ic_widget_offline)
                 v.setInt(R.id.list_empty_icon, "setColorFilter", c.look.argb)
                 v.setTextViewText(R.id.list_empty_title, c.headline)
@@ -84,8 +84,8 @@ class ListWidget : AppWidgetProvider() {
                 }
                 v.setViewVisibility(r.row, View.VISIBLE)
                 v.setInt(r.stripe, "setColorFilter", tile.tone.argb)
-                v.setImageViewBitmap(r.face, MochiBitmap.of(tile.state, face))
-                v.setContentDescription(r.face, context.getString(R.string.widget_mochi_description, tile.stateWord.lowercase()))
+                v.setImageViewBitmap(r.face, MachaBitmap.of(tile.state, face))
+                v.setContentDescription(r.face, context.getString(R.string.widget_macha_description, tile.stateWord.lowercase()))
                 v.setTextViewText(r.name, tile.name)
                 v.setTextViewText(r.state, tile.stateWord)
                 v.setInt(r.dot, "setColorFilter", tile.tone.argb)

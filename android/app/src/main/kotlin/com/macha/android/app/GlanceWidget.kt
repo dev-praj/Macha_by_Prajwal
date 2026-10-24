@@ -16,7 +16,7 @@ import com.macha.android.core.mood
 
 /**
  * The home-screen summary widget (3x2): the same short summary as the notification and the tile ([Glance]: its text and counts
- * are unchanged), on the shared card with a gradient in the colour of the state. A small Mochi in the state of the most urgent
+ * are unchanged), on the shared card with a gradient in the colour of the state. A small Macha in the state of the most urgent
  * agent sits on the left; on the right are the headline, a badge for what waits for you and up to three short lines, each with a
  * dot in the state's tone. It never updates on a timer (updatePeriodMillis = 0): the app pushes a new picture when something
  * changes, so it costs nothing while nothing happens. A tap anywhere opens Macha; there is no button here.
@@ -61,8 +61,8 @@ class GlanceWidget : AppWidgetProvider() {
             WidgetHub.paint(v, R.id.widget_root, R.id.glance_tint, tone)
 
             val mood = g.mood()
-            v.setImageViewBitmap(R.id.glance_mochi, MochiBitmap.of(mood, WidgetHub.px(context, 64), glow = true, tone = tone))
-            v.setContentDescription(R.id.glance_mochi, context.getString(R.string.widget_mochi_description, WidgetSpoken.mood(mood)))
+            v.setImageViewBitmap(R.id.glance_macha, MachaBitmap.of(mood, WidgetHub.px(context, 64), glow = true, tone = tone))
+            v.setContentDescription(R.id.glance_macha, context.getString(R.string.widget_macha_description, WidgetSpoken.mood(mood)))
 
             v.setViewVisibility(R.id.glance_offline, if (g.connected) View.GONE else View.VISIBLE)
             v.setTextViewText(R.id.glance_headline, g.headline)

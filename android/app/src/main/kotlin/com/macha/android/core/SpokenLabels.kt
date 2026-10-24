@@ -1,7 +1,7 @@
 package com.macha.android.core
 
 /**
- * What TalkBack says for the things that are drawn rather than written (a state dot, a Mochi, a badge), so the state of an agent
+ * What TalkBack says for the things that are drawn rather than written (a state dot, a Macha, a badge), so the state of an agent
  * is never only a colour. Pure: the words come from the string resources, this only joins them in one fixed shape.
  */
 object SpokenLabels {

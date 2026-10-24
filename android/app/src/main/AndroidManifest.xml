@@ -79,7 +79,7 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/macha_widget_info" />
         </receiver>
 
-        <!-- The Solo and List widgets: Mochi and the agents, pushed by the app when something changes (no timer). -->
+        <!-- The Solo and List widgets: Macha and the agents, pushed by the app when something changes (no timer). -->
         <receiver android:name=".app.SoloWidget" android:exported="true" android:label="@string/widget_solo_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -93,8 +93,8 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/macha_list_widget_info" />
         </receiver>
 
-        <!-- More Widgets: Mochi Big, Status Pill, Waiting Alert, Usage Ring, Today and Mochi Mood. Pushed by the app when something changes (no timer). -->
-        <receiver android:name=".app.MochiBigWidget" android:exported="true" android:label="@string/widget_big_label">
+        <!-- More Widgets: Macha Big, Status Pill, Waiting Alert, Usage Ring, Today and Macha Mood. Pushed by the app when something changes (no timer). -->
+        <receiver android:name=".app.MachaBigWidget" android:exported="true" android:label="@string/widget_big_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -167,7 +167,7 @@
         <service
             android:name=".app.GlanceTile"
             android:exported="true"
-            android:icon="@drawable/ic_stat_mochi"
+            android:icon="@drawable/ic_stat_macha"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>

@@ -3,7 +3,7 @@ package com.macha.android
 import com.macha.android.core.AgentMute
 import com.macha.android.core.StatusPolicy
 import com.macha.android.core.UserSettings
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

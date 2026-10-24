@@ -61,7 +61,7 @@ class ApprovalAlertsTest {
 
     @Test fun aRequestIsNeverMutedByTheseChoices() {
         val src = File("src/main/kotlin/com/macha/android/app/Notifications.kt").readText()
-        // The channel is always high importance with Mochi's sound; the choices only touch vibration and the wake.
+        // The channel is always high importance with Macha's sound; the choices only touch vibration and the wake.
         val block = src.substringAfter("fun applyApprovalSettings").substringBefore("private fun open(")
         assertTrue(block.contains("IMPORTANCE_HIGH"))
         assertTrue(block.contains("R.raw.approval"))

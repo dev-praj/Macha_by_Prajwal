@@ -8,7 +8,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The buttons of the Status Pill and Mochi Big, and the room they take. A button only opens a screen of the app (or the top agent):
+ * The buttons of the Status Pill and Macha Big, and the room they take. A button only opens a screen of the app (or the top agent):
  * none approves, denies or sends anything, and each has its own request code, a name and a content description.
  */
 class WidgetButtonsTest {
@@ -125,15 +125,15 @@ class WidgetButtonsTest {
         assertTrue(src.contains("R.id.pill_state, if (size == WidgetHub.Size.LARGE) View.VISIBLE else View.GONE"))
     }
 
-    // ── Mochi Big ───────────────────────────────────────────────────────────────────────────────────
+    // ── Macha Big ───────────────────────────────────────────────────────────────────────────────────
 
     private val bigLayout get() = read(res + "layout/widget_big.xml")
-    private val bigSource get() = read(main + "app/MochiBigWidget.kt")
+    private val bigSource get() = read(main + "app/MachaBigWidget.kt")
     private fun byId(root: org.w3c.dom.Element, id: String) = root.descendants().first { it.getAttribute("android:id") == "@+id/$id" }
 
     @Test fun theSpeechBubbleIsGoneFromEverywhere() {
         val files = listOf(
-            res + "layout/widget_big.xml", res + "layout/widget_preview_big.xml", main + "app/MochiBigWidget.kt", main + "core/WidgetData.kt",
+            res + "layout/widget_big.xml", res + "layout/widget_preview_big.xml", main + "app/MachaBigWidget.kt", main + "core/WidgetData.kt",
             res + "values/strings.xml", res + "values/colors.xml", res + "values-notnight/colors.xml", "../i18n/app-strings.json",
         )
         for (f in files) assertFalse("$f still says bubble", read(f).contains("bubble", ignoreCase = true))
@@ -146,15 +146,15 @@ class WidgetButtonsTest {
         assertFalse(strings.values.any { Regex("is waiting for you\\b").containsMatchIn(it) || it.startsWith("Claude Code is ") })
     }
 
-    @Test fun theTopIsMochiOnTheLeftAndThePlanUsageOnTheRight() {
+    @Test fun theTopIsMachaOnTheLeftAndThePlanUsageOnTheRight() {
         val root = element(bigLayout)
         val top = byId(root, "big_top")
         assertEquals("horizontal", top.getAttribute("android:orientation"))
         val sides = top.children()
         assertEquals(listOf("@+id/big_left", "@+id/big_right"), sides.map { it.getAttribute("android:id") })
-        assertEquals("Mochi's side is about 45% of the width", listOf("45", "55"), sides.map { it.getAttribute("android:layout_weight") })
+        assertEquals("Macha's side is about 45% of the width", listOf("45", "55"), sides.map { it.getAttribute("android:layout_weight") })
         val left = byId(root, "big_left").descendants().mapNotNull { it.getAttribute("android:id").takeIf { id -> id.isNotEmpty() } }
-        assertEquals(listOf("@+id/big_mochi", "@+id/big_row", "@+id/big_offline", "@+id/big_dot", "@+id/big_name", "@+id/big_state"), left)
+        assertEquals(listOf("@+id/big_macha", "@+id/big_row", "@+id/big_offline", "@+id/big_dot", "@+id/big_name", "@+id/big_state"), left)
         assertEquals("the badge stays in the top-right corner", "top|end", byId(root, "big_badge").getAttribute("android:layout_gravity"))
     }
 
@@ -205,7 +205,7 @@ class WidgetButtonsTest {
         for (k in listOf("a", "b")) assertEquals("gone", byId(root, "big_usage_$k").getAttribute("android:visibility"))
     }
 
-    @Test fun mochiBigHasTwoArrangementsOfTheSixButtons() {
+    @Test fun machaBigHasTwoArrangementsOfTheSixButtons() {
         val root = element(bigLayout)
         val row = byId(root, "big_buttons_m").children().map { it.getAttribute("android:id") }
         assertEquals("one row of four", listOf("@+id/big_m_home", "@+id/big_m_chat", "@+id/big_m_settings", "@+id/big_m_recent"), row)
@@ -249,24 +249,24 @@ class WidgetButtonsTest {
         assertTrue(src.contains("R.id.big_buttons, if (small) View.GONE else View.VISIBLE"))
         assertTrue(src.contains("R.id.big_buttons_m, if (large) View.GONE else View.VISIBLE"))
         assertTrue(src.contains("R.id.big_buttons_l, if (large) View.VISIBLE else View.GONE"))
-        // Small: Mochi and the first row of usage only.
+        // Small: Macha and the first row of usage only.
         assertTrue(src.contains("rows.getOrNull(1)?.takeIf { !small }"))
     }
 
-    @Test fun mochiKeepsAtLeastFortyPercentOfTheTopAreaWheneverButtonsShow() {
+    @Test fun machaKeepsAtLeastFortyPercentOfTheTopAreaWheneverButtonsShow() {
         val medium = Regex("""MEDIUM_AT = SizeF\(0f, (\d+)f""").find(bigSource)!!.groupValues[1].toDouble()
         val large = Regex("""LARGE_AT = SizeF\(0f, (\d+)f""").find(bigSource)!!.groupValues[1].toDouble()
         val minHeight = Regex("""android:minHeight="(\d+)dp"""").find(read(res + "xml/macha_big_widget_info.xml"))!!.groupValues[1].toDouble()
         val tile = dimens.getValue("widget_tile_height")
         val padding = 24.0
-        // The top area is what the buttons leave; under Mochi sit the name row and the state word (about 20 + 16).
+        // The top area is what the buttons leave; under Macha sit the name row and the state word (about 20 + 16).
         val status = 36.0
         val small = minHeight - padding
         val withRow = medium - padding - (8 + tile)
         val withGrid = large - padding - (8 + tile + 6 + tile)
         for ((what, top) in listOf("small" to small, "one row" to withRow, "two rows" to withGrid)) {
             assertTrue("$what: the top area is ${top.toInt()}dp", top >= 100)
-            assertTrue("$what: Mochi has ${(top - status).toInt()} of ${top.toInt()}dp", (top - status) / top >= 0.40)
+            assertTrue("$what: Macha has ${(top - status).toInt()} of ${top.toInt()}dp", (top - status) / top >= 0.40)
         }
         // The two usage rows (label 15, percentage 35, bar 6, gaps) fit beside him at every size where both show.
         val twoRows = 2 * (15 + 35 + 2 + 6) + 8
@@ -277,14 +277,14 @@ class WidgetButtonsTest {
     // ── Nothing here can approve, deny or send ──────────────────────────────────────────────────────
 
     @Test fun everyButtonOpensAScreenOfTheClosedListAndNothingElse() {
-        for (f in listOf("app/StatusPillWidget.kt", "app/MochiBigWidget.kt")) {
+        for (f in listOf("app/StatusPillWidget.kt", "app/MachaBigWidget.kt")) {
             val src = read(main + f)
             for (word in listOf("PendingLaunch", "launch.request", "ActionReceiver", "approve", "Allow", "Deny", "decide", "send", "BiometricGate", "putExtra")) {
                 assertFalse("$f uses $word", src.contains(word, ignoreCase = word != "send" && word != "Allow" && word != "Deny"))
             }
         }
         // Every screen a button names is on the list.
-        val named = (read(main + "app/StatusPillWidget.kt") + read(main + "app/MochiBigWidget.kt"))
+        val named = (read(main + "app/StatusPillWidget.kt") + read(main + "app/MachaBigWidget.kt"))
         for (m in Regex("""LaunchScreen\.([A-Z]+)""").findAll(named)) assertTrue(m.groupValues[1], LaunchScreen.values().any { it.name == m.groupValues[1] })
     }
 }

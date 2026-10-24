@@ -3,7 +3,7 @@ package com.macha.android
 import com.macha.android.core.IslandSpec
 import com.macha.android.core.IslandTimeline
 import com.macha.android.core.IslandTimeline.Phase
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue

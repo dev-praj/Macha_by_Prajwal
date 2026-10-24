@@ -81,7 +81,7 @@ class PendingLaunchTest {
         val m = manifest()
         val exported = Regex("""android:name="([^"]+)"[^>]*android:exported="true"""").findAll(m).map { it.groupValues[1] }.toSet()
         assertEquals(setOf(
-                ".MainActivity", ".app.GlanceWidget", ".app.GlanceTile", ".app.SoloWidget", ".app.ListWidget", ".app.MochiBigWidget",
+                ".MainActivity", ".app.GlanceWidget", ".app.GlanceTile", ".app.SoloWidget", ".app.ListWidget", ".app.MachaBigWidget",
                 ".app.StatusPillWidget", ".app.WaitingAlertWidget", ".app.UsageRingWidget", ".app.TodayWidget", ".app.MoodWidget", ".app.TeamWidget", ".app.TeamConfigActivity", ".app.ShareActivity",
             ), exported)
     }

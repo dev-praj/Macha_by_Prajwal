@@ -135,7 +135,7 @@ export function onLanguageChange(listener: (lang: Language) => void): () => void
 /**
  * <html lang> follows the language, so the webview picks fitting fonts, and
  * <html data-dir> says which way it reads: the island's CSS turns its text
- * containers right to left with it, leaving Mochi, the pills and the header
+ * containers right to left with it, leaving Macha, the pills and the header
  * where they are. (The settings window sets `dir` on the whole page.)
  */
 export function applyDocumentLanguage() {

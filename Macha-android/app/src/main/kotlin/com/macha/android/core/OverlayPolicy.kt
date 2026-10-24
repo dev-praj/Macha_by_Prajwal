@@ -45,7 +45,7 @@ interface WishStore {
 }
 
 /**
- * The switch "Show Mochi over other apps". The wish is saved the moment the user taps, before the
+ * The switch "Show Macha over other apps". The wish is saved the moment the user taps, before the
  * system permission screen opens: if Android recreates the activity or the process while the user is
  * in Settings, nothing is lost. The permission is asked live each time, so granting it later from
  * Android's own settings makes the pill work without another tap.

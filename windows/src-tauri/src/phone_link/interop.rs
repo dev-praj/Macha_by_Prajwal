@@ -81,7 +81,7 @@ impl ChatBackend for FakeChat {
         }
     }
 
-    fn send(&self, model_id: &str, text: String, deltas: tokio::sync::mpsc::UnboundedSender<String>) -> BoxFuture<Result<String, ChatFail>> {
+    fn send(&self, _conn: u64, model_id: &str, text: String, deltas: tokio::sync::mpsc::UnboundedSender<String>) -> BoxFuture<Result<String, ChatFail>> {
         let model = model_id.to_string();
         Box::pin(async move {
             if text.starts_with("/error") {
@@ -109,7 +109,11 @@ impl ChatBackend for FakeChat {
         })
     }
 
-    fn reset(&self) {
+    fn reset(&self, _conn: u64) {
+        println!("CHAT reset");
+    }
+
+    fn reset_all(&self) {
         println!("CHAT reset");
     }
 }

@@ -38,11 +38,11 @@ import com.macha.android.core.SpokenLabels
 import com.macha.android.core.Spacing
 import com.macha.android.core.TypeScale
 import com.macha.android.link.SessionInfo
-import com.macha.android.mochi.BotState
-import com.macha.android.mochi.MochiConst
-import com.macha.android.mochi.MochiEngine
-import com.macha.android.mochi.MochiView
-import com.macha.android.mochi.Rgb
+import com.macha.android.macha.BotState
+import com.macha.android.macha.MachaConst
+import com.macha.android.macha.MachaEngine
+import com.macha.android.macha.MachaView
+import com.macha.android.macha.Rgb
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -67,17 +67,17 @@ internal fun rgbColor(c: Rgb) = Color(c.r.toFloat(), c.g.toFloat(), c.b.toFloat(
 
 /** The colour of an agent's state (Prajwal's state colours), for dots and glows. */
 internal fun stateColor(state: BotState): Color =
-    if (state == BotState.IDLE) StatusColors.online else MochiConst.STATES[state]?.color?.let(::rgbColor) ?: StatusColors.offline
+    if (state == BotState.IDLE) StatusColors.online else MachaConst.STATES[state]?.color?.let(::rgbColor) ?: StatusColors.offline
 
 /**
  * The hero of Home: Prajwal's island grown to full width and hanging from the top edge of the screen. It
- * holds the agent that matters most, with its own Mochi in its own colour (the one you chose on the
+ * holds the agent that matters most, with its own Macha in its own colour (the one you chose on the
  * computer), its name, one plain sentence, and at most two buttons. Black, with a soft
  * glow in the state's colour. No step counter: the computer cannot know how many steps are left.
  */
 @Composable
 fun HeroCard(
-    focus: SessionInfo?, engine: MochiEngine, touch: Modifier, link: HomePanel.Link, running: Int,
+    focus: SessionInfo?, engine: MachaEngine, touch: Modifier, link: HomePanel.Link, running: Int,
     linkDot: Color, linkText: String, onLink: () -> Unit, onDetails: (() -> Unit)?,
     /** Opens the question sheet; non-null only while the agent has a question. */
     onQuestion: (() -> Unit)? = null,
@@ -85,7 +85,7 @@ fun HeroCard(
     canAnswer: Boolean = false,
 ) {
     val state = focus?.state ?: BotState.SLEEPING
-    val wash = MochiConst.STATES[state]?.color?.let(::rgbColor)
+    val wash = MachaConst.STATES[state]?.color?.let(::rgbColor)
     val dim = Color(tokens().heroTextDim)
     val white = Color(tokens().heroText)
     HeroPanel(wash = wash) {
@@ -101,7 +101,7 @@ fun HeroCard(
             }
             if (focus == null) {
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    MochiView(engine, Modifier.size(112.dp).then(touch))
+                    MachaView(engine, Modifier.size(112.dp).then(touch))
                     Text(stringResource(R.string.home_empty_title), style = TypeScale.TITLE.style(white))
                     Text(stringResource(R.string.home_empty_hint), style = TypeScale.SECONDARY.style(dim), maxLines = 3)
                 }
@@ -113,7 +113,7 @@ fun HeroCard(
                     Modifier.semantics(mergeDescendants = true) { contentDescription = spoken },
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
-                    MochiView(engine, Modifier.size(108.dp).then(touch))
+                    MachaView(engine, Modifier.size(108.dp).then(touch))
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(name, style = TypeScale.TITLE.style(white), maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Text(
@@ -148,9 +148,9 @@ fun HeroCard(
     }
 }
 
-/** The other agents, one full-width row each: its small Mochi in its colour, its name and one plain line. Tap to make it the main one. */
+/** The other agents, one full-width row each: its small Macha in its colour, its name and one plain line. Tap to make it the main one. */
 @Composable
-fun AgentRows(others: List<SessionInfo>, engineFor: (SessionInfo) -> MochiEngine, onPick: (SessionInfo) -> Unit) {
+fun AgentRows(others: List<SessionInfo>, engineFor: (SessionInfo) -> MachaEngine, onPick: (SessionInfo) -> Unit) {
     val t = tokens()
     Panel {
         others.forEachIndexed { i, s ->
@@ -165,7 +165,7 @@ fun AgentRows(others: List<SessionInfo>, engineFor: (SessionInfo) -> MochiEngine
                     .padding(horizontal = Spacing.INSIDE.dp, vertical = 12.dp).semantics(mergeDescendants = true) { contentDescription = spoken },
                 horizontalArrangement = Arrangement.spacedBy(Spacing.GAP.dp), verticalAlignment = Alignment.CenterVertically,
             ) {
-                MochiView(engineFor(s), Modifier.size(40.dp))
+                MachaView(engineFor(s), Modifier.size(40.dp))
                 Column(Modifier.weight(1f)) {
                     Text(name, style = TypeScale.BODY.style(t.text.c()).copy(fontWeight = FontWeight.SemiBold), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(line ?: state, style = TypeScale.SECONDARY.style(t.textDim.c()), maxLines = 2, overflow = TextOverflow.Ellipsis)

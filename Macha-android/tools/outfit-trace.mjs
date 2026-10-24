@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// Runs the PC's outfit drawing (windows/src/mochi/outfits.ts) against a recording context and prints every
-// drawing call as JSON. The Kotlin port (mochi/outfit/Outfits.kt) is replayed on the same cases and its calls
+// Runs the PC's outfit drawing (windows/src/macha/outfits.ts) against a recording context and prints every
+// drawing call as JSON. The Kotlin port (macha/outfit/Outfits.kt) is replayed on the same cases and its calls
 // are compared number by number (OutfitParityTest), so the phone draws what the PC draws.
 //
 //   node --import windows/tests/setup.mjs android/tools/outfit-trace.mjs > trace.json
 //
 // The case list is part of the output: the Kotlin test replays exactly those cases.
-import { drawOutfitBehind, drawOutfitFront, drawWardrobeIcon, makeHead } from "../../windows/src/mochi/outfits.ts";
+import { drawOutfitBehind, drawOutfitFront, drawWardrobeIcon, makeHead } from "../../windows/src/macha/outfits.ts";
 
 // ── CSS colours (the same forms the outfits use) ─────────────────────────────────
 function css(s) {
@@ -142,7 +142,7 @@ for (const outfit of OUTFITS) cases.push({ kind: "icon", outfit, size: 40 });
 function run(c) {
   const { main, log } = newMain();
   if (c.kind === "icon") {
-    drawWardrobeIcon(main, c.size, c.outfit, "none", "AUTO"); // a chosen outfit: the little Mochi, no label
+    drawWardrobeIcon(main, c.size, c.outfit, "none", "AUTO"); // a chosen outfit: the little Macha, no label
   } else {
     const h = makeHead(c.head.R, c.head.yaw, c.head.pitch, c.head.physDx, c.head.physDy);
     (c.kind === "behind" ? drawOutfitBehind : drawOutfitFront)(main, c.outfit, h, c.state);

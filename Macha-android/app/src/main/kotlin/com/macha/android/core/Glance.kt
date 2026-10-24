@@ -2,7 +2,7 @@ package com.macha.android.core
 
 import com.macha.android.link.LinkState
 import com.macha.android.link.SessionInfo
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 
 /** One agent in a glance: its name and one plain line. No command, no path, no answer text. */
 data class GlanceLine(val agent: String, val text: String, val state: BotState)

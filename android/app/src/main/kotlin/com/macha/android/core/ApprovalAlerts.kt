@@ -2,7 +2,7 @@ package com.macha.android.core
 
 /**
  * How a request for permission buzzes the phone. The approval is never muted or hidden by any of these choices: it is always a
- * heads-up notification with Mochi's sound; only the buzz changes (and the Settings choice "Don't wake the screen" only stops the
+ * heads-up notification with Macha's sound; only the buzz changes (and the Settings choice "Don't wake the screen" only stops the
  * screen from lighting up, the notification is still posted).
  */
 enum class VibrationChoice(val key: String, val pattern: LongArray?) {

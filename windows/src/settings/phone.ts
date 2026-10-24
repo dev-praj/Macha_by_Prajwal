@@ -1,4 +1,4 @@
-import { Bridge, type PhoneLinkPairing, type PhoneLinkStatus } from "../core/bridge";
+import { Bridge, type PhoneChatStatus, type PhoneLinkPairing, type PhoneLinkStatus } from "../core/bridge";
 import { h, clear } from "../views/dom";
 
 type Toggle = (on: boolean, onChange: (value: boolean) => void) => HTMLElement;
@@ -8,7 +8,10 @@ export function phoneSection(initial: boolean, detailsEnabled: boolean, makeTogg
   const detail = h("div", {});
   const state = h("div", { class: "hint" });
   const clients = h("div", { class: "hint" });
+  const chatSettings = h("div", {});
+  const chatFeedback = h("div", { class: "hint" });
   let latest: PhoneLinkStatus | null = null;
+  let latestChat: PhoneChatStatus = { enabled: false, models: [] };
 
   const showError = (message: string) => {
     feedback.textContent = message;
@@ -78,6 +81,63 @@ export function phoneSection(initial: boolean, detailsEnabled: boolean, makeTogg
   });
   const detailsControl = detailToggle as HTMLButtonElement;
 
+  const renderChatSettings = (status: PhoneChatStatus) => {
+    latestChat = status;
+    chatFeedback.textContent = "";
+    clear(chatSettings);
+    const chatToggle = makeToggle(status.enabled, (enabled) => {
+      void Bridge.phoneChatSetEnabled(enabled).then(renderChatSettings).catch((error: unknown) => {
+        renderChatSettings(latestChat);
+        chatFeedback.textContent = `Could not update phone chat: ${String(error)}`;
+      });
+    });
+    const modelInput = h("input", {
+      type: "text",
+      placeholder: "provider/model (for example openai/gpt-4o)",
+      maxlength: "210",
+      autocomplete: "off",
+      spellcheck: "false",
+      "aria-label": "Provider/model ID allowed for phone chat",
+    }) as HTMLInputElement;
+    const updateModels = (models: string[]) => {
+      chatFeedback.textContent = "";
+      void Bridge.phoneChatSetModels(models).then(renderChatSettings).catch((error: unknown) => {
+        chatFeedback.textContent = `Could not update phone chat models: ${String(error)}`;
+      });
+    };
+    const addModel = h("button", { type: "button", text: "Add model" });
+    const add = () => {
+      const model = modelInput.value.trim();
+      if (!model) {
+        chatFeedback.textContent = "Enter a provider/model ID first.";
+        return;
+      }
+      if (latestChat.models.includes(model)) {
+        chatFeedback.textContent = "That model is already allowed.";
+        return;
+      }
+      updateModels([...latestChat.models, model]);
+    };
+    addModel.addEventListener("click", add);
+    modelInput.addEventListener("keydown", (event: KeyboardEvent) => {
+      if (event.key === "Enter") add();
+    });
+
+    const allowedModels = h("div", {});
+    for (const model of status.models) {
+      const remove = h("button", { type: "button", text: "Remove" });
+      remove.addEventListener("click", () => updateModels(status.models.filter((item) => item !== model)));
+      allowedModels.append(h("div", { class: "row" }, h("span", { text: model }), remove));
+    }
+    chatSettings.append(
+      h("div", { class: "row" }, h("label", { text: "Let the phone chat with my AI providers" }), chatToggle),
+      h("div", { class: "hint", text: "Off by default. The computer uses API keys saved in Settings → Chat; keys stay on this computer. Add at least one provider/model ID, such as anthropic/claude-sonnet-4-5, openai/gpt-4o, or ollama/qwen2.5:7b." }),
+      h("div", { class: "row" }, modelInput, addModel),
+      allowedModels,
+      chatFeedback,
+    );
+  };
+
   const draw = (status: PhoneLinkStatus | null) => {
     latest = status;
     clear(detail);
@@ -127,6 +187,7 @@ export function phoneSection(initial: boolean, detailsEnabled: boolean, makeTogg
     feedback,
     state,
     detail,
+    chatSettings,
   );
 
   const watch = window.setInterval(() => {
@@ -144,5 +205,8 @@ export function phoneSection(initial: boolean, detailsEnabled: boolean, makeTogg
   }, 4000);
 
   void Bridge.phoneLinkStatus().then(draw);
+  void Bridge.phoneChatStatus().then(renderChatSettings).catch((error: unknown) => {
+    chatFeedback.textContent = `Could not load phone chat settings: ${String(error)}`;
+  });
   return section;
 }

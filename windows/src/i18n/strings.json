@@ -210,18 +210,18 @@
    "de": "AUTO",
    "tr": "OTOMATİK"
   },
-  "Accessibility allowed: Coucou pastes where you type.": {
-   "zh-Hans": "已允许辅助功能：Coucou 会粘贴到你输入的位置。",
-   "hi": "एक्सेसिबिलिटी की अनुमति है: Coucou वहीं चिपकाता है जहाँ आप टाइप करते हैं।",
-   "es": "Accesibilidad permitida: Coucou pega donde escribes.",
-   "ar": "تم السماح بتسهيلات الاستخدام: يلصق Coucou حيث تكتب.",
-   "fr": "Accessibilité autorisée : Coucou colle là où tu écris.",
-   "bn": "অ্যাক্সেসিবিলিটি অনুমোদিত: আপনি যেখানে লেখেন Coucou সেখানে পেস্ট করে।",
-   "pt-BR": "Acessibilidade permitida: o Coucou cola onde você digita.",
-   "ru": "Универсальный доступ разрешён: Coucou вставляет текст туда, где вы печатаете.",
-   "id": "Aksesibilitas diizinkan: Coucou menempel di tempat kamu mengetik.",
-   "de": "Bedienungshilfen erlaubt: Coucou fügt dort ein, wo du schreibst.",
-   "tr": "Erişilebilirlik izni verildi: Coucou yazdığın yere yapıştırır."
+  "Accessibility allowed: Macha pastes where you type.": {
+   "zh-Hans": "已允许辅助功能：Macha 会粘贴到你输入的位置。",
+   "hi": "एक्सेसिबिलिटी की अनुमति है: Macha वहीं चिपकाता है जहाँ आप टाइप करते हैं।",
+   "es": "Accesibilidad permitida: Macha pega donde escribes.",
+   "ar": "تم السماح بتسهيلات الاستخدام: يلصق Macha حيث تكتب.",
+   "fr": "Accessibilité autorisée : Macha colle là où tu écris.",
+   "bn": "অ্যাক্সেসিবিলিটি অনুমোদিত: আপনি যেখানে লেখেন Macha সেখানে পেস্ট করে।",
+   "pt-BR": "Acessibilidade permitida: o Macha cola onde você digita.",
+   "ru": "Универсальный доступ разрешён: Macha вставляет текст туда, где вы печатаете.",
+   "id": "Aksesibilitas diizinkan: Macha menempel di tempat kamu mengetik.",
+   "de": "Bedienungshilfen erlaubt: Macha fügt dort ein, wo du schreibst.",
+   "tr": "Erişilebilirlik izni verildi: Macha yazdığın yere yapıştırır."
   },
   "Accessibility needed to paste": {
    "zh-Hans": "粘贴需要辅助功能权限",
@@ -340,18 +340,18 @@
    "de": "Werbung",
    "tr": "Reklam"
   },
-  "After «OK Coucou», what you say goes to Claude with your Anthropic API key, with what Coucou reads to answer (your pills, your services' data, a contact's address). It acts and searches the web. Never audio.": {
-   "zh-Hans": "说「OK Coucou」后，你说的话会用你的 Anthropic API 密钥发送给 Claude，同时发送 Coucou 为回答而读取的内容（你的药丸、你的服务数据、联系人地址）。它会执行操作并进行网页搜索。从不发送音频。",
-   "hi": "«OK Coucou» के बाद तुम जो कहते हो वह तुम्हारी Anthropic API कुंजी से Claude को जाता है, साथ में वह जो Coucou जवाब देने के लिए पढ़ता है (तुम्हारी पिल्स, तुम्हारी सेवाओं का डेटा, किसी संपर्क का पता)। वह काम करता है और वेब पर खोजता है। ऑडियो कभी नहीं।",
-   "es": "Tras «OK Coucou», lo que dices va a Claude con tu clave de API de Anthropic, junto con lo que Coucou lee para responder (tus píldoras, los datos de tus servicios, la dirección de un contacto). Actúa y busca en la web. Nunca el audio.",
-   "ar": "بعد «OK Coucou»، يُرسل ما تقوله إلى Claude بمفتاح Anthropic API الخاص بك، مع ما يقرؤه Coucou للإجابة (حبوبك، بيانات خدماتك، عنوان جهة اتصال). ينفّذ ويبحث على الويب. لا يُرسل الصوت أبدًا.",
-   "fr": "Après « OK Coucou », ce que tu dis part chez Claude avec ta clé API Anthropic, avec ce que Coucou lit pour répondre (tes pilules, les données de tes services, l'adresse d'un contact). Il agit et cherche sur le web. Jamais l'audio.",
-   "bn": "«OK Coucou»-এর পরে তুমি যা বলো তা তোমার Anthropic API কী দিয়ে Claude-এর কাছে যায়, সঙ্গে Coucou উত্তর দিতে যা পড়ে (তোমার পিল, তোমার সার্ভিসের ডেটা, কোনো কন্টাক্টের ঠিকানা)। সে কাজ করে আর ওয়েবে খোঁজে। অডিও কখনো নয়।",
-   "pt-BR": "Depois de «OK Coucou», o que você diz vai para o Claude com sua chave de API da Anthropic, junto com o que o Coucou lê para responder (suas pílulas, os dados dos seus serviços, o endereço de um contato). Ele age e pesquisa na web. Nunca o áudio.",
-   "ru": "После «OK Coucou» сказанное уходит в Claude по твоему ключу Anthropic API вместе с тем, что Coucou читает для ответа (твои пилюли, данные твоих сервисов, адрес контакта). Он действует и ищет в интернете. Звук — никогда.",
-   "id": "Setelah «OK Coucou», ucapanmu dikirim ke Claude dengan kunci API Anthropic-mu, beserta apa yang dibaca Coucou untuk menjawab (pil-mu, data layananmu, alamat kontak). Ia bertindak dan mencari di web. Tidak pernah audio.",
-   "de": "Nach «OK Coucou» wird das Gesagte mit deinem Anthropic-API-Schlüssel an Claude gesendet, zusammen mit den Daten, die Coucou zum Antworten liest (deine Kapseln, Dienstdaten, die Adresse eines Kontakts). Es führt Aktionen aus und durchsucht das Web. Niemals Audio.",
-   "tr": "«OK Coucou» dedikten sonra söylediklerin, Anthropic API anahtarınla Claude'a gönderilir; Coucou'nun yanıt için okudukları da buna dahildir (araçların, hizmetlerindeki veriler, bir kişinin adresi). İşlem yapar ve web'de arar. Ses asla gönderilmez."
+  "After «OK Macha», what you say goes to Claude with your Anthropic API key, with what Macha reads to answer (your pills, your services' data, a contact's address). It acts and searches the web. Never audio.": {
+   "zh-Hans": "说「OK Macha」后，你说的话会用你的 Anthropic API 密钥发送给 Claude，同时发送 Macha 为回答而读取的内容（你的药丸、你的服务数据、联系人地址）。它会执行操作并进行网页搜索。从不发送音频。",
+   "hi": "«OK Macha» के बाद तुम जो कहते हो वह तुम्हारी Anthropic API कुंजी से Claude को जाता है, साथ में वह जो Macha जवाब देने के लिए पढ़ता है (तुम्हारी पिल्स, तुम्हारी सेवाओं का डेटा, किसी संपर्क का पता)। वह काम करता है और वेब पर खोजता है। ऑडियो कभी नहीं।",
+   "es": "Tras «OK Macha», lo que dices va a Claude con tu clave de API de Anthropic, junto con lo que Macha lee para responder (tus píldoras, los datos de tus servicios, la dirección de un contacto). Actúa y busca en la web. Nunca el audio.",
+   "ar": "بعد «OK Macha»، يُرسل ما تقوله إلى Claude بمفتاح Anthropic API الخاص بك، مع ما يقرؤه Macha للإجابة (حبوبك، بيانات خدماتك، عنوان جهة اتصال). ينفّذ ويبحث على الويب. لا يُرسل الصوت أبدًا.",
+   "fr": "Après « OK Macha », ce que tu dis part chez Claude avec ta clé API Anthropic, avec ce que Macha lit pour répondre (tes pilules, les données de tes services, l'adresse d'un contact). Il agit et cherche sur le web. Jamais l'audio.",
+   "bn": "«OK Macha»-এর পরে তুমি যা বলো তা তোমার Anthropic API কী দিয়ে Claude-এর কাছে যায়, সঙ্গে Macha উত্তর দিতে যা পড়ে (তোমার পিল, তোমার সার্ভিসের ডেটা, কোনো কন্টাক্টের ঠিকানা)। সে কাজ করে আর ওয়েবে খোঁজে। অডিও কখনো নয়।",
+   "pt-BR": "Depois de «OK Macha», o que você diz vai para o Claude com sua chave de API da Anthropic, junto com o que o Macha lê para responder (suas pílulas, os dados dos seus serviços, o endereço de um contato). Ele age e pesquisa na web. Nunca o áudio.",
+   "ru": "После «OK Macha» сказанное уходит в Claude по твоему ключу Anthropic API вместе с тем, что Macha читает для ответа (твои пилюли, данные твоих сервисов, адрес контакта). Он действует и ищет в интернете. Звук — никогда.",
+   "id": "Setelah «OK Macha», ucapanmu dikirim ke Claude dengan kunci API Anthropic-mu, beserta apa yang dibaca Macha untuk menjawab (pil-mu, data layananmu, alamat kontak). Ia bertindak dan mencari di web. Tidak pernah audio.",
+   "de": "Nach «OK Macha» wird das Gesagte mit deinem Anthropic-API-Schlüssel an Claude gesendet, zusammen mit den Daten, die Macha zum Antworten liest (deine Kapseln, Dienstdaten, die Adresse eines Kontakts). Es führt Aktionen aus und durchsucht das Web. Niemals Audio.",
+   "tr": "«OK Macha» dedikten sonra söylediklerin, Anthropic API anahtarınla Claude'a gönderilir; Macha'nun yanıt için okudukları da buna dahildir (araçların, hizmetlerindeki veriler, bir kişinin adresi). İşlem yapar ve web'de arar. Ses asla gönderilmez."
   },
   "Agent": {
    "zh-Hans": "代理",
@@ -444,57 +444,57 @@
    "de": "Zulassen",
    "tr": "İzin ver"
   },
-  "Allow Coucou in System Settings › Privacy & Security › Accessibility.": {
-   "zh-Hans": "请在“系统设置 › 隐私与安全性 › 辅助功能”中允许 Coucou。",
-   "hi": "System Settings › Privacy & Security › Accessibility में Coucou को अनुमति दें।",
-   "es": "Permite Coucou en Ajustes del Sistema › Privacidad y seguridad › Accesibilidad.",
-   "ar": "اسمح لـ Coucou في إعدادات النظام › الخصوصية والأمن › تسهيلات الاستخدام.",
-   "fr": "Autorise Coucou dans Réglages Système › Confidentialité et sécurité › Accessibilité.",
-   "bn": "System Settings › Privacy & Security › Accessibility-এ Coucou-কে অনুমতি দিন।",
-   "pt-BR": "Permita o Coucou em Ajustes do Sistema › Privacidade e Segurança › Acessibilidade.",
-   "ru": "Разрешите Coucou в Системных настройках › Конфиденциальность и безопасность › Универсальный доступ.",
-   "id": "Izinkan Coucou di Pengaturan Sistem › Privasi & Keamanan › Aksesibilitas.",
-   "de": "Erlaube Coucou unter Systemeinstellungen › Datenschutz & Sicherheit › Bedienungshilfen.",
-   "tr": "Sistem Ayarları › Gizlilik ve Güvenlik › Erişilebilirlik bölümünde Coucou'ya izin ver."
+  "Allow Macha in System Settings › Privacy & Security › Accessibility.": {
+   "zh-Hans": "请在“系统设置 › 隐私与安全性 › 辅助功能”中允许 Macha。",
+   "hi": "System Settings › Privacy & Security › Accessibility में Macha को अनुमति दें।",
+   "es": "Permite Macha en Ajustes del Sistema › Privacidad y seguridad › Accesibilidad.",
+   "ar": "اسمح لـ Macha في إعدادات النظام › الخصوصية والأمن › تسهيلات الاستخدام.",
+   "fr": "Autorise Macha dans Réglages Système › Confidentialité et sécurité › Accessibilité.",
+   "bn": "System Settings › Privacy & Security › Accessibility-এ Macha-কে অনুমতি দিন।",
+   "pt-BR": "Permita o Macha em Ajustes do Sistema › Privacidade e Segurança › Acessibilidade.",
+   "ru": "Разрешите Macha в Системных настройках › Конфиденциальность и безопасность › Универсальный доступ.",
+   "id": "Izinkan Macha di Pengaturan Sistem › Privasi & Keamanan › Aksesibilitas.",
+   "de": "Erlaube Macha unter Systemeinstellungen › Datenschutz & Sicherheit › Bedienungshilfen.",
+   "tr": "Sistem Ayarları › Gizlilik ve Güvenlik › Erişilebilirlik bölümünde Macha'ya izin ver."
   },
-  "Allow Coucou in System Settings → Privacy & Security → Screen Recording, then capture again.": {
-   "zh-Hans": "请在“系统设置 → 隐私与安全性 → 录屏”中允许 Coucou，然后再截一次。",
-   "hi": "System Settings → Privacy & Security → Screen Recording में Coucou को अनुमति दें, फिर दोबारा कैप्चर करें।",
-   "es": "Permite Coucou en Ajustes del Sistema → Privacidad y seguridad → Grabación de pantalla y vuelve a capturar.",
-   "ar": "اسمح لـ Coucou في إعدادات النظام ← الخصوصية والأمن ← تسجيل الشاشة، ثم التقط مرة أخرى.",
-   "fr": "Autorise Coucou dans Réglages Système → Confidentialité et sécurité → Enregistrement de l'écran, puis capture à nouveau.",
-   "bn": "System Settings → Privacy & Security → Screen Recording-এ Coucou-কে অনুমতি দিন, তারপর আবার ক্যাপচার করুন।",
-   "pt-BR": "Permita o Coucou em Ajustes do Sistema → Privacidade e Segurança → Gravação da Tela e capture de novo.",
-   "ru": "Разрешите Coucou в Системных настройках → Конфиденциальность и безопасность → Запись экрана и сделайте снимок снова.",
-   "id": "Izinkan Coucou di Pengaturan Sistem → Privasi & Keamanan → Rekaman Layar, lalu tangkap lagi.",
-   "de": "Erlaube Coucou unter Systemeinstellungen → Datenschutz & Sicherheit → Bildschirmaufnahme und nimm dann erneut einen Screenshot auf.",
-   "tr": "Sistem Ayarları → Gizlilik ve Güvenlik → Ekran Kaydı bölümünde Coucou'ya izin ver, sonra yeniden ekran görüntüsü al."
+  "Allow Macha in System Settings → Privacy & Security → Screen Recording, then capture again.": {
+   "zh-Hans": "请在“系统设置 → 隐私与安全性 → 录屏”中允许 Macha，然后再截一次。",
+   "hi": "System Settings → Privacy & Security → Screen Recording में Macha को अनुमति दें, फिर दोबारा कैप्चर करें।",
+   "es": "Permite Macha en Ajustes del Sistema → Privacidad y seguridad → Grabación de pantalla y vuelve a capturar.",
+   "ar": "اسمح لـ Macha في إعدادات النظام ← الخصوصية والأمن ← تسجيل الشاشة، ثم التقط مرة أخرى.",
+   "fr": "Autorise Macha dans Réglages Système → Confidentialité et sécurité → Enregistrement de l'écran, puis capture à nouveau.",
+   "bn": "System Settings → Privacy & Security → Screen Recording-এ Macha-কে অনুমতি দিন, তারপর আবার ক্যাপচার করুন।",
+   "pt-BR": "Permita o Macha em Ajustes do Sistema → Privacidade e Segurança → Gravação da Tela e capture de novo.",
+   "ru": "Разрешите Macha в Системных настройках → Конфиденциальность и безопасность → Запись экрана и сделайте снимок снова.",
+   "id": "Izinkan Macha di Pengaturan Sistem → Privasi & Keamanan → Rekaman Layar, lalu tangkap lagi.",
+   "de": "Erlaube Macha unter Systemeinstellungen → Datenschutz & Sicherheit → Bildschirmaufnahme und nimm dann erneut einen Screenshot auf.",
+   "tr": "Sistem Ayarları → Gizlilik ve Güvenlik → Ekran Kaydı bölümünde Macha'ya izin ver, sonra yeniden ekran görüntüsü al."
   },
-  "Allow Coucou to control Music": {
-   "zh-Hans": "允许 Coucou 控制音乐",
-   "hi": "Coucou को Music नियंत्रित करने दें",
-   "es": "Permitir que Coucou controle Music",
-   "ar": "السماح لـ Coucou بالتحكم في الموسيقى",
-   "fr": "Autoriser Coucou à contrôler Music",
-   "bn": "Coucou-কে Music নিয়ন্ত্রণ করতে দিন",
-   "pt-BR": "Permitir que o Coucou controle o Music",
-   "ru": "Разрешить Coucou управлять Music",
-   "id": "Izinkan Coucou mengontrol Music",
-   "de": "Coucou erlauben, Musik zu steuern",
-   "tr": "Coucou'nun Music'i kontrol etmesine izin ver"
+  "Allow Macha to control Music": {
+   "zh-Hans": "允许 Macha 控制音乐",
+   "hi": "Macha को Music नियंत्रित करने दें",
+   "es": "Permitir que Macha controle Music",
+   "ar": "السماح لـ Macha بالتحكم في الموسيقى",
+   "fr": "Autoriser Macha à contrôler Music",
+   "bn": "Macha-কে Music নিয়ন্ত্রণ করতে দিন",
+   "pt-BR": "Permitir que o Macha controle o Music",
+   "ru": "Разрешить Macha управлять Music",
+   "id": "Izinkan Macha mengontrol Music",
+   "de": "Macha erlauben, Musik zu steuern",
+   "tr": "Macha'nun Music'i kontrol etmesine izin ver"
   },
-  "Allow Coucou to control Spotify": {
-   "zh-Hans": "允许 Coucou 控制 Spotify",
-   "hi": "Coucou को Spotify नियंत्रित करने दें",
-   "es": "Permitir que Coucou controle Spotify",
-   "ar": "السماح لـ Coucou بالتحكم في Spotify",
-   "fr": "Autoriser Coucou à contrôler Spotify",
-   "bn": "Coucou-কে Spotify নিয়ন্ত্রণ করতে দিন",
-   "pt-BR": "Permitir que o Coucou controle o Spotify",
-   "ru": "Разрешить Coucou управлять Spotify",
-   "id": "Izinkan Coucou mengontrol Spotify",
-   "de": "Coucou erlauben, Spotify zu steuern",
-   "tr": "Coucou'nun Spotify'ı kontrol etmesine izin ver"
+  "Allow Macha to control Spotify": {
+   "zh-Hans": "允许 Macha 控制 Spotify",
+   "hi": "Macha को Spotify नियंत्रित करने दें",
+   "es": "Permitir que Macha controle Spotify",
+   "ar": "السماح لـ Macha بالتحكم في Spotify",
+   "fr": "Autoriser Macha à contrôler Spotify",
+   "bn": "Macha-কে Spotify নিয়ন্ত্রণ করতে দিন",
+   "pt-BR": "Permitir que o Macha controle o Spotify",
+   "ru": "Разрешить Macha управлять Spotify",
+   "id": "Izinkan Macha mengontrol Spotify",
+   "de": "Macha erlauben, Spotify zu steuern",
+   "tr": "Macha'nun Spotify'ı kontrol etmesine izin ver"
   },
   "Already active": {
    "zh-Hans": "已激活",
@@ -535,18 +535,18 @@
    "de": "Amp-Plugin",
    "tr": "Amp eklentisi"
   },
-  "An instruction sent from the iPhone uses the model open in chat. The system prompt and conversation history apply. Instructions sent when Coucou is not running are queued and executed on next launch.": {
-   "zh-Hans": "从 iPhone 发送的指令使用聊天中当前打开的模型。系统提示和对话历史适用。Coucou 未运行时发送的指令将排队，并在下次启动时执行。",
-   "hi": "iPhone से भेजा गया निर्देश चैट में वर्तमान में खुले मॉडल का उपयोग करता है। सिस्टम प्रॉम्प्ट और बातचीत का इतिहास लागू होता है। Coucou चल नहीं रहे होने पर भेजे गए निर्देश कतार में रखे जाते हैं और अगली बार चालू होने पर चलाए जाते हैं।",
-   "es": "Una instrucción enviada desde el iPhone usa el modelo abierto actualmente en el chat. Se aplican el prompt de sistema y el historial de conversación. Las instrucciones enviadas mientras Coucou no está en ejecución se ponen en cola y se ejecutan en el siguiente inicio.",
-   "ar": "التعليمات المُرسَلة من iPhone تستخدم النموذج المفتوح حاليًا في الدردشة. يُطبَّق موجه النظام وتاريخ المحادثة. التعليمات المُرسَلة أثناء توقف Coucou تُضاف إلى قائمة الانتظار وتُنفَّذ عند التشغيل التالي.",
-   "fr": "Une instruction envoyée depuis l'iPhone utilise le modèle ouvert dans le chat. Le prompt système et l'historique de conversation s'appliquent. Les instructions envoyées quand Coucou ne tourne pas sont mises en file d'attente et exécutées au prochain démarrage.",
-   "bn": "iPhone থেকে পাঠানো নির্দেশনা চ্যাটে বর্তমানে খোলা মডেল ব্যবহার করে। সিস্টেম প্রম্পট এবং কথোপকথনের ইতিহাস প্রযোজ্য। Coucou চলছে না থাকলে পাঠানো নির্দেশনাগুলো কিউতে রাখা হয় এবং পরবর্তী চালুতে চালানো হয়।",
-   "pt-BR": "Uma instrução enviada pelo iPhone usa o modelo aberto no momento no chat. O prompt de sistema e o histórico de conversa se aplicam. Instruções enviadas enquanto o Coucou não está em execução ficam na fila e são executadas no próximo início.",
-   "ru": "Инструкция, отправленная с iPhone, использует модель, открытую в чате. Системный промпт и история разговора применяются. Инструкции, отправленные пока Coucou не запущен, ставятся в очередь и выполняются при следующем запуске.",
-   "id": "Instruksi yang dikirim dari iPhone menggunakan model yang sedang terbuka di chat. Prompt sistem dan riwayat percakapan berlaku. Instruksi yang dikirim saat Coucou tidak berjalan dimasukkan ke antrean dan dijalankan saat peluncuran berikutnya.",
-   "de": "Eine vom iPhone gesendete Anweisung verwendet das im Chat geöffnete Modell. System-Prompt und Gesprächsverlauf gelten auch hier. Wird eine Anweisung gesendet, während Coucou nicht läuft, wird sie beim nächsten Start ausgeführt.",
-   "tr": "iPhone'dan gönderilen talimat, sohbette açık olan modeli kullanır. Sistem istemi ve sohbet geçmişi geçerlidir. Coucou çalışmıyorken gönderilen talimatlar sıraya alınır ve bir sonraki açılışta yürütülür."
+  "An instruction sent from the iPhone uses the model open in chat. The system prompt and conversation history apply. Instructions sent when Macha is not running are queued and executed on next launch.": {
+   "zh-Hans": "从 iPhone 发送的指令使用聊天中当前打开的模型。系统提示和对话历史适用。Macha 未运行时发送的指令将排队，并在下次启动时执行。",
+   "hi": "iPhone से भेजा गया निर्देश चैट में वर्तमान में खुले मॉडल का उपयोग करता है। सिस्टम प्रॉम्प्ट और बातचीत का इतिहास लागू होता है। Macha चल नहीं रहे होने पर भेजे गए निर्देश कतार में रखे जाते हैं और अगली बार चालू होने पर चलाए जाते हैं।",
+   "es": "Una instrucción enviada desde el iPhone usa el modelo abierto actualmente en el chat. Se aplican el prompt de sistema y el historial de conversación. Las instrucciones enviadas mientras Macha no está en ejecución se ponen en cola y se ejecutan en el siguiente inicio.",
+   "ar": "التعليمات المُرسَلة من iPhone تستخدم النموذج المفتوح حاليًا في الدردشة. يُطبَّق موجه النظام وتاريخ المحادثة. التعليمات المُرسَلة أثناء توقف Macha تُضاف إلى قائمة الانتظار وتُنفَّذ عند التشغيل التالي.",
+   "fr": "Une instruction envoyée depuis l'iPhone utilise le modèle ouvert dans le chat. Le prompt système et l'historique de conversation s'appliquent. Les instructions envoyées quand Macha ne tourne pas sont mises en file d'attente et exécutées au prochain démarrage.",
+   "bn": "iPhone থেকে পাঠানো নির্দেশনা চ্যাটে বর্তমানে খোলা মডেল ব্যবহার করে। সিস্টেম প্রম্পট এবং কথোপকথনের ইতিহাস প্রযোজ্য। Macha চলছে না থাকলে পাঠানো নির্দেশনাগুলো কিউতে রাখা হয় এবং পরবর্তী চালুতে চালানো হয়।",
+   "pt-BR": "Uma instrução enviada pelo iPhone usa o modelo aberto no momento no chat. O prompt de sistema e o histórico de conversa se aplicam. Instruções enviadas enquanto o Macha não está em execução ficam na fila e são executadas no próximo início.",
+   "ru": "Инструкция, отправленная с iPhone, использует модель, открытую в чате. Системный промпт и история разговора применяются. Инструкции, отправленные пока Macha не запущен, ставятся в очередь и выполняются при следующем запуске.",
+   "id": "Instruksi yang dikirim dari iPhone menggunakan model yang sedang terbuka di chat. Prompt sistem dan riwayat percakapan berlaku. Instruksi yang dikirim saat Macha tidak berjalan dimasukkan ke antrean dan dijalankan saat peluncuran berikutnya.",
+   "de": "Eine vom iPhone gesendete Anweisung verwendet das im Chat geöffnete Modell. System-Prompt und Gesprächsverlauf gelten auch hier. Wird eine Anweisung gesendet, während Macha nicht läuft, wird sie beim nächsten Start ausgeführt.",
+   "tr": "iPhone'dan gönderilen talimat, sohbette açık olan modeli kullanır. Sistem istemi ve sohbet geçmişi geçerlidir. Macha çalışmıyorken gönderilen talimatlar sıraya alınır ve bir sonraki açılışta yürütülür."
   },
   "Annotate": {
    "zh-Hans": "标注",
@@ -639,18 +639,18 @@
    "de": "Gilt ab dem nächsten Start",
    "tr": "Bir sonraki açılışta uygulanır"
   },
-  "Approval requests appear in the notch. If Coucou is not running, Hermes falls back to its own prompt.": {
-   "zh-Hans": "审批请求显示在刘海中。若 Coucou 未运行，Hermes 将回退到其自己的提示。",
-   "hi": "नॉच में अनुमोदन अनुरोध दिखाए जाते हैं। यदि Coucou नहीं चल रहा तो Hermes अपने प्रॉम्प्ट पर वापस जाता है।",
-   "es": "Las solicitudes de aprobación aparecen en el notch. Si Coucou no está en ejecución, Hermes usa su propio prompt.",
-   "ar": "تظهر طلبات الموافقة في الشريط. إذا لم تكن Coucou تعمل، يعود Hermes إلى طرفيته الخاصة.",
-   "fr": "Les demandes d'approbation s'affichent dans le notch. Si Coucou ne tourne pas, Hermes utilise son propre prompt.",
-   "bn": "নচে অনুমোদন অনুরোধ দেখানো হয়। Coucou না চললে Hermes তার নিজের প্রম্পটে ফলব্যাক করে।",
-   "pt-BR": "Solicitações de aprovação aparecem no notch. Se Coucou não estiver em execução, Hermes usa seu próprio prompt.",
-   "ru": "Запросы подтверждения отображаются в notch. Если Coucou не запущен, Hermes использует собственный prompt.",
-   "id": "Permintaan persetujuan muncul di notch. Jika Coucou tidak berjalan, Hermes menggunakan promptnya sendiri.",
-   "de": "Berechtigungsanfragen erscheinen in der Notch. Wenn Coucou nicht läuft, verwendet Hermes seine eigene Abfrage.",
-   "tr": "Onay istekleri adada görünür. Coucou çalışmıyorsa Hermes kendi onay istemini kullanır."
+  "Approval requests appear in the notch. If Macha is not running, Hermes falls back to its own prompt.": {
+   "zh-Hans": "审批请求显示在刘海中。若 Macha 未运行，Hermes 将回退到其自己的提示。",
+   "hi": "नॉच में अनुमोदन अनुरोध दिखाए जाते हैं। यदि Macha नहीं चल रहा तो Hermes अपने प्रॉम्प्ट पर वापस जाता है।",
+   "es": "Las solicitudes de aprobación aparecen en el notch. Si Macha no está en ejecución, Hermes usa su propio prompt.",
+   "ar": "تظهر طلبات الموافقة في الشريط. إذا لم تكن Macha تعمل، يعود Hermes إلى طرفيته الخاصة.",
+   "fr": "Les demandes d'approbation s'affichent dans le notch. Si Macha ne tourne pas, Hermes utilise son propre prompt.",
+   "bn": "নচে অনুমোদন অনুরোধ দেখানো হয়। Macha না চললে Hermes তার নিজের প্রম্পটে ফলব্যাক করে।",
+   "pt-BR": "Solicitações de aprovação aparecem no notch. Se Macha não estiver em execução, Hermes usa seu próprio prompt.",
+   "ru": "Запросы подтверждения отображаются в notch. Если Macha не запущен, Hermes использует собственный prompt.",
+   "id": "Permintaan persetujuan muncul di notch. Jika Macha tidak berjalan, Hermes menggunakan promptnya sendiri.",
+   "de": "Berechtigungsanfragen erscheinen in der Notch. Wenn Macha nicht läuft, verwendet Hermes seine eigene Abfrage.",
+   "tr": "Onay istekleri adada görünür. Macha çalışmıyorsa Hermes kendi onay istemini kullanır."
   },
   "Approval requests are handled by Hermes (terminal or gateway).": {
    "zh-Hans": "审批请求由 Hermes 处理（终端或网关）。",
@@ -977,18 +977,18 @@
    "de": "Aktivster Tag",
    "tr": "En yoğun gün"
   },
-  "Buy Mochi a coffee": {
-   "zh-Hans": "请 Mochi 喝咖啡",
-   "hi": "Mochi को कॉफ़ी पिलाएँ",
-   "es": "Invitar a Mochi a un café",
-   "ar": "ادعُ Mochi إلى قهوة",
-   "fr": "Offrir un café à Mochi",
-   "bn": "Mochi-কে কফি খাওয়ান",
-   "pt-BR": "Pagar um café para o Mochi",
-   "ru": "Угостить Mochi кофе",
-   "id": "Traktir Mochi kopi",
-   "de": "Mochi einen Kaffee spendieren",
-   "tr": "Mochi’ye kahve ısmarla"
+  "Buy Macha a coffee": {
+   "zh-Hans": "请 Macha 喝咖啡",
+   "hi": "Macha को कॉफ़ी पिलाएँ",
+   "es": "Invitar a Macha a un café",
+   "ar": "ادعُ Macha إلى قهوة",
+   "fr": "Offrir un café à Macha",
+   "bn": "Macha-কে কফি খাওয়ান",
+   "pt-BR": "Pagar um café para o Macha",
+   "ru": "Угостить Macha кофе",
+   "id": "Traktir Macha kopi",
+   "de": "Macha einen Kaffee spendieren",
+   "tr": "Macha’ye kahve ısmarla"
   },
   "COMMANDS": {
    "zh-Hans": "命令",
@@ -1081,18 +1081,18 @@
    "de": "Screenshot für Claude aufnehmen",
    "tr": "Claude için ekran görüntüsü al"
   },
-  "Captured. Mochi has it.": {
-   "zh-Hans": "截好了，Mochi 吞下了它。",
+  "Captured. Macha has it.": {
+   "zh-Hans": "截好了，Macha 吞下了它。",
    "hi": "कैप्चर हो गया। मोची के पास है।",
-   "es": "Capturado. Mochi lo tiene.",
+   "es": "Capturado. Macha lo tiene.",
    "ar": "تم الالتقاط. موتشي ابتلعه.",
-   "fr": "Capturé. Mochi l'a avalé.",
+   "fr": "Capturé. Macha l'a avalé.",
    "bn": "ক্যাপচার হয়েছে। মোচির কাছে আছে।",
-   "pt-BR": "Capturado. O Mochi pegou.",
+   "pt-BR": "Capturado. O Macha pegou.",
    "ru": "Готово. Мочи проглотил снимок.",
-   "id": "Tertangkap. Mochi menyimpannya.",
-   "de": "Aufgenommen. Mochi hat es.",
-   "tr": "Ekran görüntüsü alındı. Mochi'de."
+   "id": "Tertangkap. Macha menyimpannya.",
+   "de": "Aufgenommen. Macha hat es.",
+   "tr": "Ekran görüntüsü alındı. Macha'de."
   },
   "Change plan": {
    "zh-Hans": "修改计划",
@@ -1185,18 +1185,18 @@
    "de": "Signatur wird geprüft…",
    "tr": "İmza kontrol ediliyor…"
   },
-  "Choose the tools you use. Coucou only shows what you declare here.": {
-   "zh-Hans": "选择你使用的工具。Coucou 只显示你在这里声明的内容。",
-   "hi": "वे टूल चुनें जो आप उपयोग करते हैं। Coucou केवल वही दिखाता है जो आप यहाँ घोषित करते हैं।",
-   "es": "Elige las herramientas que usas. Coucou solo muestra lo que declares aquí.",
-   "ar": "اختر الأدوات التي تستخدمها. يعرض Coucou فقط ما تُعلنه هنا.",
-   "fr": "Choisis les outils que tu utilises. Coucou n'affiche que ce que tu déclares ici.",
-   "bn": "আপনি যে টুলগুলো ব্যবহার করেন তা বেছে নিন। Coucou শুধুমাত্র আপনার ঘোষণা করা জিনিস দেখায়।",
-   "pt-BR": "Escolha as ferramentas que você usa. O Coucou mostra apenas o que você declarar aqui.",
-   "ru": "Выбери инструменты, которые ты используешь. Coucou показывает только то, что ты здесь объявишь.",
-   "id": "Pilih alat yang Anda gunakan. Coucou hanya menampilkan yang Anda deklarasikan di sini.",
-   "de": "Wähle deine Werkzeuge. Coucou zeigt nur an, was du hier auswählst.",
-   "tr": "Kullandığın araçları seç. Coucou yalnızca burada belirttiğin araçları gösterir."
+  "Choose the tools you use. Macha only shows what you declare here.": {
+   "zh-Hans": "选择你使用的工具。Macha 只显示你在这里声明的内容。",
+   "hi": "वे टूल चुनें जो आप उपयोग करते हैं। Macha केवल वही दिखाता है जो आप यहाँ घोषित करते हैं।",
+   "es": "Elige las herramientas que usas. Macha solo muestra lo que declares aquí.",
+   "ar": "اختر الأدوات التي تستخدمها. يعرض Macha فقط ما تُعلنه هنا.",
+   "fr": "Choisis les outils que tu utilises. Macha n'affiche que ce que tu déclares ici.",
+   "bn": "আপনি যে টুলগুলো ব্যবহার করেন তা বেছে নিন। Macha শুধুমাত্র আপনার ঘোষণা করা জিনিস দেখায়।",
+   "pt-BR": "Escolha as ferramentas que você usa. O Macha mostra apenas o que você declarar aqui.",
+   "ru": "Выбери инструменты, которые ты используешь. Macha показывает только то, что ты здесь объявишь.",
+   "id": "Pilih alat yang Anda gunakan. Macha hanya menampilkan yang Anda deklarasikan di sini.",
+   "de": "Wähle deine Werkzeuge. Macha zeigt nur an, was du hier auswählst.",
+   "tr": "Kullandığın araçları seç. Macha yalnızca burada belirttiğin araçları gösterir."
   },
   "City": {
    "zh-Hans": "城市",
@@ -1289,18 +1289,18 @@
    "de": "Claude Code ist nicht angemeldet oder der Schlüssel ist nicht mehr gültig.",
    "tr": "Claude Code oturumu açık değil veya anahtarı artık geçerli değil."
   },
-  "Claude Code, Codex and the other agents Mochi follows.": {
-   "zh-Hans": "Mochi 关注的 Claude Code、Codex 和其他智能体。",
+  "Claude Code, Codex and the other agents Macha follows.": {
+   "zh-Hans": "Macha 关注的 Claude Code、Codex 和其他智能体。",
    "hi": "Claude Code, Codex और बाकी एजेंट जिन पर मोची नज़र रखता है।",
-   "es": "Claude Code, Codex y los demás agentes que sigue Mochi.",
+   "es": "Claude Code, Codex y los demás agentes que sigue Macha.",
    "ar": "Claude Code وCodex وبقية الوكلاء الذين يتابعهم موتشي.",
-   "fr": "Claude Code, Codex et les autres agents que Mochi suit.",
+   "fr": "Claude Code, Codex et les autres agents que Macha suit.",
    "bn": "Claude Code, Codex আর অন্য এজেন্ট যাদের মোচি অনুসরণ করে।",
-   "pt-BR": "Claude Code, Codex e os outros agentes que o Mochi acompanha.",
+   "pt-BR": "Claude Code, Codex e os outros agentes que o Macha acompanha.",
    "ru": "Claude Code, Codex и другие агенты, за которыми следит Мочи.",
-   "id": "Claude Code, Codex, dan agen lain yang diikuti Mochi.",
-   "de": "Claude Code, Codex und die anderen Agenten, denen Mochi folgt.",
-   "tr": "Claude Code, Codex ve Mochi'nin takip ettiği diğer ajanlar."
+   "id": "Claude Code, Codex, dan agen lain yang diikuti Macha.",
+   "de": "Claude Code, Codex und die anderen Agenten, denen Macha folgt.",
+   "tr": "Claude Code, Codex ve Macha'nin takip ettiği diğer ajanlar."
   },
   "Claude Desktop chats (experimental)": {
    "zh-Hans": "Claude Desktop 聊天（实验性）",
@@ -1315,18 +1315,18 @@
    "de": "Claude-Desktop-Chats (experimentell)",
    "tr": "Claude Desktop sohbetleri (deneysel)"
   },
-  "Claude as Coucou's brain": {
-   "zh-Hans": "由 Claude 担任 Coucou 的大脑",
-   "hi": "Coucou का दिमाग: Claude",
-   "es": "Claude como cerebro de Coucou",
-   "ar": "Claude عقل Coucou",
-   "fr": "Claude comme cerveau de Coucou",
-   "bn": "Coucou-র মস্তিষ্ক: Claude",
-   "pt-BR": "Claude como cérebro do Coucou",
-   "ru": "Claude — мозг Coucou",
-   "id": "Claude sebagai otak Coucou",
-   "de": "Claude als Coucous Gehirn",
-   "tr": "Coucou'nun beyni olarak Claude"
+  "Claude as Macha's brain": {
+   "zh-Hans": "由 Claude 担任 Macha 的大脑",
+   "hi": "Macha का दिमाग: Claude",
+   "es": "Claude como cerebro de Macha",
+   "ar": "Claude عقل Macha",
+   "fr": "Claude comme cerveau de Macha",
+   "bn": "Macha-র মস্তিষ্ক: Claude",
+   "pt-BR": "Claude como cérebro do Macha",
+   "ru": "Claude — мозг Macha",
+   "id": "Claude sebagai otak Macha",
+   "de": "Claude als Machas Gehirn",
+   "tr": "Macha'nun beyni olarak Claude"
   },
   "Claude cleans up what you say, in the style of the app you write in.": {
    "zh-Hans": "Claude 会按你正在输入的 App 的风格整理你说的话。",
@@ -1744,200 +1744,200 @@
    "de": "Transkript erneut korrigieren",
    "tr": "Dökümü yeniden düzelt"
   },
-  "Coucou Flow…": {
-   "zh-Hans": "Coucou Flow…",
-   "hi": "Coucou Flow…",
-   "es": "Coucou Flow…",
-   "ar": "Coucou Flow…",
-   "fr": "Coucou Flow…",
-   "bn": "Coucou Flow…",
-   "pt-BR": "Coucou Flow…",
-   "ru": "Coucou Flow…",
-   "id": "Coucou Flow…",
-   "de": "Coucou Flow…",
-   "tr": "Coucou Flow…"
+  "Macha Flow…": {
+   "zh-Hans": "Macha Flow…",
+   "hi": "Macha Flow…",
+   "es": "Macha Flow…",
+   "ar": "Macha Flow…",
+   "fr": "Macha Flow…",
+   "bn": "Macha Flow…",
+   "pt-BR": "Macha Flow…",
+   "ru": "Macha Flow…",
+   "id": "Macha Flow…",
+   "de": "Macha Flow…",
+   "tr": "Macha Flow…"
   },
-  "Coucou answers in": {
-   "zh-Hans": "Coucou 回答语言",
-   "hi": "Coucou जवाब देता है",
-   "es": "Coucou responde en",
-   "ar": "Coucou يجيب بـ",
-   "fr": "Coucou répond en",
-   "bn": "Coucou উত্তর দেয়",
-   "pt-BR": "Coucou responde em",
-   "ru": "Coucou отвечает на",
-   "id": "Coucou menjawab dalam",
-   "de": "Coucou antwortet auf",
-   "tr": "Coucou'nun yanıt dili"
+  "Macha answers in": {
+   "zh-Hans": "Macha 回答语言",
+   "hi": "Macha जवाब देता है",
+   "es": "Macha responde en",
+   "ar": "Macha يجيب بـ",
+   "fr": "Macha répond en",
+   "bn": "Macha উত্তর দেয়",
+   "pt-BR": "Macha responde em",
+   "ru": "Macha отвечает на",
+   "id": "Macha menjawab dalam",
+   "de": "Macha antwortet auf",
+   "tr": "Macha'nun yanıt dili"
   },
-  "Coucou can't hear you: the microphone is not allowed or not available.": {
-   "zh-Hans": "Coucou 听不到你：麦克风未获允许或不可用。",
-   "hi": "Coucou आपको सुन नहीं पा रहा: माइक्रोफ़ोन की अनुमति नहीं है या वह उपलब्ध नहीं।",
-   "es": "Coucou no te oye: el micrófono no está permitido o no está disponible.",
-   "ar": "لا يسمعك Coucou: الميكروفون غير مسموح به أو غير متاح.",
-   "fr": "Coucou ne t'entend pas : le micro n'est pas autorisé ou pas disponible.",
-   "bn": "Coucou আপনাকে শুনতে পাচ্ছে না: মাইক্রোফোনের অনুমতি নেই বা পাওয়া যাচ্ছে না।",
-   "pt-BR": "O Coucou não te ouve: o microfone não está permitido ou indisponível.",
-   "ru": "Coucou вас не слышит: микрофон не разрешён или недоступен.",
-   "id": "Coucou tidak bisa mendengarmu: mikrofon tidak diizinkan atau tidak tersedia.",
-   "de": "Coucou kann dich nicht hören: Das Mikrofon ist nicht erlaubt oder nicht verfügbar.",
-   "tr": "Coucou seni duyamıyor: mikrofona izin verilmemiş veya mikrofon kullanılamıyor."
+  "Macha can't hear you: the microphone is not allowed or not available.": {
+   "zh-Hans": "Macha 听不到你：麦克风未获允许或不可用。",
+   "hi": "Macha आपको सुन नहीं पा रहा: माइक्रोफ़ोन की अनुमति नहीं है या वह उपलब्ध नहीं।",
+   "es": "Macha no te oye: el micrófono no está permitido o no está disponible.",
+   "ar": "لا يسمعك Macha: الميكروفون غير مسموح به أو غير متاح.",
+   "fr": "Macha ne t'entend pas : le micro n'est pas autorisé ou pas disponible.",
+   "bn": "Macha আপনাকে শুনতে পাচ্ছে না: মাইক্রোফোনের অনুমতি নেই বা পাওয়া যাচ্ছে না।",
+   "pt-BR": "O Macha não te ouve: o microfone não está permitido ou indisponível.",
+   "ru": "Macha вас не слышит: микрофон не разрешён или недоступен.",
+   "id": "Macha tidak bisa mendengarmu: mikrofon tidak diizinkan atau tidak tersedia.",
+   "de": "Macha kann dich nicht hören: Das Mikrofon ist nicht erlaubt oder nicht verfügbar.",
+   "tr": "Macha seni duyamıyor: mikrofona izin verilmemiş veya mikrofon kullanılamıyor."
   },
-  "Coucou can't paste yet, or see Esc: it needs the Accessibility permission. Turn on Coucou in System Settings → Privacy & Security → Accessibility. If it is already on, remove it with − and add it again: a new build of Coucou needs it again.": {
-   "zh-Hans": "Coucou 还不能粘贴，也无法识别 Esc：它需要“辅助功能”权限。请在“系统设置”→“隐私与安全性”→“辅助功能”中打开 Coucou。如果已经打开，请用“−”移除后重新添加：新版本的 Coucou 需要重新授权。",
-   "hi": "Coucou अभी न चिपका सकता है, न Esc देख सकता है: इसे एक्सेसिबिलिटी अनुमति चाहिए। सिस्टम सेटिंग्स → गोपनीयता और सुरक्षा → एक्सेसिबिलिटी में Coucou चालू करें। अगर यह पहले से चालू है, तो − से हटाकर फिर जोड़ें: Coucou के नए संस्करण को फिर से अनुमति चाहिए।",
-   "es": "Coucou aún no puede pegar ni ver Esc: necesita el permiso de Accesibilidad. Activa Coucou en Ajustes del Sistema → Privacidad y seguridad → Accesibilidad. Si ya está activado, quítalo con − y vuelve a añadirlo: una nueva versión de Coucou lo necesita de nuevo.",
-   "ar": "لا يستطيع Coucou اللصق بعد ولا رؤية Esc: يحتاج إلى إذن تسهيلات الاستخدام. فعّل Coucou في إعدادات النظام ← الخصوصية والأمن ← تسهيلات الاستخدام. إذا كان مفعّلًا، احذفه بزر − ثم أضفه من جديد: كل إصدار جديد من Coucou يحتاج الإذن مرة أخرى.",
-   "fr": "Coucou ne peut pas encore coller, ni voir Échap : il lui faut l'autorisation Accessibilité. Active Coucou dans Réglages Système → Confidentialité et sécurité → Accessibilité. S'il y est déjà, retire-le avec − puis rajoute-le : une nouvelle version de Coucou doit être autorisée à nouveau.",
-   "bn": "Coucou এখনও পেস্ট করতে বা Esc দেখতে পারে না: এর অ্যাক্সেসিবিলিটি অনুমতি দরকার। সিস্টেম সেটিংস → গোপনীয়তা ও নিরাপত্তা → অ্যাক্সেসিবিলিটিতে Coucou চালু করুন। আগে থেকেই চালু থাকলে − দিয়ে সরিয়ে আবার যোগ করুন: Coucou-এর নতুন সংস্করণের আবার অনুমতি লাগে।",
-   "pt-BR": "O Coucou ainda não consegue colar nem ver o Esc: ele precisa da permissão de Acessibilidade. Ative o Coucou em Ajustes do Sistema → Privacidade e Segurança → Acessibilidade. Se já estiver ativado, remova com − e adicione de novo: uma nova versão do Coucou precisa da permissão outra vez.",
-   "ru": "Coucou пока не может вставлять текст и видеть Esc: нужен доступ к Универсальному доступу. Включите Coucou в Системных настройках → Конфиденциальность и безопасность → Универсальный доступ. Если он уже включён, удалите его кнопкой − и добавьте снова: новой версии Coucou нужно разрешение заново.",
-   "id": "Coucou belum bisa menempel atau melihat Esc: ia butuh izin Aksesibilitas. Aktifkan Coucou di Pengaturan Sistem → Privasi & Keamanan → Aksesibilitas. Jika sudah aktif, hapus dengan − lalu tambahkan lagi: versi baru Coucou perlu izin lagi.",
-   "de": "Coucou kann noch nicht einfügen oder Esc erkennen: Die Berechtigung für Bedienungshilfen fehlt. Aktiviere Coucou unter Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen. Falls es bereits aktiviert ist, entferne es mit − und füge es erneut hinzu: Eine neue Version von Coucou benötigt die Berechtigung erneut.",
-   "tr": "Coucou henüz yapıştıramıyor veya Esc tuşunu algılayamıyor: Erişilebilirlik izni gerekiyor. Sistem Ayarları → Gizlilik ve Güvenlik → Erişilebilirlik bölümünde Coucou'yu etkinleştir. Zaten etkinse − ile kaldırıp yeniden ekle: Coucou'nun yeni derlemesi için yeniden izin gerekir."
+  "Macha can't paste yet, or see Esc: it needs the Accessibility permission. Turn on Macha in System Settings → Privacy & Security → Accessibility. If it is already on, remove it with − and add it again: a new build of Macha needs it again.": {
+   "zh-Hans": "Macha 还不能粘贴，也无法识别 Esc：它需要“辅助功能”权限。请在“系统设置”→“隐私与安全性”→“辅助功能”中打开 Macha。如果已经打开，请用“−”移除后重新添加：新版本的 Macha 需要重新授权。",
+   "hi": "Macha अभी न चिपका सकता है, न Esc देख सकता है: इसे एक्सेसिबिलिटी अनुमति चाहिए। सिस्टम सेटिंग्स → गोपनीयता और सुरक्षा → एक्सेसिबिलिटी में Macha चालू करें। अगर यह पहले से चालू है, तो − से हटाकर फिर जोड़ें: Macha के नए संस्करण को फिर से अनुमति चाहिए।",
+   "es": "Macha aún no puede pegar ni ver Esc: necesita el permiso de Accesibilidad. Activa Macha en Ajustes del Sistema → Privacidad y seguridad → Accesibilidad. Si ya está activado, quítalo con − y vuelve a añadirlo: una nueva versión de Macha lo necesita de nuevo.",
+   "ar": "لا يستطيع Macha اللصق بعد ولا رؤية Esc: يحتاج إلى إذن تسهيلات الاستخدام. فعّل Macha في إعدادات النظام ← الخصوصية والأمن ← تسهيلات الاستخدام. إذا كان مفعّلًا، احذفه بزر − ثم أضفه من جديد: كل إصدار جديد من Macha يحتاج الإذن مرة أخرى.",
+   "fr": "Macha ne peut pas encore coller, ni voir Échap : il lui faut l'autorisation Accessibilité. Active Macha dans Réglages Système → Confidentialité et sécurité → Accessibilité. S'il y est déjà, retire-le avec − puis rajoute-le : une nouvelle version de Macha doit être autorisée à nouveau.",
+   "bn": "Macha এখনও পেস্ট করতে বা Esc দেখতে পারে না: এর অ্যাক্সেসিবিলিটি অনুমতি দরকার। সিস্টেম সেটিংস → গোপনীয়তা ও নিরাপত্তা → অ্যাক্সেসিবিলিটিতে Macha চালু করুন। আগে থেকেই চালু থাকলে − দিয়ে সরিয়ে আবার যোগ করুন: Macha-এর নতুন সংস্করণের আবার অনুমতি লাগে।",
+   "pt-BR": "O Macha ainda não consegue colar nem ver o Esc: ele precisa da permissão de Acessibilidade. Ative o Macha em Ajustes do Sistema → Privacidade e Segurança → Acessibilidade. Se já estiver ativado, remova com − e adicione de novo: uma nova versão do Macha precisa da permissão outra vez.",
+   "ru": "Macha пока не может вставлять текст и видеть Esc: нужен доступ к Универсальному доступу. Включите Macha в Системных настройках → Конфиденциальность и безопасность → Универсальный доступ. Если он уже включён, удалите его кнопкой − и добавьте снова: новой версии Macha нужно разрешение заново.",
+   "id": "Macha belum bisa menempel atau melihat Esc: ia butuh izin Aksesibilitas. Aktifkan Macha di Pengaturan Sistem → Privasi & Keamanan → Aksesibilitas. Jika sudah aktif, hapus dengan − lalu tambahkan lagi: versi baru Macha perlu izin lagi.",
+   "de": "Macha kann noch nicht einfügen oder Esc erkennen: Die Berechtigung für Bedienungshilfen fehlt. Aktiviere Macha unter Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen. Falls es bereits aktiviert ist, entferne es mit − und füge es erneut hinzu: Eine neue Version von Macha benötigt die Berechtigung erneut.",
+   "tr": "Macha henüz yapıştıramıyor veya Esc tuşunu algılayamıyor: Erişilebilirlik izni gerekiyor. Sistem Ayarları → Gizlilik ve Güvenlik → Erişilebilirlik bölümünde Macha'yu etkinleştir. Zaten etkinse − ile kaldırıp yeniden ekle: Macha'nun yeni derlemesi için yeniden izin gerekir."
   },
-  "Coucou can't use the microphone. Allow it in System Settings → Privacy & Security → Microphone.": {
-   "zh-Hans": "Coucou 无法使用麦克风。请在“系统设置”→“隐私与安全性”→“麦克风”中允许。",
-   "hi": "Coucou माइक्रोफ़ोन इस्तेमाल नहीं कर पा रहा। सिस्टम सेटिंग्स → गोपनीयता और सुरक्षा → माइक्रोफ़ोन में अनुमति दें।",
-   "es": "Coucou no puede usar el micrófono. Permítelo en Ajustes del Sistema → Privacidad y seguridad → Micrófono.",
-   "ar": "لا يستطيع Coucou استخدام الميكروفون. اسمح به من إعدادات النظام ← الخصوصية والأمن ← الميكروفون.",
-   "fr": "Coucou ne peut pas utiliser le micro. Autorise-le dans Réglages Système → Confidentialité et sécurité → Micro.",
-   "bn": "Coucou মাইক্রোফোন ব্যবহার করতে পারছে না। সিস্টেম সেটিংস → গোপনীয়তা ও নিরাপত্তা → মাইক্রোফোন-এ অনুমতি দিন।",
-   "pt-BR": "O Coucou não pode usar o microfone. Permita em Ajustes do Sistema → Privacidade e Segurança → Microfone.",
-   "ru": "Coucou не может использовать микрофон. Разрешите его в Системных настройках → Конфиденциальность и безопасность → Микрофон.",
-   "id": "Coucou tidak bisa memakai mikrofon. Izinkan di Pengaturan Sistem → Privasi & Keamanan → Mikrofon.",
-   "de": "Coucou kann das Mikrofon nicht verwenden. Erlaube es unter Systemeinstellungen → Datenschutz & Sicherheit → Mikrofon.",
-   "tr": "Coucou mikrofonu kullanamıyor. Sistem Ayarları → Gizlilik ve Güvenlik → Mikrofon bölümünden izin ver."
+  "Macha can't use the microphone. Allow it in System Settings → Privacy & Security → Microphone.": {
+   "zh-Hans": "Macha 无法使用麦克风。请在“系统设置”→“隐私与安全性”→“麦克风”中允许。",
+   "hi": "Macha माइक्रोफ़ोन इस्तेमाल नहीं कर पा रहा। सिस्टम सेटिंग्स → गोपनीयता और सुरक्षा → माइक्रोफ़ोन में अनुमति दें।",
+   "es": "Macha no puede usar el micrófono. Permítelo en Ajustes del Sistema → Privacidad y seguridad → Micrófono.",
+   "ar": "لا يستطيع Macha استخدام الميكروفون. اسمح به من إعدادات النظام ← الخصوصية والأمن ← الميكروفون.",
+   "fr": "Macha ne peut pas utiliser le micro. Autorise-le dans Réglages Système → Confidentialité et sécurité → Micro.",
+   "bn": "Macha মাইক্রোফোন ব্যবহার করতে পারছে না। সিস্টেম সেটিংস → গোপনীয়তা ও নিরাপত্তা → মাইক্রোফোন-এ অনুমতি দিন।",
+   "pt-BR": "O Macha não pode usar o microfone. Permita em Ajustes do Sistema → Privacidade e Segurança → Microfone.",
+   "ru": "Macha не может использовать микрофон. Разрешите его в Системных настройках → Конфиденциальность и безопасность → Микрофон.",
+   "id": "Macha tidak bisa memakai mikrofon. Izinkan di Pengaturan Sistem → Privasi & Keamanan → Mikrofon.",
+   "de": "Macha kann das Mikrofon nicht verwenden. Erlaube es unter Systemeinstellungen → Datenschutz & Sicherheit → Mikrofon.",
+   "tr": "Macha mikrofonu kullanamıyor. Sistem Ayarları → Gizlilik ve Güvenlik → Mikrofon bölümünden izin ver."
   },
-  "Coucou couldn't paste: your words are copied. Press ⌘V, and allow Accessibility so it pastes for you.": {
-   "zh-Hans": "Coucou 无法粘贴：你的话已拷贝。按 ⌘V，并允许“辅助功能”，让它自动粘贴。",
-   "hi": "Coucou चिपका नहीं सका: आपके शब्द कॉपी हो गए हैं। ⌘V दबाएँ, और एक्सेसिबिलिटी की अनुमति दें ताकि वह खुद चिपकाए।",
-   "es": "Coucou no pudo pegar: tus palabras están copiadas. Pulsa ⌘V y permite Accesibilidad para que pegue solo.",
-   "ar": "لم يتمكن Coucou من اللصق: كلماتك منسوخة. اضغط ⌘V، واسمح بتسهيلات الاستخدام ليلصق بنفسه.",
-   "fr": "Coucou n'a pas pu coller : tes mots sont copiés. Fais ⌘V, et autorise l'Accessibilité pour qu'il colle tout seul.",
-   "bn": "Coucou পেস্ট করতে পারেনি: আপনার কথা কপি হয়েছে। ⌘V চাপুন, আর অ্যাক্সেসিবিলিটির অনুমতি দিন যাতে নিজেই পেস্ট করে।",
-   "pt-BR": "O Coucou não conseguiu colar: suas palavras foram copiadas. Pressione ⌘V e permita a Acessibilidade para ele colar sozinho.",
-   "ru": "Coucou не смог вставить: слова скопированы. Нажмите ⌘V и разрешите Универсальный доступ, чтобы он вставлял сам.",
-   "id": "Coucou tidak bisa menempel: kata-katamu sudah disalin. Tekan ⌘V, dan izinkan Aksesibilitas agar ia menempel sendiri.",
-   "de": "Coucou konnte nicht einfügen: Deine Worte wurden kopiert. Drücke ⌘V und erlaube Bedienungshilfen, damit Coucou sie für dich einfügt.",
-   "tr": "Coucou yapıştıramadı: sözlerin kopyalandı. ⌘V tuşlarına bas ve Coucou'nun senin için yapıştırabilmesi için Erişilebilirlik izni ver."
+  "Macha couldn't paste: your words are copied. Press ⌘V, and allow Accessibility so it pastes for you.": {
+   "zh-Hans": "Macha 无法粘贴：你的话已拷贝。按 ⌘V，并允许“辅助功能”，让它自动粘贴。",
+   "hi": "Macha चिपका नहीं सका: आपके शब्द कॉपी हो गए हैं। ⌘V दबाएँ, और एक्सेसिबिलिटी की अनुमति दें ताकि वह खुद चिपकाए।",
+   "es": "Macha no pudo pegar: tus palabras están copiadas. Pulsa ⌘V y permite Accesibilidad para que pegue solo.",
+   "ar": "لم يتمكن Macha من اللصق: كلماتك منسوخة. اضغط ⌘V، واسمح بتسهيلات الاستخدام ليلصق بنفسه.",
+   "fr": "Macha n'a pas pu coller : tes mots sont copiés. Fais ⌘V, et autorise l'Accessibilité pour qu'il colle tout seul.",
+   "bn": "Macha পেস্ট করতে পারেনি: আপনার কথা কপি হয়েছে। ⌘V চাপুন, আর অ্যাক্সেসিবিলিটির অনুমতি দিন যাতে নিজেই পেস্ট করে।",
+   "pt-BR": "O Macha não conseguiu colar: suas palavras foram copiadas. Pressione ⌘V e permita a Acessibilidade para ele colar sozinho.",
+   "ru": "Macha не смог вставить: слова скопированы. Нажмите ⌘V и разрешите Универсальный доступ, чтобы он вставлял сам.",
+   "id": "Macha tidak bisa menempel: kata-katamu sudah disalin. Tekan ⌘V, dan izinkan Aksesibilitas agar ia menempel sendiri.",
+   "de": "Macha konnte nicht einfügen: Deine Worte wurden kopiert. Drücke ⌘V und erlaube Bedienungshilfen, damit Macha sie für dich einfügt.",
+   "tr": "Macha yapıştıramadı: sözlerin kopyalandı. ⌘V tuşlarına bas ve Macha'nun senin için yapıştırabilmesi için Erişilebilirlik izni ver."
   },
-  "Coucou is free and open source. If it saves you time, you can buy Mochi a coffee.": {
-   "zh-Hans": "Coucou 免费且开源。如果它帮你节省了时间，可以请 Mochi 喝杯咖啡。",
-   "hi": "Coucou मुफ़्त और ओपन सोर्स है। अगर यह आपका समय बचाता है, तो Mochi को एक कॉफ़ी पिला सकते हैं।",
-   "es": "Coucou es gratis y de código abierto. Si te ahorra tiempo, puedes invitar a Mochi a un café.",
-   "ar": "Coucou مجاني ومفتوح المصدر. إن وفّر عليك الوقت، يمكنك دعوة Mochi إلى قهوة.",
-   "fr": "Coucou est gratuit et open source. S’il te fait gagner du temps, tu peux offrir un café à Mochi.",
-   "bn": "Coucou বিনামূল্যে ও ওপেন সোর্স। এটি আপনার সময় বাঁচালে Mochi-কে এক কাপ কফি খাওয়াতে পারেন।",
-   "pt-BR": "O Coucou é gratuito e de código aberto. Se ele economiza seu tempo, você pode pagar um café para o Mochi.",
-   "ru": "Coucou бесплатный и с открытым кодом. Если он экономит вам время, можно угостить Mochi кофе.",
-   "id": "Coucou gratis dan open source. Kalau ini menghemat waktumu, kamu bisa traktir Mochi kopi.",
-   "de": "Coucou ist kostenlos und Open Source. Wenn es dir Zeit spart, kannst du Mochi einen Kaffee spendieren.",
-   "tr": "Coucou ücretsiz ve açık kaynak. Sana zaman kazandırıyorsa Mochi’ye bir kahve ısmarlayabilirsin."
+  "Macha is free and open source. If it saves you time, you can buy Macha a coffee.": {
+   "zh-Hans": "Macha 免费且开源。如果它帮你节省了时间，可以请 Macha 喝杯咖啡。",
+   "hi": "Macha मुफ़्त और ओपन सोर्स है। अगर यह आपका समय बचाता है, तो Macha को एक कॉफ़ी पिला सकते हैं।",
+   "es": "Macha es gratis y de código abierto. Si te ahorra tiempo, puedes invitar a Macha a un café.",
+   "ar": "Macha مجاني ومفتوح المصدر. إن وفّر عليك الوقت، يمكنك دعوة Macha إلى قهوة.",
+   "fr": "Macha est gratuit et open source. S’il te fait gagner du temps, tu peux offrir un café à Macha.",
+   "bn": "Macha বিনামূল্যে ও ওপেন সোর্স। এটি আপনার সময় বাঁচালে Macha-কে এক কাপ কফি খাওয়াতে পারেন।",
+   "pt-BR": "O Macha é gratuito e de código aberto. Se ele economiza seu tempo, você pode pagar um café para o Macha.",
+   "ru": "Macha бесплатный и с открытым кодом. Если он экономит вам время, можно угостить Macha кофе.",
+   "id": "Macha gratis dan open source. Kalau ini menghemat waktumu, kamu bisa traktir Macha kopi.",
+   "de": "Macha ist kostenlos und Open Source. Wenn es dir Zeit spart, kannst du Macha einen Kaffee spendieren.",
+   "tr": "Macha ücretsiz ve açık kaynak. Sana zaman kazandırıyorsa Macha’ye bir kahve ısmarlayabilirsin."
   },
-  "Coucou is up to date": {
-   "zh-Hans": "Coucou 已是最新版本",
-   "hi": "Coucou अप-टू-डेट है",
-   "es": "Coucou está actualizado",
-   "ar": "Coucou محدَّث",
-   "fr": "Coucou est à jour",
-   "bn": "Coucou হালনাগাদ আছে",
-   "pt-BR": "O Coucou está atualizado",
-   "ru": "Coucou обновлён",
-   "id": "Coucou sudah terbaru",
-   "de": "Coucou ist aktuell",
-   "tr": "Coucou güncel"
+  "Macha is up to date": {
+   "zh-Hans": "Macha 已是最新版本",
+   "hi": "Macha अप-टू-डेट है",
+   "es": "Macha está actualizado",
+   "ar": "Macha محدَّث",
+   "fr": "Macha est à jour",
+   "bn": "Macha হালনাগাদ আছে",
+   "pt-BR": "O Macha está atualizado",
+   "ru": "Macha обновлён",
+   "id": "Macha sudah terbaru",
+   "de": "Macha ist aktuell",
+   "tr": "Macha güncel"
   },
-  "Coucou is writing the transcript, person by person…": {
-   "zh-Hans": "Coucou 正在按人逐句写转写…",
-   "hi": "Coucou हर व्यक्ति के हिसाब से ट्रांसक्रिप्ट लिख रहा है…",
-   "es": "Coucou está escribiendo la transcripción, persona por persona…",
-   "ar": "يكتب Coucou النص شخصًا بشخص…",
-   "fr": "Coucou écrit la transcription, personne par personne…",
-   "bn": "Coucou প্রতিজনের ট্রান্সক্রিপ্ট লিখছে…",
-   "pt-BR": "O Coucou está escrevendo a transcrição, pessoa por pessoa…",
-   "ru": "Coucou составляет расшифровку по участникам…",
-   "id": "Coucou sedang menulis transkrip, per orang…",
-   "de": "Coucou schreibt das Transkript nach Personen…",
-   "tr": "Coucou dökümü kişilere göre yazıyor…"
+  "Macha is writing the transcript, person by person…": {
+   "zh-Hans": "Macha 正在按人逐句写转写…",
+   "hi": "Macha हर व्यक्ति के हिसाब से ट्रांसक्रिप्ट लिख रहा है…",
+   "es": "Macha está escribiendo la transcripción, persona por persona…",
+   "ar": "يكتب Macha النص شخصًا بشخص…",
+   "fr": "Macha écrit la transcription, personne par personne…",
+   "bn": "Macha প্রতিজনের ট্রান্সক্রিপ্ট লিখছে…",
+   "pt-BR": "O Macha está escrevendo a transcrição, pessoa por pessoa…",
+   "ru": "Macha составляет расшифровку по участникам…",
+   "id": "Macha sedang menulis transkrip, per orang…",
+   "de": "Macha schreibt das Transkript nach Personen…",
+   "tr": "Macha dökümü kişilere göre yazıyor…"
   },
-  "Coucou isn’t in your Applications folder, so it can’t replace itself: get the new version on GitHub.": {
-   "zh-Hans": "Coucou 不在“应用程序”文件夹中，无法自行替换：请在 GitHub 上获取新版本。",
-   "hi": "Coucou आपके Applications फ़ोल्डर में नहीं है, इसलिए खुद को बदल नहीं सकता: नया वर्ज़न GitHub से लें।",
-   "es": "Coucou no está en tu carpeta Aplicaciones, así que no puede reemplazarse: descarga la nueva versión en GitHub.",
-   "ar": "Coucou ليس في مجلد التطبيقات، لذا لا يمكنه استبدال نفسه: احصل على الإصدار الجديد من GitHub.",
-   "fr": "Coucou n’est pas dans ton dossier Applications, il ne peut donc pas se remplacer : récupère la nouvelle version sur GitHub.",
-   "bn": "Coucou আপনার Applications ফোল্ডারে নেই, তাই নিজেকে বদলাতে পারে না: নতুন সংস্করণ GitHub থেকে নিন।",
-   "pt-BR": "O Coucou não está na sua pasta Aplicativos, então não pode se substituir: baixe a nova versão no GitHub.",
-   "ru": "Coucou не в папке «Программы», поэтому не может заменить себя: скачайте новую версию на GitHub.",
-   "id": "Coucou tidak ada di folder Aplikasi, jadi tidak bisa mengganti dirinya: ambil versi baru di GitHub.",
-   "de": "Coucou liegt nicht in deinem Programme-Ordner und kann sich daher nicht selbst ersetzen: Hol dir die neue Version auf GitHub.",
-   "tr": "Coucou Uygulamalar klasöründe değil, bu yüzden kendini değiştiremiyor: yeni sürümü GitHub'dan al."
+  "Macha isn’t in your Applications folder, so it can’t replace itself: get the new version on GitHub.": {
+   "zh-Hans": "Macha 不在“应用程序”文件夹中，无法自行替换：请在 GitHub 上获取新版本。",
+   "hi": "Macha आपके Applications फ़ोल्डर में नहीं है, इसलिए खुद को बदल नहीं सकता: नया वर्ज़न GitHub से लें।",
+   "es": "Macha no está en tu carpeta Aplicaciones, así que no puede reemplazarse: descarga la nueva versión en GitHub.",
+   "ar": "Macha ليس في مجلد التطبيقات، لذا لا يمكنه استبدال نفسه: احصل على الإصدار الجديد من GitHub.",
+   "fr": "Macha n’est pas dans ton dossier Applications, il ne peut donc pas se remplacer : récupère la nouvelle version sur GitHub.",
+   "bn": "Macha আপনার Applications ফোল্ডারে নেই, তাই নিজেকে বদলাতে পারে না: নতুন সংস্করণ GitHub থেকে নিন।",
+   "pt-BR": "O Macha não está na sua pasta Aplicativos, então não pode se substituir: baixe a nova versão no GitHub.",
+   "ru": "Macha не в папке «Программы», поэтому не может заменить себя: скачайте новую версию на GitHub.",
+   "id": "Macha tidak ada di folder Aplikasi, jadi tidak bisa mengganti dirinya: ambil versi baru di GitHub.",
+   "de": "Macha liegt nicht in deinem Programme-Ordner und kann sich daher nicht selbst ersetzen: Hol dir die neue Version auf GitHub.",
+   "tr": "Macha Uygulamalar klasöründe değil, bu yüzden kendini değiştiremiyor: yeni sürümü GitHub'dan al."
   },
-  "Coucou looks at its own releases on GitHub a few times a day. An update is installed only after your click, once Apple’s signature and notarization check out.": {
-   "zh-Hans": "Coucou 每天会在 GitHub 上查看几次自己的版本。只有在你点击后、并验证 Apple 签名和公证后才会安装更新。",
-   "hi": "Coucou दिन में कुछ बार GitHub पर अपने रिलीज़ देखता है। अपडेट सिर्फ़ आपके क्लिक के बाद, Apple का सिग्नेचर और नोटराइज़ेशन जाँचकर ही इंस्टॉल होता है।",
-   "es": "Coucou revisa sus propias versiones en GitHub unas veces al día. Una actualización solo se instala tras tu clic, después de verificar la firma y la notarización de Apple.",
-   "ar": "يتحقق Coucou من إصداراته على GitHub بضع مرات يوميًا. لا يُثبَّت أي تحديث إلا بعد نقرتك، وبعد التحقق من توقيع Apple وتوثيقها.",
-   "fr": "Coucou regarde ses propres versions sur GitHub quelques fois par jour. Une mise à jour ne s’installe qu’après ton clic, une fois la signature et la notarisation Apple vérifiées.",
-   "bn": "Coucou দিনে কয়েকবার GitHub-এ নিজের রিলিজ দেখে। আপনার ক্লিকের পরে, Apple-এর স্বাক্ষর ও নোটারাইজেশন যাচাই করেই কেবল আপডেট ইনস্টল হয়।",
-   "pt-BR": "O Coucou verifica as próprias versões no GitHub algumas vezes por dia. Uma atualização só é instalada depois do seu clique, após conferir a assinatura e a notarização da Apple.",
-   "ru": "Coucou несколько раз в день проверяет свои релизы на GitHub. Обновление устанавливается только после вашего нажатия и проверки подписи и нотаризации Apple.",
-   "id": "Coucou memeriksa rilisnya sendiri di GitHub beberapa kali sehari. Pembaruan hanya dipasang setelah kamu klik, setelah tanda tangan dan notarisasi Apple diperiksa.",
-   "de": "Coucou schaut ein paar Mal am Tag nach seinen eigenen Releases auf GitHub. Ein Update wird erst nach deinem Klick installiert, wenn Apples Signatur und Beglaubigung stimmen.",
-   "tr": "Coucou günde birkaç kez GitHub'daki kendi sürümlerine bakar. Güncelleme yalnızca sen tıkladıktan sonra, Apple imzası ve onayı doğrulandığında yüklenir."
+  "Macha looks at its own releases on GitHub a few times a day. An update is installed only after your click, once Apple’s signature and notarization check out.": {
+   "zh-Hans": "Macha 每天会在 GitHub 上查看几次自己的版本。只有在你点击后、并验证 Apple 签名和公证后才会安装更新。",
+   "hi": "Macha दिन में कुछ बार GitHub पर अपने रिलीज़ देखता है। अपडेट सिर्फ़ आपके क्लिक के बाद, Apple का सिग्नेचर और नोटराइज़ेशन जाँचकर ही इंस्टॉल होता है।",
+   "es": "Macha revisa sus propias versiones en GitHub unas veces al día. Una actualización solo se instala tras tu clic, después de verificar la firma y la notarización de Apple.",
+   "ar": "يتحقق Macha من إصداراته على GitHub بضع مرات يوميًا. لا يُثبَّت أي تحديث إلا بعد نقرتك، وبعد التحقق من توقيع Apple وتوثيقها.",
+   "fr": "Macha regarde ses propres versions sur GitHub quelques fois par jour. Une mise à jour ne s’installe qu’après ton clic, une fois la signature et la notarisation Apple vérifiées.",
+   "bn": "Macha দিনে কয়েকবার GitHub-এ নিজের রিলিজ দেখে। আপনার ক্লিকের পরে, Apple-এর স্বাক্ষর ও নোটারাইজেশন যাচাই করেই কেবল আপডেট ইনস্টল হয়।",
+   "pt-BR": "O Macha verifica as próprias versões no GitHub algumas vezes por dia. Uma atualização só é instalada depois do seu clique, após conferir a assinatura e a notarização da Apple.",
+   "ru": "Macha несколько раз в день проверяет свои релизы на GitHub. Обновление устанавливается только после вашего нажатия и проверки подписи и нотаризации Apple.",
+   "id": "Macha memeriksa rilisnya sendiri di GitHub beberapa kali sehari. Pembaruan hanya dipasang setelah kamu klik, setelah tanda tangan dan notarisasi Apple diperiksa.",
+   "de": "Macha schaut ein paar Mal am Tag nach seinen eigenen Releases auf GitHub. Ein Update wird erst nach deinem Klick installiert, wenn Apples Signatur und Beglaubigung stimmen.",
+   "tr": "Macha günde birkaç kez GitHub'daki kendi sürümlerine bakar. Güncelleme yalnızca sen tıkladıktan sonra, Apple imzası ve onayı doğrulandığında yüklenir."
   },
-  "Coucou reads back results in the spoken language, using a synthesized voice. 100% on-device.": {
-   "zh-Hans": "Coucou 用语音语言朗读结果。完全在设备上处理。",
-   "hi": "Coucou बोली जाने वाली भाषा में परिणाम पढ़ता है। सब कुछ डिवाइस पर।",
-   "es": "Coucou lee los resultados en el idioma hablado con una voz sintetizada. Todo en el dispositivo.",
+  "Macha reads back results in the spoken language, using a synthesized voice. 100% on-device.": {
+   "zh-Hans": "Macha 用语音语言朗读结果。完全在设备上处理。",
+   "hi": "Macha बोली जाने वाली भाषा में परिणाम पढ़ता है। सब कुछ डिवाइस पर।",
+   "es": "Macha lee los resultados en el idioma hablado con una voz sintetizada. Todo en el dispositivo.",
    "ar": "يقرأ كوكو النتائج باللغة المنطوقة باستخدام صوت مُركَّب. كل شيء يتم على الجهاز.",
-   "fr": "Coucou lit les résultats dans la langue parlée. Tout se passe sur l'appareil.",
-   "bn": "Coucou কথ্য ভাষায় ফলাফল পড়ে। সবকিছু ডিভাইসেই হয়।",
-   "pt-BR": "Coucou lê os resultados no idioma falado. Tudo no dispositivo.",
-   "ru": "Coucou зачитывает результаты на языке команды. Всё на устройстве.",
-   "id": "Coucou membaca hasil dalam bahasa yang diucapkan. Semuanya di perangkat.",
-   "de": "Coucou liest Ergebnisse in der gesprochenen Sprache mit einer synthetischen Stimme vor. Vollständig auf dem Gerät.",
-   "tr": "Coucou sonuçları konuşulan dilde, sentezlenmiş bir sesle okur. Tamamen cihazda çalışır."
+   "fr": "Macha lit les résultats dans la langue parlée. Tout se passe sur l'appareil.",
+   "bn": "Macha কথ্য ভাষায় ফলাফল পড়ে। সবকিছু ডিভাইসেই হয়।",
+   "pt-BR": "Macha lê os resultados no idioma falado. Tudo no dispositivo.",
+   "ru": "Macha зачитывает результаты на языке команды. Всё на устройстве.",
+   "id": "Macha membaca hasil dalam bahasa yang diucapkan. Semuanya di perangkat.",
+   "de": "Macha liest Ergebnisse in der gesprochenen Sprache mit einer synthetischen Stimme vor. Vollständig auf dem Gerät.",
+   "tr": "Macha sonuçları konuşulan dilde, sentezlenmiş bir sesle okur. Tamamen cihazda çalışır."
   },
-  "Coucou responds aloud": {
-   "zh-Hans": "Coucou 大声回应",
-   "hi": "Coucou ज़ोर से जवाब देता है",
-   "es": "Coucou responde en voz alta",
+  "Macha responds aloud": {
+   "zh-Hans": "Macha 大声回应",
+   "hi": "Macha ज़ोर से जवाब देता है",
+   "es": "Macha responde en voz alta",
    "ar": "كوكو يرد بصوت عالٍ",
-   "fr": "Coucou répond à voix haute",
-   "bn": "Coucou জোরে জবাব দেয়",
-   "pt-BR": "Coucou responde em voz alta",
-   "ru": "Coucou отвечает вслух",
-   "id": "Coucou merespons dengan suara",
-   "de": "Coucou antwortet laut",
-   "tr": "Coucou sesli yanıt verir"
+   "fr": "Macha répond à voix haute",
+   "bn": "Macha জোরে জবাব দেয়",
+   "pt-BR": "Macha responde em voz alta",
+   "ru": "Macha отвечает вслух",
+   "id": "Macha merespons dengan suara",
+   "de": "Macha antwortet laut",
+   "tr": "Macha sesli yanıt verir"
   },
-  "Coucou writes your calls on your Mac with Parakeet, and tells the voices apart with a second small model. Both are downloaded once (about 650 MB), then everything works offline.": {
-   "zh-Hans": "Coucou 用 Parakeet 在你的 Mac 上转写通话，并用第二个小模型区分说话人。两者只需下载一次（约 650 MB），之后一切离线运行。",
-   "hi": "Coucou आपकी कॉल Parakeet से आपके Mac पर ही लिखता है, और एक दूसरे छोटे मॉडल से आवाज़ें पहचानता है। दोनों एक बार डाउनलोड होते हैं (लगभग 650 MB), फिर सब ऑफ़लाइन चलता है।",
-   "es": "Coucou transcribe tus llamadas en tu Mac con Parakeet y distingue las voces con un segundo modelo pequeño. Ambos se descargan una vez (unos 650 MB) y luego todo funciona sin conexión.",
-   "ar": "يكتب Coucou مكالماتك على جهاز Mac باستخدام Parakeet، ويميّز الأصوات بنموذج صغير ثانٍ. يُنزَّل الاثنان مرة واحدة (نحو 650 ميغابايت)، ثم يعمل كل شيء بلا إنترنت.",
-   "fr": "Coucou écrit tes calls sur ton Mac avec Parakeet, et reconnaît les voix avec un second petit modèle. Les deux se téléchargent une fois (environ 650 Mo), puis tout marche hors ligne.",
-   "bn": "Coucou Parakeet দিয়ে আপনার Mac-এই কল লিখে ফেলে, আর দ্বিতীয় একটি ছোট মডেল দিয়ে কণ্ঠ আলাদা করে। দুটোই একবার ডাউনলোড হয় (প্রায় ৬৫০ MB), তারপর সব অফলাইনে চলে।",
-   "pt-BR": "O Coucou transcreve suas chamadas no seu Mac com o Parakeet e distingue as vozes com um segundo modelo pequeno. Os dois são baixados uma vez (cerca de 650 MB) e depois tudo funciona offline.",
-   "ru": "Coucou записывает звонки текстом прямо на Mac с помощью Parakeet и различает голоса второй небольшой моделью. Обе скачиваются один раз (около 650 МБ), дальше всё работает без сети.",
-   "id": "Coucou menulis panggilanmu di Mac dengan Parakeet, dan membedakan suara dengan model kecil kedua. Keduanya diunduh sekali (sekitar 650 MB), lalu semuanya bekerja luring.",
-   "de": "Coucou transkribiert deine Gespräche auf deinem Mac mit Parakeet und unterscheidet die Stimmen mit einem zweiten kleinen Modell. Beide werden einmal heruntergeladen (etwa 650 MB), danach läuft alles offline.",
-   "tr": "Coucou görüşmelerini Mac'inde Parakeet ile yazıya döker ve ikinci küçük bir modelle sesleri ayırt eder. İkisi de bir kez indirilir (yaklaşık 650 MB), sonra her şey çevrimdışı çalışır."
+  "Macha writes your calls on your Mac with Parakeet, and tells the voices apart with a second small model. Both are downloaded once (about 650 MB), then everything works offline.": {
+   "zh-Hans": "Macha 用 Parakeet 在你的 Mac 上转写通话，并用第二个小模型区分说话人。两者只需下载一次（约 650 MB），之后一切离线运行。",
+   "hi": "Macha आपकी कॉल Parakeet से आपके Mac पर ही लिखता है, और एक दूसरे छोटे मॉडल से आवाज़ें पहचानता है। दोनों एक बार डाउनलोड होते हैं (लगभग 650 MB), फिर सब ऑफ़लाइन चलता है।",
+   "es": "Macha transcribe tus llamadas en tu Mac con Parakeet y distingue las voces con un segundo modelo pequeño. Ambos se descargan una vez (unos 650 MB) y luego todo funciona sin conexión.",
+   "ar": "يكتب Macha مكالماتك على جهاز Mac باستخدام Parakeet، ويميّز الأصوات بنموذج صغير ثانٍ. يُنزَّل الاثنان مرة واحدة (نحو 650 ميغابايت)، ثم يعمل كل شيء بلا إنترنت.",
+   "fr": "Macha écrit tes calls sur ton Mac avec Parakeet, et reconnaît les voix avec un second petit modèle. Les deux se téléchargent une fois (environ 650 Mo), puis tout marche hors ligne.",
+   "bn": "Macha Parakeet দিয়ে আপনার Mac-এই কল লিখে ফেলে, আর দ্বিতীয় একটি ছোট মডেল দিয়ে কণ্ঠ আলাদা করে। দুটোই একবার ডাউনলোড হয় (প্রায় ৬৫০ MB), তারপর সব অফলাইনে চলে।",
+   "pt-BR": "O Macha transcreve suas chamadas no seu Mac com o Parakeet e distingue as vozes com um segundo modelo pequeno. Os dois são baixados uma vez (cerca de 650 MB) e depois tudo funciona offline.",
+   "ru": "Macha записывает звонки текстом прямо на Mac с помощью Parakeet и различает голоса второй небольшой моделью. Обе скачиваются один раз (около 650 МБ), дальше всё работает без сети.",
+   "id": "Macha menulis panggilanmu di Mac dengan Parakeet, dan membedakan suara dengan model kecil kedua. Keduanya diunduh sekali (sekitar 650 MB), lalu semuanya bekerja luring.",
+   "de": "Macha transkribiert deine Gespräche auf deinem Mac mit Parakeet und unterscheidet die Stimmen mit einem zweiten kleinen Modell. Beide werden einmal heruntergeladen (etwa 650 MB), danach läuft alles offline.",
+   "tr": "Macha görüşmelerini Mac'inde Parakeet ile yazıya döker ve ikinci küçük bir modelle sesleri ayırt eder. İkisi de bir kez indirilir (yaklaşık 650 MB), sonra her şey çevrimdışı çalışır."
   },
-  "Coucou {0} is out": {
-   "zh-Hans": "Coucou {0} 已发布",
-   "hi": "Coucou {0} आ गया है",
-   "es": "Ya salió Coucou {0}",
-   "ar": "صدر Coucou {0}",
-   "fr": "Coucou {0} est sorti",
-   "bn": "Coucou {0} এসে গেছে",
-   "pt-BR": "Saiu o Coucou {0}",
-   "ru": "Вышел Coucou {0}",
-   "id": "Coucou {0} sudah rilis",
-   "de": "Coucou {0} ist da",
-   "tr": "Coucou {0} çıktı"
+  "Macha {0} is out": {
+   "zh-Hans": "Macha {0} 已发布",
+   "hi": "Macha {0} आ गया है",
+   "es": "Ya salió Macha {0}",
+   "ar": "صدر Macha {0}",
+   "fr": "Macha {0} est sorti",
+   "bn": "Macha {0} এসে গেছে",
+   "pt-BR": "Saiu o Macha {0}",
+   "ru": "Вышел Macha {0}",
+   "id": "Macha {0} sudah rilis",
+   "de": "Macha {0} ist da",
+   "tr": "Macha {0} çıktı"
   },
   "Couldn’t reach GitHub": {
    "zh-Hans": "无法连接 GitHub",
@@ -2342,18 +2342,18 @@
    "de": "Modelle herunterladen",
    "tr": "Modelleri indir"
   },
-  "Download the models in Coucou Flow → Settings first.": {
-   "zh-Hans": "请先在 Coucou Flow →“设置”中下载模型。",
-   "hi": "पहले Coucou Flow → सेटिंग्स में मॉडल डाउनलोड करें।",
-   "es": "Primero descarga los modelos en Coucou Flow → Ajustes.",
-   "ar": "نزّل النماذج أولًا من Coucou Flow ← الإعدادات.",
-   "fr": "Télécharge d'abord les modèles dans Coucou Flow → Réglages.",
-   "bn": "আগে Coucou Flow → সেটিংস-এ মডেল ডাউনলোড করুন।",
-   "pt-BR": "Primeiro baixe os modelos em Coucou Flow → Ajustes.",
-   "ru": "Сначала скачайте модели в Coucou Flow → Настройки.",
-   "id": "Unduh dulu modelnya di Coucou Flow → Pengaturan.",
-   "de": "Lade zuerst die Modelle unter Coucou Flow → Einstellungen herunter.",
-   "tr": "Önce Coucou Flow → Ayarlar bölümünden modelleri indir."
+  "Download the models in Macha Flow → Settings first.": {
+   "zh-Hans": "请先在 Macha Flow →“设置”中下载模型。",
+   "hi": "पहले Macha Flow → सेटिंग्स में मॉडल डाउनलोड करें।",
+   "es": "Primero descarga los modelos en Macha Flow → Ajustes.",
+   "ar": "نزّل النماذج أولًا من Macha Flow ← الإعدادات.",
+   "fr": "Télécharge d'abord les modèles dans Macha Flow → Réglages.",
+   "bn": "আগে Macha Flow → সেটিংস-এ মডেল ডাউনলোড করুন।",
+   "pt-BR": "Primeiro baixe os modelos em Macha Flow → Ajustes.",
+   "ru": "Сначала скачайте модели в Macha Flow → Настройки.",
+   "id": "Unduh dulu modelnya di Macha Flow → Pengaturan.",
+   "de": "Lade zuerst die Modelle unter Macha Flow → Einstellungen herunter.",
+   "tr": "Önce Macha Flow → Ayarlar bölümünden modelleri indir."
   },
   "Downloading from GitHub…": {
    "zh-Hans": "正在从 GitHub 下载…",
@@ -2381,18 +2381,18 @@
    "de": "Entwurf",
    "tr": "Taslak"
   },
-  "Drop a file named like one of Mochi's sounds (finish.wav, approval.mp3, greet.m4a…) in the sounds folder to replace it, then Reload.": {
-   "zh-Hans": "在声音文件夹中放入与 Mochi 某个声音同名的文件（finish.wav、approval.mp3、greet.m4a…）即可替换它，然后重新载入。",
-   "hi": "Mochi की किसी साउंड के नाम वाली फ़ाइल (finish.wav, approval.mp3, greet.m4a…) साउंड फ़ोल्डर में रखें, वह उसकी जगह ले लेगी; फिर Reload करें।",
-   "es": "Deja en la carpeta de sonidos un archivo con el nombre de uno de los sonidos de Mochi (finish.wav, approval.mp3, greet.m4a…) para reemplazarlo y luego recarga.",
-   "ar": "ضع في مجلد الأصوات ملفًا يحمل اسم أحد أصوات Mochi (finish.wav وapproval.mp3 وgreet.m4a…) ليحل محله، ثم أعد التحميل.",
-   "fr": "Déposez dans le dossier des sons un fichier nommé comme l'un des sons de Mochi (finish.wav, approval.mp3, greet.m4a…) pour le remplacer, puis rechargez.",
-   "bn": "Mochi-র কোনো সাউন্ডের নামে একটি ফাইল (finish.wav, approval.mp3, greet.m4a…) সাউন্ড ফোল্ডারে রাখুন, সেটি বদলে যাবে; তারপর Reload করুন।",
-   "pt-BR": "Coloque na pasta de sons um arquivo com o nome de um dos sons do Mochi (finish.wav, approval.mp3, greet.m4a…) para substituí-lo e depois recarregue.",
-   "ru": "Положите в папку звуков файл с именем одного из звуков Mochi (finish.wav, approval.mp3, greet.m4a…), чтобы заменить его, затем перезагрузите.",
-   "id": "Taruh file bernama seperti salah satu suara Mochi (finish.wav, approval.mp3, greet.m4a…) di folder suara untuk menggantinya, lalu muat ulang.",
-   "de": "Lege eine Datei mit dem Namen eines Mochi-Klangs (finish.wav, approval.mp3, greet.m4a…) im Klangordner ab, um ihn zu ersetzen. Lade die Klänge anschließend neu.",
-   "tr": "Mochi'nin seslerinden birini değiştirmek için aynı adı taşıyan bir dosyayı (finish.wav, approval.mp3, greet.m4a…) sesler klasörüne bırak, ardından sesleri yeniden yükle."
+  "Drop a file named like one of Macha's sounds (finish.wav, approval.mp3, greet.m4a…) in the sounds folder to replace it, then Reload.": {
+   "zh-Hans": "在声音文件夹中放入与 Macha 某个声音同名的文件（finish.wav、approval.mp3、greet.m4a…）即可替换它，然后重新载入。",
+   "hi": "Macha की किसी साउंड के नाम वाली फ़ाइल (finish.wav, approval.mp3, greet.m4a…) साउंड फ़ोल्डर में रखें, वह उसकी जगह ले लेगी; फिर Reload करें।",
+   "es": "Deja en la carpeta de sonidos un archivo con el nombre de uno de los sonidos de Macha (finish.wav, approval.mp3, greet.m4a…) para reemplazarlo y luego recarga.",
+   "ar": "ضع في مجلد الأصوات ملفًا يحمل اسم أحد أصوات Macha (finish.wav وapproval.mp3 وgreet.m4a…) ليحل محله، ثم أعد التحميل.",
+   "fr": "Déposez dans le dossier des sons un fichier nommé comme l'un des sons de Macha (finish.wav, approval.mp3, greet.m4a…) pour le remplacer, puis rechargez.",
+   "bn": "Macha-র কোনো সাউন্ডের নামে একটি ফাইল (finish.wav, approval.mp3, greet.m4a…) সাউন্ড ফোল্ডারে রাখুন, সেটি বদলে যাবে; তারপর Reload করুন।",
+   "pt-BR": "Coloque na pasta de sons um arquivo com o nome de um dos sons do Macha (finish.wav, approval.mp3, greet.m4a…) para substituí-lo e depois recarregue.",
+   "ru": "Положите в папку звуков файл с именем одного из звуков Macha (finish.wav, approval.mp3, greet.m4a…), чтобы заменить его, затем перезагрузите.",
+   "id": "Taruh file bernama seperti salah satu suara Macha (finish.wav, approval.mp3, greet.m4a…) di folder suara untuk menggantinya, lalu muat ulang.",
+   "de": "Lege eine Datei mit dem Namen eines Macha-Klangs (finish.wav, approval.mp3, greet.m4a…) im Klangordner ab, um ihn zu ersetzen. Lade die Klänge anschließend neu.",
+   "tr": "Macha'nin seslerinden birini değiştirmek için aynı adı taşıyan bir dosyayı (finish.wav, approval.mp3, greet.m4a…) sesler klasörüne bırak, ardından sesleri yeniden yükle."
   },
   "Drop a file or window, or ask me anything.": {
    "zh-Hans": "拖入文件或窗口，或问我任何问题。",
@@ -2719,18 +2719,18 @@
    "de": "Für eine natürlichere Stimme lade eine Premium-Stimme herunter: Systemeinstellungen → Bedienungshilfen → Gesprochene Inhalte → Systemstimme → Stimmen verwalten. Auf Englisch: Ava für eine weibliche, Jamie für eine männliche Stimme (britisch).",
    "tr": "Daha doğal bir ses için Premium ses indir: Sistem Ayarları → Erişilebilirlik → Seslendirilen İçerik → Sistem Sesi → Sesleri Yönet. İngilizcede: kadın sesi için Ava, erkek sesi için Jamie (Britanya)."
   },
-  "For regular chats in the Claude app, which run no hook. When you leave Claude while it is writing, Coucou checks once a second, through Accessibility, whether its Stop button is still there. Nothing of the chat is read.": {
-   "zh-Hans": "适用于 Claude 应用中的普通聊天（没有 hook）。当 Claude 正在输出时你离开它，Coucou 会每秒通过辅助功能检查“停止”按钮是否还在。不会读取任何聊天内容。",
-   "hi": "Claude ऐप की सामान्य चैट के लिए, जिनमें कोई हुक नहीं होता। Claude के लिखते समय आप उसे छोड़ें, तो Coucou हर सेकंड Accessibility से देखता है कि उसका Stop बटन अब भी है या नहीं। चैट का कुछ भी नहीं पढ़ा जाता।",
-   "es": "Para los chats normales de la app Claude, que no tienen hook. Cuando sales de Claude mientras escribe, Coucou comprueba cada segundo, mediante Accesibilidad, si su botón Detener sigue ahí. No se lee nada del chat.",
-   "ar": "للدردشات العادية في تطبيق Claude التي لا تملك hook. عندما تغادر Claude أثناء الكتابة، يتحقق Coucou كل ثانية عبر تسهيلات الاستخدام من بقاء زر الإيقاف. لا يُقرأ أي شيء من الدردشة.",
-   "fr": "Pour les chats classiques de l’app Claude, qui n’ont pas de hook. Quand tu quittes Claude pendant qu’il écrit, Coucou vérifie chaque seconde, via l’Accessibilité, si son bouton Stop est encore là. Rien du chat n’est lu.",
-   "bn": "Claude অ্যাপের সাধারণ চ্যাটের জন্য, যেগুলোতে কোনো হুক নেই। Claude লেখার সময় আপনি সরে গেলে, Coucou প্রতি সেকেন্ডে Accessibility দিয়ে দেখে তার Stop বোতাম এখনও আছে কি না। চ্যাটের কিছুই পড়া হয় না।",
-   "pt-BR": "Para os chats comuns do app Claude, que não têm hook. Quando você sai do Claude enquanto ele escreve, o Coucou verifica a cada segundo, pela Acessibilidade, se o botão Parar ainda está lá. Nada do chat é lido.",
-   "ru": "Для обычных чатов в приложении Claude, где нет хуков. Когда вы уходите из Claude, пока он пишет, Coucou раз в секунду через Универсальный доступ проверяет, есть ли ещё кнопка «Стоп». Содержимое чата не читается.",
-   "id": "Untuk chat biasa di aplikasi Claude, yang tidak punya hook. Saat kamu meninggalkan Claude ketika ia sedang menulis, Coucou memeriksa setiap detik lewat Aksesibilitas apakah tombol Stop-nya masih ada. Isi chat tidak dibaca.",
-   "de": "Für normale Chats in der Claude-App, die keinen Hook ausführen. Wenn du Claude verlässt, während es schreibt, prüft Coucou einmal pro Sekunde über die Bedienungshilfen, ob die Stopp-Taste noch da ist. Vom Chat wird nichts gelesen.",
-   "tr": "Claude uygulamasındaki, hook çalıştırmayan normal sohbetler için. Claude yazarken ondan ayrılırsan Coucou, Erişilebilirlik üzerinden saniyede bir Durdur düğmesinin hâlâ orada olup olmadığını kontrol eder. Sohbetten hiçbir şey okunmaz."
+  "For regular chats in the Claude app, which run no hook. When you leave Claude while it is writing, Macha checks once a second, through Accessibility, whether its Stop button is still there. Nothing of the chat is read.": {
+   "zh-Hans": "适用于 Claude 应用中的普通聊天（没有 hook）。当 Claude 正在输出时你离开它，Macha 会每秒通过辅助功能检查“停止”按钮是否还在。不会读取任何聊天内容。",
+   "hi": "Claude ऐप की सामान्य चैट के लिए, जिनमें कोई हुक नहीं होता। Claude के लिखते समय आप उसे छोड़ें, तो Macha हर सेकंड Accessibility से देखता है कि उसका Stop बटन अब भी है या नहीं। चैट का कुछ भी नहीं पढ़ा जाता।",
+   "es": "Para los chats normales de la app Claude, que no tienen hook. Cuando sales de Claude mientras escribe, Macha comprueba cada segundo, mediante Accesibilidad, si su botón Detener sigue ahí. No se lee nada del chat.",
+   "ar": "للدردشات العادية في تطبيق Claude التي لا تملك hook. عندما تغادر Claude أثناء الكتابة، يتحقق Macha كل ثانية عبر تسهيلات الاستخدام من بقاء زر الإيقاف. لا يُقرأ أي شيء من الدردشة.",
+   "fr": "Pour les chats classiques de l’app Claude, qui n’ont pas de hook. Quand tu quittes Claude pendant qu’il écrit, Macha vérifie chaque seconde, via l’Accessibilité, si son bouton Stop est encore là. Rien du chat n’est lu.",
+   "bn": "Claude অ্যাপের সাধারণ চ্যাটের জন্য, যেগুলোতে কোনো হুক নেই। Claude লেখার সময় আপনি সরে গেলে, Macha প্রতি সেকেন্ডে Accessibility দিয়ে দেখে তার Stop বোতাম এখনও আছে কি না। চ্যাটের কিছুই পড়া হয় না।",
+   "pt-BR": "Para os chats comuns do app Claude, que não têm hook. Quando você sai do Claude enquanto ele escreve, o Macha verifica a cada segundo, pela Acessibilidade, se o botão Parar ainda está lá. Nada do chat é lido.",
+   "ru": "Для обычных чатов в приложении Claude, где нет хуков. Когда вы уходите из Claude, пока он пишет, Macha раз в секунду через Универсальный доступ проверяет, есть ли ещё кнопка «Стоп». Содержимое чата не читается.",
+   "id": "Untuk chat biasa di aplikasi Claude, yang tidak punya hook. Saat kamu meninggalkan Claude ketika ia sedang menulis, Macha memeriksa setiap detik lewat Aksesibilitas apakah tombol Stop-nya masih ada. Isi chat tidak dibaca.",
+   "de": "Für normale Chats in der Claude-App, die keinen Hook ausführen. Wenn du Claude verlässt, während es schreibt, prüft Macha einmal pro Sekunde über die Bedienungshilfen, ob die Stopp-Taste noch da ist. Vom Chat wird nichts gelesen.",
+   "tr": "Claude uygulamasındaki, hook çalıştırmayan normal sohbetler için. Claude yazarken ondan ayrılırsan Macha, Erişilebilirlik üzerinden saniyede bir Durdur düğmesinin hâlâ orada olup olmadığını kontrol eder. Sohbetten hiçbir şey okunmaz."
   },
   "Forever": {
    "zh-Hans": "永久",
@@ -2927,18 +2927,18 @@
    "de": "Nach Nummer zum Tab wechseln",
    "tr": "Numarayla sekmeye git"
   },
-  "Goes through the Coucou relay to Apple's push service. Only the agent name and state are sent: no project name, command, or path.": {
-   "zh-Hans": "通过 Coucou 中继传至 Apple 推送服务。仅发送 Agent 的名称和状态：不含项目名称、命令或路径。",
-   "hi": "Coucou रिले के माध्यम से Apple के पुश सर्विस से जाता है। केवल एजेंट का नाम और स्थिति भेजी जाती है: कोई प्रोजेक्ट नाम, कमांड या पाथ नहीं।",
-   "es": "Pasa por el relay de Coucou al servicio push de Apple. Solo se envían el nombre y el estado del agente: sin nombre de proyecto, comando ni ruta.",
-   "ar": "يمر عبر ريلاي Coucou إلى خدمة Apple للإشعارات. يُرسَل فقط اسم الوكيل وحالته: لا اسم مشروع ولا أمر ولا مسار.",
-   "fr": "Passe par le relais Coucou vers le service push d'Apple. Seuls le nom et l'état de l'agent sont envoyés : aucun nom de projet, commande ou chemin.",
-   "bn": "Apple-এর পুশ সার্ভিসে Coucou রিলের মাধ্যমে যায়। শুধুমাত্র এজেন্টের নাম এবং অবস্থা পাঠানো হয়: কোনো প্রজেক্ট নাম, কমান্ড বা পাথ নয়।",
-   "pt-BR": "Passa pelo relay do Coucou para o serviço push da Apple. Apenas o nome e o estado do agente são enviados: sem nome de projeto, comando ou caminho.",
-   "ru": "Проходит через ретранслятор Coucou к сервису push Apple. Отправляются только имя и состояние агента: без имени проекта, команды или пути.",
-   "id": "Melewati relay Coucou ke layanan push Apple. Hanya nama dan status agen yang dikirim: tanpa nama proyek, perintah, atau jalur.",
-   "de": "Wird über den Coucou-Relay an Apples Push-Dienst gesendet. Nur Name und Status des Agenten werden übertragen: keine Projektnamen, Befehle oder Pfade.",
-   "tr": "Coucou aracısı üzerinden Apple'ın anlık bildirim servisine iletilir. Yalnızca ajan adı ve durumu gönderilir; proje adı, komut veya yol gönderilmez."
+  "Goes through the Macha relay to Apple's push service. Only the agent name and state are sent: no project name, command, or path.": {
+   "zh-Hans": "通过 Macha 中继传至 Apple 推送服务。仅发送 Agent 的名称和状态：不含项目名称、命令或路径。",
+   "hi": "Macha रिले के माध्यम से Apple के पुश सर्विस से जाता है। केवल एजेंट का नाम और स्थिति भेजी जाती है: कोई प्रोजेक्ट नाम, कमांड या पाथ नहीं।",
+   "es": "Pasa por el relay de Macha al servicio push de Apple. Solo se envían el nombre y el estado del agente: sin nombre de proyecto, comando ni ruta.",
+   "ar": "يمر عبر ريلاي Macha إلى خدمة Apple للإشعارات. يُرسَل فقط اسم الوكيل وحالته: لا اسم مشروع ولا أمر ولا مسار.",
+   "fr": "Passe par le relais Macha vers le service push d'Apple. Seuls le nom et l'état de l'agent sont envoyés : aucun nom de projet, commande ou chemin.",
+   "bn": "Apple-এর পুশ সার্ভিসে Macha রিলের মাধ্যমে যায়। শুধুমাত্র এজেন্টের নাম এবং অবস্থা পাঠানো হয়: কোনো প্রজেক্ট নাম, কমান্ড বা পাথ নয়।",
+   "pt-BR": "Passa pelo relay do Macha para o serviço push da Apple. Apenas o nome e o estado do agente são enviados: sem nome de projeto, comando ou caminho.",
+   "ru": "Проходит через ретранслятор Macha к сервису push Apple. Отправляются только имя и состояние агента: без имени проекта, команды или пути.",
+   "id": "Melewati relay Macha ke layanan push Apple. Hanya nama dan status agen yang dikirim: tanpa nama proyek, perintah, atau jalur.",
+   "de": "Wird über den Macha-Relay an Apples Push-Dienst gesendet. Nur Name und Status des Agenten werden übertragen: keine Projektnamen, Befehle oder Pfade.",
+   "tr": "Macha aracısı üzerinden Apple'ın anlık bildirim servisine iletilir. Yalnızca ajan adı ve durumu gönderilir; proje adı, komut veya yol gönderilmez."
   },
   "Google AI": {
    "zh-Hans": "Google AI",
@@ -2979,18 +2979,18 @@
    "de": "Freihändig",
    "tr": "Eller serbest"
   },
-  "He sweats when the processor is at full load, flushes when the Mac is hot, puffs up when memory is short and gets sleepy when the battery is low. Point at Mochi to see why. Read only while Mochi is on screen; nothing leaves your Mac.": {
-   "zh-Hans": "处理器满载时他会流汗，Mac 发热时他会脸红，内存不足时他会鼓起来，电量低时他会犯困。把指针放到 Mochi 上就能看到原因。仅在 Mochi 显示时读取，所有数据都留在你的 Mac 上。",
+  "He sweats when the processor is at full load, flushes when the Mac is hot, puffs up when memory is short and gets sleepy when the battery is low. Point at Macha to see why. Read only while Macha is on screen; nothing leaves your Mac.": {
+   "zh-Hans": "处理器满载时他会流汗，Mac 发热时他会脸红，内存不足时他会鼓起来，电量低时他会犯困。把指针放到 Macha 上就能看到原因。仅在 Macha 显示时读取，所有数据都留在你的 Mac 上。",
    "hi": "प्रोसेसर पूरी तरह व्यस्त हो तो उसे पसीना आता है, Mac गर्म हो तो वह लाल हो जाता है, मेमोरी कम हो तो फूल जाता है और बैटरी कम हो तो उसे नींद आती है। वजह देखने के लिए मोची पर पॉइंटर रखें। सिर्फ़ तब पढ़ा जाता है जब मोची स्क्रीन पर हो; कुछ भी आपके Mac से बाहर नहीं जाता।",
-   "es": "Suda cuando el procesador va al máximo, se pone rojo cuando el Mac se calienta, se hincha cuando falta memoria y le entra sueño cuando la batería está baja. Señala a Mochi para ver por qué. Solo se lee mientras Mochi está en pantalla; nada sale de tu Mac.",
+   "es": "Suda cuando el procesador va al máximo, se pone rojo cuando el Mac se calienta, se hincha cuando falta memoria y le entra sueño cuando la batería está baja. Señala a Macha para ver por qué. Solo se lee mientras Macha está en pantalla; nada sale de tu Mac.",
    "ar": "يتعرّق عندما يعمل المعالج بأقصى طاقته، ويحمرّ عندما يسخن جهاز Mac، وينتفخ عندما تنقص الذاكرة، ويغفو عندما تضعف البطارية. ضع المؤشر على موتشي لترى السبب. لا تتم القراءة إلا عندما يكون موتشي على الشاشة، ولا يغادر شيء جهازك.",
-   "fr": "Il transpire quand le processeur est à fond, rougit quand le Mac chauffe, gonfle quand la mémoire manque et s'endort quand la batterie est faible. Pointe Mochi pour voir pourquoi. Lu seulement quand Mochi est à l'écran ; rien ne quitte ton Mac.",
+   "fr": "Il transpire quand le processeur est à fond, rougit quand le Mac chauffe, gonfle quand la mémoire manque et s'endort quand la batterie est faible. Pointe Macha pour voir pourquoi. Lu seulement quand Macha est à l'écran ; rien ne quitte ton Mac.",
    "bn": "প্রসেসর পুরো চাপে থাকলে সে ঘামে, Mac গরম হলে লাল হয়ে যায়, মেমরি কম পড়লে ফুলে ওঠে আর ব্যাটারি কম হলে ঘুম পায়। কারণ দেখতে মোচির ওপর পয়েন্টার রাখুন। মোচি স্ক্রিনে থাকলেই শুধু পড়া হয়; কিছুই আপনার Mac ছেড়ে যায় না।",
-   "pt-BR": "Ele sua quando o processador está no máximo, fica vermelho quando o Mac esquenta, incha quando falta memória e fica com sono quando a bateria está fraca. Aponte para o Mochi para ver por quê. Só é lido enquanto o Mochi está na tela; nada sai do seu Mac.",
+   "pt-BR": "Ele sua quando o processador está no máximo, fica vermelho quando o Mac esquenta, incha quando falta memória e fica com sono quando a bateria está fraca. Aponte para o Macha para ver por quê. Só é lido enquanto o Macha está na tela; nada sai do seu Mac.",
    "ru": "Он потеет, когда процессор загружен полностью, краснеет, когда Mac нагревается, раздувается, когда не хватает памяти, и засыпает, когда батарея садится. Наведите на Мочи, чтобы узнать причину. Читается, только пока Мочи на экране; ничего не покидает ваш Mac.",
-   "id": "Dia berkeringat saat prosesor bekerja penuh, memerah saat Mac panas, menggembung saat memori kurang, dan mengantuk saat baterai lemah. Arahkan penunjuk ke Mochi untuk melihat alasannya. Hanya dibaca saat Mochi ada di layar; tidak ada yang keluar dari Mac-mu.",
-   "de": "Er schwitzt, wenn der Prozessor voll ausgelastet ist, wird rot, wenn der Mac heiß ist, bläht sich bei knappem Arbeitsspeicher auf und wird bei niedrigem Batteriestand müde. Zeige auf Mochi, um den Grund zu sehen. Die Werte werden nur gelesen, solange Mochi auf dem Bildschirm ist; nichts verlässt deinen Mac.",
-   "tr": "İşlemci tam yükteyken terler, Mac ısındığında kızarır, bellek azaldığında şişer ve pil azaldığında uykusu gelir. Nedenini görmek için imleci Mochi'nin üzerine getir. Bilgiler yalnızca Mochi ekrandayken okunur; hiçbir şey Mac'inden dışarı çıkmaz."
+   "id": "Dia berkeringat saat prosesor bekerja penuh, memerah saat Mac panas, menggembung saat memori kurang, dan mengantuk saat baterai lemah. Arahkan penunjuk ke Macha untuk melihat alasannya. Hanya dibaca saat Macha ada di layar; tidak ada yang keluar dari Mac-mu.",
+   "de": "Er schwitzt, wenn der Prozessor voll ausgelastet ist, wird rot, wenn der Mac heiß ist, bläht sich bei knappem Arbeitsspeicher auf und wird bei niedrigem Batteriestand müde. Zeige auf Macha, um den Grund zu sehen. Die Werte werden nur gelesen, solange Macha auf dem Bildschirm ist; nichts verlässt deinen Mac.",
+   "tr": "İşlemci tam yükteyken terler, Mac ısındığında kızarır, bellek azaldığında şişer ve pil azaldığında uykusu gelir. Nedenini görmek için imleci Macha'nin üzerine getir. Bilgiler yalnızca Macha ekrandayken okunur; hiçbir şey Mac'inden dışarı çıkmaz."
   },
   "Heard, e.g. cloud code": {
    "zh-Hans": "听到的，例如 cloud code",
@@ -3330,18 +3330,18 @@
    "de": "Installieren",
    "tr": "Kur"
   },
-  "Install Coucou hooks in ~/.claude?": {
-   "zh-Hans": "是否将 Coucou Hooks 安装到 ~/.claude？",
-   "hi": "~/.claude में Coucou हुक इंस्टॉल करें?",
-   "es": "¿Instalar los hooks de Coucou en ~/.claude?",
-   "ar": "هل تريد تثبيت خطافات Coucou في ~/.claude؟",
-   "fr": "Installer les hooks Coucou dans ~/.claude ?",
-   "bn": "~/.claude-এ Coucou হুক ইনস্টল করবেন?",
-   "pt-BR": "Instalar os hooks do Coucou em ~/.claude?",
-   "ru": "Установить хуки Coucou в ~/.claude?",
-   "id": "Pasang hooks Coucou di ~/.claude?",
-   "de": "Coucou-Hooks in ~/.claude installieren?",
-   "tr": "Coucou hook'ları ~/.claude içine kurulsun mu?"
+  "Install Macha hooks in ~/.claude?": {
+   "zh-Hans": "是否将 Macha Hooks 安装到 ~/.claude？",
+   "hi": "~/.claude में Macha हुक इंस्टॉल करें?",
+   "es": "¿Instalar los hooks de Macha en ~/.claude?",
+   "ar": "هل تريد تثبيت خطافات Macha في ~/.claude؟",
+   "fr": "Installer les hooks Macha dans ~/.claude ?",
+   "bn": "~/.claude-এ Macha হুক ইনস্টল করবেন?",
+   "pt-BR": "Instalar os hooks do Macha em ~/.claude?",
+   "ru": "Установить хуки Macha в ~/.claude?",
+   "id": "Pasang hooks Macha di ~/.claude?",
+   "de": "Macha-Hooks in ~/.claude installieren?",
+   "tr": "Macha hook'ları ~/.claude içine kurulsun mu?"
   },
   "Install hooks": {
    "zh-Hans": "安装 Hooks",
@@ -3408,18 +3408,18 @@
    "de": "Installiert",
    "tr": "Yüklü"
   },
-  "Installed: quit and reopen Coucou to use the new version.": {
-   "zh-Hans": "已安装：退出并重新打开 Coucou 即可使用新版本。",
-   "hi": "इंस्टॉल हो गया: नया वर्ज़न इस्तेमाल करने के लिए Coucou बंद करके फिर खोलें।",
-   "es": "Instalada: cierra y vuelve a abrir Coucou para usar la nueva versión.",
-   "ar": "تم التثبيت: أغلق Coucou وأعد فتحه لاستخدام الإصدار الجديد.",
-   "fr": "Installée : quitte et rouvre Coucou pour utiliser la nouvelle version.",
-   "bn": "ইনস্টল হয়েছে: নতুন সংস্করণ ব্যবহার করতে Coucou বন্ধ করে আবার খুলুন।",
-   "pt-BR": "Instalada: feche e abra o Coucou de novo para usar a nova versão.",
-   "ru": "Установлено: перезапустите Coucou, чтобы использовать новую версию.",
-   "id": "Terpasang: tutup lalu buka lagi Coucou untuk memakai versi baru.",
-   "de": "Installiert: Beende Coucou und öffne es wieder, um die neue Version zu nutzen.",
-   "tr": "Yüklendi: yeni sürümü kullanmak için Coucou'yu kapatıp yeniden aç."
+  "Installed: quit and reopen Macha to use the new version.": {
+   "zh-Hans": "已安装：退出并重新打开 Macha 即可使用新版本。",
+   "hi": "इंस्टॉल हो गया: नया वर्ज़न इस्तेमाल करने के लिए Macha बंद करके फिर खोलें।",
+   "es": "Instalada: cierra y vuelve a abrir Macha para usar la nueva versión.",
+   "ar": "تم التثبيت: أغلق Macha وأعد فتحه لاستخدام الإصدار الجديد.",
+   "fr": "Installée : quitte et rouvre Macha pour utiliser la nouvelle version.",
+   "bn": "ইনস্টল হয়েছে: নতুন সংস্করণ ব্যবহার করতে Macha বন্ধ করে আবার খুলুন।",
+   "pt-BR": "Instalada: feche e abra o Macha de novo para usar a nova versão.",
+   "ru": "Установлено: перезапустите Macha, чтобы использовать новую версию.",
+   "id": "Terpasang: tutup lalu buka lagi Macha untuk memakai versi baru.",
+   "de": "Installiert: Beende Macha und öffne es wieder, um die neue Version zu nutzen.",
+   "tr": "Yüklendi: yeni sürümü kullanmak için Macha'yu kapatıp yeniden aç."
   },
   "Installing…": {
    "zh-Hans": "正在安装…",
@@ -4032,83 +4032,83 @@
    "de": "Empfänger fehlt.",
    "tr": "Alıcı eksik."
   },
-  "Mochi and your Mac": {
-   "zh-Hans": "Mochi 和你的 Mac",
+  "Macha and your Mac": {
+   "zh-Hans": "Macha 和你的 Mac",
    "hi": "मोची और आपका Mac",
-   "es": "Mochi y tu Mac",
+   "es": "Macha y tu Mac",
    "ar": "موتشي وجهاز Mac",
-   "fr": "Mochi et ton Mac",
+   "fr": "Macha et ton Mac",
    "bn": "মোচি আর আপনার Mac",
-   "pt-BR": "Mochi e seu Mac",
+   "pt-BR": "Macha e seu Mac",
    "ru": "Мочи и ваш Mac",
-   "id": "Mochi dan Mac-mu",
-   "de": "Mochi und dein Mac",
-   "tr": "Mochi ve Mac'in"
+   "id": "Macha dan Mac-mu",
+   "de": "Macha und dein Mac",
+   "tr": "Macha ve Mac'in"
   },
-  "Mochi checks Coucou’s releases on GitHub a few times a day and tells you when one is out. Nothing about you is sent.": {
-   "zh-Hans": "Mochi 每天会在 GitHub 上查看几次 Coucou 的版本，有新版本时告诉你。不会发送任何关于你的信息。",
-   "hi": "Mochi दिन में कुछ बार GitHub पर Coucou के रिलीज़ देखता है और नया आने पर बताता है। आपके बारे में कुछ नहीं भेजा जाता।",
-   "es": "Mochi revisa las versiones de Coucou en GitHub unas veces al día y te avisa cuando sale una. No se envía nada sobre ti.",
-   "ar": "يتحقق Mochi من إصدارات Coucou على GitHub بضع مرات يوميًا ويخبرك عند صدور إصدار جديد. لا يُرسَل أي شيء عنك.",
-   "fr": "Mochi regarde les versions de Coucou sur GitHub quelques fois par jour et te prévient quand il y en a une. Rien sur toi n’est envoyé.",
-   "bn": "Mochi দিনে কয়েকবার GitHub-এ Coucou-র রিলিজ দেখে এবং নতুন এলে জানায়। আপনার সম্পর্কে কিছুই পাঠানো হয় না।",
-   "pt-BR": "O Mochi verifica as versões do Coucou no GitHub algumas vezes por dia e avisa quando sai uma. Nada sobre você é enviado.",
-   "ru": "Mochi несколько раз в день проверяет релизы Coucou на GitHub и сообщает о новых. О вас ничего не отправляется.",
-   "id": "Mochi memeriksa rilis Coucou di GitHub beberapa kali sehari dan memberi tahu saat ada yang baru. Tidak ada data tentangmu yang dikirim.",
-   "de": "Mochi schaut ein paar Mal am Tag nach Coucous Releases auf GitHub und sagt dir, wenn eine neue da ist. Über dich wird nichts gesendet.",
-   "tr": "Mochi, Coucou'nun GitHub'daki sürümlerine günde birkaç kez bakar ve yenisi çıkınca sana söyler. Seninle ilgili hiçbir şey gönderilmez."
+  "Macha checks Macha’s releases on GitHub a few times a day and tells you when one is out. Nothing about you is sent.": {
+   "zh-Hans": "Macha 每天会在 GitHub 上查看几次 Macha 的版本，有新版本时告诉你。不会发送任何关于你的信息。",
+   "hi": "Macha दिन में कुछ बार GitHub पर Macha के रिलीज़ देखता है और नया आने पर बताता है। आपके बारे में कुछ नहीं भेजा जाता।",
+   "es": "Macha revisa las versiones de Macha en GitHub unas veces al día y te avisa cuando sale una. No se envía nada sobre ti.",
+   "ar": "يتحقق Macha من إصدارات Macha على GitHub بضع مرات يوميًا ويخبرك عند صدور إصدار جديد. لا يُرسَل أي شيء عنك.",
+   "fr": "Macha regarde les versions de Macha sur GitHub quelques fois par jour et te prévient quand il y en a une. Rien sur toi n’est envoyé.",
+   "bn": "Macha দিনে কয়েকবার GitHub-এ Macha-র রিলিজ দেখে এবং নতুন এলে জানায়। আপনার সম্পর্কে কিছুই পাঠানো হয় না।",
+   "pt-BR": "O Macha verifica as versões do Macha no GitHub algumas vezes por dia e avisa quando sai uma. Nada sobre você é enviado.",
+   "ru": "Macha несколько раз в день проверяет релизы Macha на GitHub и сообщает о новых. О вас ничего не отправляется.",
+   "id": "Macha memeriksa rilis Macha di GitHub beberapa kali sehari dan memberi tahu saat ada yang baru. Tidak ada data tentangmu yang dikirim.",
+   "de": "Macha schaut ein paar Mal am Tag nach Machas Releases auf GitHub und sagt dir, wenn eine neue da ist. Über dich wird nichts gesendet.",
+   "tr": "Macha, Macha'nun GitHub'daki sürümlerine günde birkaç kez bakar ve yenisi çıkınca sana söyler. Seninle ilgili hiçbir şey gönderilmez."
   },
-  "Mochi jumps when a chat reply is ready": {
-   "zh-Hans": "聊天回复完成时 Mochi 会跳起来",
-   "hi": "चैट का जवाब तैयार होने पर Mochi उछलता है",
-   "es": "Mochi salta cuando una respuesta del chat está lista",
-   "ar": "يقفز Mochi عندما يجهز رد الدردشة",
-   "fr": "Mochi saute quand une réponse de chat est prête",
-   "bn": "চ্যাটের উত্তর প্রস্তুত হলে Mochi লাফায়",
-   "pt-BR": "O Mochi pula quando uma resposta do chat fica pronta",
-   "ru": "Mochi подпрыгивает, когда ответ в чате готов",
-   "id": "Mochi melompat saat balasan chat siap",
-   "de": "Mochi springt, wenn eine Chat-Antwort bereit ist",
-   "tr": "Bir sohbet yanıtı hazır olduğunda Mochi zıplar"
+  "Macha jumps when a chat reply is ready": {
+   "zh-Hans": "聊天回复完成时 Macha 会跳起来",
+   "hi": "चैट का जवाब तैयार होने पर Macha उछलता है",
+   "es": "Macha salta cuando una respuesta del chat está lista",
+   "ar": "يقفز Macha عندما يجهز رد الدردشة",
+   "fr": "Macha saute quand une réponse de chat est prête",
+   "bn": "চ্যাটের উত্তর প্রস্তুত হলে Macha লাফায়",
+   "pt-BR": "O Macha pula quando uma resposta do chat fica pronta",
+   "ru": "Macha подпрыгивает, когда ответ в чате готов",
+   "id": "Macha melompat saat balasan chat siap",
+   "de": "Macha springt, wenn eine Chat-Antwort bereit ist",
+   "tr": "Bir sohbet yanıtı hazır olduğunda Macha zıplar"
   },
-  "Mochi reacts to your Mac": {
-   "zh-Hans": "Mochi 会对你的 Mac 做出反应",
+  "Macha reacts to your Mac": {
+   "zh-Hans": "Macha 会对你的 Mac 做出反应",
    "hi": "मोची आपके Mac पर प्रतिक्रिया देता है",
-   "es": "Mochi reacciona a tu Mac",
+   "es": "Macha reacciona a tu Mac",
    "ar": "يتفاعل موتشي مع جهاز Mac",
-   "fr": "Mochi réagit à ton Mac",
+   "fr": "Macha réagit à ton Mac",
    "bn": "মোচি আপনার Mac-এ সাড়া দেয়",
-   "pt-BR": "Mochi reage ao seu Mac",
+   "pt-BR": "Macha reage ao seu Mac",
    "ru": "Мочи реагирует на ваш Mac",
-   "id": "Mochi bereaksi pada Mac-mu",
-   "de": "Mochi reagiert auf deinen Mac",
-   "tr": "Mochi Mac'inin durumuna tepki verir"
+   "id": "Macha bereaksi pada Mac-mu",
+   "de": "Macha reagiert auf deinen Mac",
+   "tr": "Macha Mac'inin durumuna tepki verir"
   },
-  "Mochi to desktop on/off": {
-   "zh-Hans": "Mochi 桌面开/关",
-   "hi": "Mochi डेस्कटॉप पर चालू / बंद",
-   "es": "Mochi en el escritorio sí / no",
-   "ar": "Mochi على / إيقاف سطح المكتب",
-   "fr": "Mochi sur le bureau oui / non",
-   "bn": "Mochi ডেস্কটপে চালু / বন্ধ",
-   "pt-BR": "Mochi na área de trabalho sim / não",
-   "ru": "Mochi на рабочем столе вкл / выкл",
-   "id": "Mochi di desktop ya / tidak",
-   "de": "Mochi auf dem Desktop ein/aus",
-   "tr": "Mochi'yi masaüstüne taşı / geri getir"
+  "Macha to desktop on/off": {
+   "zh-Hans": "Macha 桌面开/关",
+   "hi": "Macha डेस्कटॉप पर चालू / बंद",
+   "es": "Macha en el escritorio sí / no",
+   "ar": "Macha على / إيقاف سطح المكتب",
+   "fr": "Macha sur le bureau oui / non",
+   "bn": "Macha ডেস্কটপে চালু / বন্ধ",
+   "pt-BR": "Macha na área de trabalho sim / não",
+   "ru": "Macha на рабочем столе вкл / выкл",
+   "id": "Macha di desktop ya / tidak",
+   "de": "Macha auf dem Desktop ein/aus",
+   "tr": "Macha'yi masaüstüne taşı / geri getir"
   },
-  "Mochi, his sounds and how the notch behaves.": {
-   "zh-Hans": "Mochi、它的声音和刘海的行为。",
+  "Macha, his sounds and how the notch behaves.": {
+   "zh-Hans": "Macha、它的声音和刘海的行为。",
    "hi": "मोची, उसकी आवाज़ें और नॉच का व्यवहार।",
-   "es": "Mochi, sus sonidos y cómo se comporta el notch.",
+   "es": "Macha, sus sonidos y cómo se comporta el notch.",
    "ar": "موتشي وأصواته وسلوك النوتش.",
-   "fr": "Mochi, ses sons et le comportement du notch.",
+   "fr": "Macha, ses sons et le comportement du notch.",
    "bn": "মোচি, তার শব্দ আর নচের আচরণ।",
-   "pt-BR": "O Mochi, seus sons e o comportamento do notch.",
+   "pt-BR": "O Macha, seus sons e o comportamento do notch.",
    "ru": "Мочи, его звуки и поведение чёлки.",
-   "id": "Mochi, suaranya, dan perilaku notch.",
-   "de": "Mochi, seine Klänge und das Verhalten der Notch.",
-   "tr": "Mochi, sesleri ve çentiğin davranışı."
+   "id": "Macha, suaranya, dan perilaku notch.",
+   "de": "Macha, seine Klänge und das Verhalten der Notch.",
+   "tr": "Macha, sesleri ve çentiğin davranışı."
   },
   "Model": {
    "zh-Hans": "模型",
@@ -4162,18 +4162,18 @@
    "de": "Moonshot-Schlüssel gespeichert.",
    "tr": "Moonshot anahtarı kaydedildi."
   },
-  "Move Mochi to my iPhone's Dynamic Island when my Mac is locked": {
-   "zh-Hans": "Mac 锁定时将 Mochi 移至我 iPhone 的灵动岛",
-   "hi": "Mac लॉक होने पर Mochi को मेरे iPhone की Dynamic Island पर ले जाएं",
-   "es": "Mover a Mochi a la Dynamic Island de mi iPhone cuando mi Mac esté bloqueado",
-   "ar": "نقل Mochi إلى Dynamic Island في iPhone عند إغلاق Mac",
-   "fr": "Déplacer Mochi vers la Dynamic Island de mon iPhone quand mon Mac est verrouillé",
-   "bn": "Mac লক থাকলে Mochi-কে আমার iPhone-এর Dynamic Island-এ নিয়ে যান",
-   "pt-BR": "Mover o Mochi para a Dynamic Island do meu iPhone quando meu Mac estiver bloqueado",
-   "ru": "Переносить Mochi на Dynamic Island моего iPhone, когда Mac заблокирован",
-   "id": "Pindahkan Mochi ke Dynamic Island iPhone saya saat Mac terkunci",
-   "de": "Mochi bei gesperrtem Mac in die Dynamic Island meines iPhone verschieben",
-   "tr": "Mac'im kilitlendiğinde Mochi'yi iPhone'umun Dynamic Island'ına taşı"
+  "Move Macha to my iPhone's Dynamic Island when my Mac is locked": {
+   "zh-Hans": "Mac 锁定时将 Macha 移至我 iPhone 的灵动岛",
+   "hi": "Mac लॉक होने पर Macha को मेरे iPhone की Dynamic Island पर ले जाएं",
+   "es": "Mover a Macha a la Dynamic Island de mi iPhone cuando mi Mac esté bloqueado",
+   "ar": "نقل Macha إلى Dynamic Island في iPhone عند إغلاق Mac",
+   "fr": "Déplacer Macha vers la Dynamic Island de mon iPhone quand mon Mac est verrouillé",
+   "bn": "Mac লক থাকলে Macha-কে আমার iPhone-এর Dynamic Island-এ নিয়ে যান",
+   "pt-BR": "Mover o Macha para a Dynamic Island do meu iPhone quando meu Mac estiver bloqueado",
+   "ru": "Переносить Macha на Dynamic Island моего iPhone, когда Mac заблокирован",
+   "id": "Pindahkan Macha ke Dynamic Island iPhone saya saat Mac terkunci",
+   "de": "Macha bei gesperrtem Mac in die Dynamic Island meines iPhone verschieben",
+   "tr": "Mac'im kilitlendiğinde Macha'yi iPhone'umun Dynamic Island'ına taşı"
   },
   "Muse Code hooks": {
    "zh-Hans": "Muse Code 钩子",
@@ -4240,18 +4240,18 @@
    "de": "Name",
    "tr": "Ad"
   },
-  "Names and words Coucou must always spell right.": {
-   "zh-Hans": "Coucou 必须始终写对的名字和词语。",
-   "hi": "नाम और शब्द जिन्हें Coucou को हमेशा सही लिखना चाहिए।",
-   "es": "Los nombres y palabras que Coucou siempre debe escribir bien.",
-   "ar": "الأسماء والكلمات التي يجب أن يكتبها Coucou دائمًا بشكل صحيح.",
-   "fr": "Les noms et les mots que Coucou doit toujours bien écrire.",
-   "bn": "যে নাম আর শব্দ Coucou-কে সবসময় ঠিক লিখতে হবে।",
-   "pt-BR": "Os nomes e palavras que o Coucou deve sempre escrever certo.",
-   "ru": "Имена и слова, которые Coucou всегда должен писать правильно.",
-   "id": "Nama dan kata yang harus selalu ditulis benar oleh Coucou.",
-   "de": "Namen und Wörter, die Coucou immer richtig schreiben soll.",
-   "tr": "Coucou'nun her zaman doğru yazması gereken adlar ve sözcükler."
+  "Names and words Macha must always spell right.": {
+   "zh-Hans": "Macha 必须始终写对的名字和词语。",
+   "hi": "नाम और शब्द जिन्हें Macha को हमेशा सही लिखना चाहिए।",
+   "es": "Los nombres y palabras que Macha siempre debe escribir bien.",
+   "ar": "الأسماء والكلمات التي يجب أن يكتبها Macha دائمًا بشكل صحيح.",
+   "fr": "Les noms et les mots que Macha doit toujours bien écrire.",
+   "bn": "যে নাম আর শব্দ Macha-কে সবসময় ঠিক লিখতে হবে।",
+   "pt-BR": "Os nomes e palavras que o Macha deve sempre escrever certo.",
+   "ru": "Имена и слова, которые Macha всегда должен писать правильно.",
+   "id": "Nama dan kata yang harus selalu ditulis benar oleh Macha.",
+   "de": "Namen und Wörter, die Macha immer richtig schreiben soll.",
+   "tr": "Macha'nun her zaman doğru yazması gereken adlar ve sözcükler."
   },
   "Natural": {
    "zh-Hans": "自然",
@@ -4617,18 +4617,18 @@
    "de": "Nein danke",
    "tr": "Hayır, teşekkürler"
   },
-  "No word yet. Add the names, brands and jargon Coucou gets wrong.": {
-   "zh-Hans": "还没有词语。添加 Coucou 写错的名字、品牌和术语。",
-   "hi": "अभी कोई शब्द नहीं। वे नाम, ब्रांड और तकनीकी शब्द जोड़ें जिन्हें Coucou गलत लिखता है।",
-   "es": "Aún no hay palabras. Añade los nombres, marcas y tecnicismos que Coucou escribe mal.",
-   "ar": "لا كلمات بعد. أضف الأسماء والعلامات والمصطلحات التي يخطئ Coucou في كتابتها.",
-   "fr": "Aucun mot pour l'instant. Ajoute les noms, marques et mots techniques que Coucou écrit mal.",
-   "bn": "এখনো কোনো শব্দ নেই। যে নাম, ব্র্যান্ড আর পরিভাষা Coucou ভুল লেখে সেগুলো যোগ করুন।",
-   "pt-BR": "Nenhuma palavra ainda. Adicione nomes, marcas e termos técnicos que o Coucou escreve errado.",
-   "ru": "Слов пока нет. Добавьте имена, бренды и термины, которые Coucou пишет неправильно.",
-   "id": "Belum ada kata. Tambahkan nama, merek, dan istilah yang sering salah ditulis Coucou.",
-   "de": "Noch keine Wörter. Füge Namen, Marken und Fachbegriffe hinzu, die Coucou falsch schreibt.",
-   "tr": "Henüz sözcük yok. Coucou'nun yanlış yazdığı adları, markaları ve terimleri ekle."
+  "No word yet. Add the names, brands and jargon Macha gets wrong.": {
+   "zh-Hans": "还没有词语。添加 Macha 写错的名字、品牌和术语。",
+   "hi": "अभी कोई शब्द नहीं। वे नाम, ब्रांड और तकनीकी शब्द जोड़ें जिन्हें Macha गलत लिखता है।",
+   "es": "Aún no hay palabras. Añade los nombres, marcas y tecnicismos que Macha escribe mal.",
+   "ar": "لا كلمات بعد. أضف الأسماء والعلامات والمصطلحات التي يخطئ Macha في كتابتها.",
+   "fr": "Aucun mot pour l'instant. Ajoute les noms, marques et mots techniques que Macha écrit mal.",
+   "bn": "এখনো কোনো শব্দ নেই। যে নাম, ব্র্যান্ড আর পরিভাষা Macha ভুল লেখে সেগুলো যোগ করুন।",
+   "pt-BR": "Nenhuma palavra ainda. Adicione nomes, marcas e termos técnicos que o Macha escreve errado.",
+   "ru": "Слов пока нет. Добавьте имена, бренды и термины, которые Macha пишет неправильно.",
+   "id": "Belum ada kata. Tambahkan nama, merek, dan istilah yang sering salah ditulis Macha.",
+   "de": "Noch keine Wörter. Füge Namen, Marken und Fachbegriffe hinzu, die Macha falsch schreibt.",
+   "tr": "Henüz sözcük yok. Macha'nun yanlış yazdığı adları, markaları ve terimleri ekle."
   },
   "Nobody was heard in this recording.": {
    "zh-Hans": "这段录音中没有听到任何人。",
@@ -5072,44 +5072,44 @@
    "de": "Codex öffnen",
    "tr": "Codex'i aç"
   },
-  "Open Coucou": {
-   "zh-Hans": "打开 Coucou",
-   "hi": "Coucou खोलें",
-   "es": "Abrir Coucou",
-   "ar": "فتح Coucou",
-   "fr": "Ouvrir Coucou",
-   "bn": "Coucou খুলুন",
-   "pt-BR": "Abrir Coucou",
-   "ru": "Открыть Coucou",
-   "id": "Buka Coucou",
-   "de": "Coucou öffnen",
-   "tr": "Coucou'yu aç"
+  "Open Macha": {
+   "zh-Hans": "打开 Macha",
+   "hi": "Macha खोलें",
+   "es": "Abrir Macha",
+   "ar": "فتح Macha",
+   "fr": "Ouvrir Macha",
+   "bn": "Macha খুলুন",
+   "pt-BR": "Abrir Macha",
+   "ru": "Открыть Macha",
+   "id": "Buka Macha",
+   "de": "Macha öffnen",
+   "tr": "Macha'yu aç"
   },
-  "Open Coucou Flow": {
-   "zh-Hans": "打开 Coucou Flow",
-   "hi": "Coucou Flow खोलें",
-   "es": "Abrir Coucou Flow",
-   "ar": "فتح Coucou Flow",
-   "fr": "Ouvrir Coucou Flow",
-   "bn": "Coucou Flow খুলুন",
-   "pt-BR": "Abrir o Coucou Flow",
-   "ru": "Открыть Coucou Flow",
-   "id": "Buka Coucou Flow",
-   "de": "Coucou Flow öffnen",
-   "tr": "Coucou Flow'u aç"
+  "Open Macha Flow": {
+   "zh-Hans": "打开 Macha Flow",
+   "hi": "Macha Flow खोलें",
+   "es": "Abrir Macha Flow",
+   "ar": "فتح Macha Flow",
+   "fr": "Ouvrir Macha Flow",
+   "bn": "Macha Flow খুলুন",
+   "pt-BR": "Abrir o Macha Flow",
+   "ru": "Открыть Macha Flow",
+   "id": "Buka Macha Flow",
+   "de": "Macha Flow öffnen",
+   "tr": "Macha Flow'u aç"
   },
-  "Open Coucou like any app; a click on its icon brings this window back. Off, Coucou lives in the menu bar only.": {
-   "zh-Hans": "像其他 App 一样打开 Coucou；点按其图标即可回到此窗口。关闭后，Coucou 只在菜单栏中。",
-   "hi": "Coucou को किसी भी ऐप की तरह खोलें; इसके आइकन पर क्लिक करने से यह विंडो वापस आती है। बंद होने पर Coucou सिर्फ़ मेनू बार में रहता है।",
-   "es": "Abre Coucou como cualquier app; un clic en su icono trae esta ventana. Desactivado, Coucou solo está en la barra de menús.",
-   "ar": "افتح Coucou كأي تطبيق؛ والنقر على أيقونته يعيد هذه النافذة. عند الإيقاف يبقى Coucou في شريط القوائم فقط.",
-   "fr": "Ouvre Coucou comme n'importe quelle app ; un clic sur son icône ramène cette fenêtre. Désactivé, Coucou vit seulement dans la barre des menus.",
-   "bn": "যেকোনো অ্যাপের মতো Coucou খুলুন; এর আইকনে ক্লিক করলে এই উইন্ডো ফিরে আসে। বন্ধ থাকলে Coucou শুধু মেনু বারে থাকে।",
-   "pt-BR": "Abra o Coucou como qualquer app; um clique no ícone traz esta janela de volta. Desligado, o Coucou fica só na barra de menus.",
-   "ru": "Открывайте Coucou как обычное приложение; щелчок по значку возвращает это окно. Если выключено, Coucou живёт только в строке меню.",
-   "id": "Buka Coucou seperti aplikasi lain; klik ikonnya untuk memunculkan jendela ini. Jika mati, Coucou hanya ada di bar menu.",
-   "de": "Öffne Coucou wie jede andere App; ein Klick auf das Symbol bringt dieses Fenster zurück. Ist die Option aus, bleibt Coucou nur in der Menüleiste.",
-   "tr": "Coucou'yu herhangi bir uygulama gibi aç; simgesine tıklamak bu pencereyi geri getirir. Kapalıyken Coucou yalnızca menü çubuğunda bulunur."
+  "Open Macha like any app; a click on its icon brings this window back. Off, Macha lives in the menu bar only.": {
+   "zh-Hans": "像其他 App 一样打开 Macha；点按其图标即可回到此窗口。关闭后，Macha 只在菜单栏中。",
+   "hi": "Macha को किसी भी ऐप की तरह खोलें; इसके आइकन पर क्लिक करने से यह विंडो वापस आती है। बंद होने पर Macha सिर्फ़ मेनू बार में रहता है।",
+   "es": "Abre Macha como cualquier app; un clic en su icono trae esta ventana. Desactivado, Macha solo está en la barra de menús.",
+   "ar": "افتح Macha كأي تطبيق؛ والنقر على أيقونته يعيد هذه النافذة. عند الإيقاف يبقى Macha في شريط القوائم فقط.",
+   "fr": "Ouvre Macha comme n'importe quelle app ; un clic sur son icône ramène cette fenêtre. Désactivé, Macha vit seulement dans la barre des menus.",
+   "bn": "যেকোনো অ্যাপের মতো Macha খুলুন; এর আইকনে ক্লিক করলে এই উইন্ডো ফিরে আসে। বন্ধ থাকলে Macha শুধু মেনু বারে থাকে।",
+   "pt-BR": "Abra o Macha como qualquer app; um clique no ícone traz esta janela de volta. Desligado, o Macha fica só na barra de menus.",
+   "ru": "Открывайте Macha как обычное приложение; щелчок по значку возвращает это окно. Если выключено, Macha живёт только в строке меню.",
+   "id": "Buka Macha seperti aplikasi lain; klik ikonnya untuk memunculkan jendela ini. Jika mati, Macha hanya ada di bar menu.",
+   "de": "Öffne Macha wie jede andere App; ein Klick auf das Symbol bringt dieses Fenster zurück. Ist die Option aus, bleibt Macha nur in der Menüleiste.",
+   "tr": "Macha'yu herhangi bir uygulama gibi aç; simgesine tıklamak bu pencereyi geri getirir. Kapalıyken Macha yalnızca menü çubuğunda bulunur."
   },
   "Open Cursor": {
    "zh-Hans": "打开 Cursor",
@@ -5332,18 +5332,18 @@
    "de": "Notizfunktion öffnen →",
    "tr": "Not alıcıyı aç →"
   },
-  "Open this window when you open Coucou": {
-   "zh-Hans": "打开 Coucou 时打开此窗口",
-   "hi": "Coucou खोलने पर यह विंडो खोलें",
-   "es": "Abrir esta ventana al abrir Coucou",
-   "ar": "فتح هذه النافذة عند فتح Coucou",
-   "fr": "Ouvrir cette fenêtre quand tu lances Coucou",
-   "bn": "Coucou খুললে এই উইন্ডো খুলুন",
-   "pt-BR": "Abrir esta janela ao abrir o Coucou",
-   "ru": "Открывать это окно при запуске Coucou",
-   "id": "Buka jendela ini saat membuka Coucou",
-   "de": "Dieses Fenster beim Öffnen von Coucou anzeigen",
-   "tr": "Coucou'yu açtığında bu pencereyi aç"
+  "Open this window when you open Macha": {
+   "zh-Hans": "打开 Macha 时打开此窗口",
+   "hi": "Macha खोलने पर यह विंडो खोलें",
+   "es": "Abrir esta ventana al abrir Macha",
+   "ar": "فتح هذه النافذة عند فتح Macha",
+   "fr": "Ouvrir cette fenêtre quand tu lances Macha",
+   "bn": "Macha খুললে এই উইন্ডো খুলুন",
+   "pt-BR": "Abrir esta janela ao abrir o Macha",
+   "ru": "Открывать это окно при запуске Macha",
+   "id": "Buka jendela ini saat membuka Macha",
+   "de": "Dieses Fenster beim Öffnen von Macha anzeigen",
+   "tr": "Macha'yu açtığında bu pencereyi aç"
   },
   "Open {name}": {
    "zh-Hans": "打开 {name}",
@@ -6268,31 +6268,31 @@
    "de": "Wird zurückgesetzt…",
    "tr": "Sıfırlanıyor…"
   },
-  "Restart Coucou": {
-   "zh-Hans": "重启 Coucou",
-   "hi": "Coucou को पुनः आरंभ करें",
-   "es": "Reiniciar Coucou",
-   "ar": "إعادة تشغيل Coucou",
-   "fr": "Redémarrer Coucou",
-   "bn": "Coucou পুনরায় শুরু করুন",
-   "pt-BR": "Reiniciar Coucou",
-   "ru": "Перезапустить Coucou",
-   "id": "Mulai ulang Coucou",
-   "de": "Coucou neu starten",
-   "tr": "Coucou'yu yeniden başlat"
+  "Restart Macha": {
+   "zh-Hans": "重启 Macha",
+   "hi": "Macha को पुनः आरंभ करें",
+   "es": "Reiniciar Macha",
+   "ar": "إعادة تشغيل Macha",
+   "fr": "Redémarrer Macha",
+   "bn": "Macha পুনরায় শুরু করুন",
+   "pt-BR": "Reiniciar Macha",
+   "ru": "Перезапустить Macha",
+   "id": "Mulai ulang Macha",
+   "de": "Macha neu starten",
+   "tr": "Macha'yu yeniden başlat"
   },
-  "Restarting Coucou…": {
-   "zh-Hans": "正在重启 Coucou…",
-   "hi": "Coucou फिर से शुरू हो रहा है…",
-   "es": "Reiniciando Coucou…",
-   "ar": "جارٍ إعادة تشغيل Coucou…",
-   "fr": "Redémarrage de Coucou…",
-   "bn": "Coucou আবার চালু হচ্ছে…",
-   "pt-BR": "Reiniciando o Coucou…",
-   "ru": "Перезапуск Coucou…",
-   "id": "Memulai ulang Coucou…",
-   "de": "Coucou startet neu…",
-   "tr": "Coucou yeniden başlatılıyor…"
+  "Restarting Macha…": {
+   "zh-Hans": "正在重启 Macha…",
+   "hi": "Macha फिर से शुरू हो रहा है…",
+   "es": "Reiniciando Macha…",
+   "ar": "جارٍ إعادة تشغيل Macha…",
+   "fr": "Redémarrage de Macha…",
+   "bn": "Macha আবার চালু হচ্ছে…",
+   "pt-BR": "Reiniciando o Macha…",
+   "ru": "Перезапуск Macha…",
+   "id": "Memulai ulang Macha…",
+   "de": "Macha startet neu…",
+   "tr": "Macha yeniden başlatılıyor…"
   },
   "Retry": {
    "zh-Hans": "重试",
@@ -6476,18 +6476,18 @@
    "de": "Speichern…",
    "tr": "Kaydet…"
   },
-  "Say the trigger while dictating: Coucou pastes the whole text in its place.": {
-   "zh-Hans": "听写时说出触发语：Coucou 会把整段文字粘贴在它的位置。",
-   "hi": "डिक्टेट करते समय वाक्यांश बोलें: Coucou उसकी जगह पूरा टेक्स्ट चिपका देगा।",
-   "es": "Di la frase al dictar: Coucou pega el texto entero en su lugar.",
-   "ar": "قل العبارة أثناء الإملاء: يلصق Coucou النص كاملًا مكانها.",
-   "fr": "Dis la phrase en dictant : Coucou colle le texte entier à sa place.",
-   "bn": "ডিক্টেট করার সময় বাক্যাংশটি বলুন: Coucou তার জায়গায় পুরো লেখা পেস্ট করবে।",
-   "pt-BR": "Diga a frase ao ditar: o Coucou cola o texto inteiro no lugar dela.",
-   "ru": "Произнесите фразу во время диктовки — Coucou вставит вместо неё весь текст.",
-   "id": "Ucapkan pemicunya saat dikte: Coucou menempel teks utuhnya sebagai gantinya.",
-   "de": "Sage beim Diktieren den Auslöser: Coucou fügt stattdessen den ganzen Text ein.",
-   "tr": "Dikte ederken tetikleyici ifadeyi söyle: Coucou onun yerine tüm metni yapıştırır."
+  "Say the trigger while dictating: Macha pastes the whole text in its place.": {
+   "zh-Hans": "听写时说出触发语：Macha 会把整段文字粘贴在它的位置。",
+   "hi": "डिक्टेट करते समय वाक्यांश बोलें: Macha उसकी जगह पूरा टेक्स्ट चिपका देगा।",
+   "es": "Di la frase al dictar: Macha pega el texto entero en su lugar.",
+   "ar": "قل العبارة أثناء الإملاء: يلصق Macha النص كاملًا مكانها.",
+   "fr": "Dis la phrase en dictant : Macha colle le texte entier à sa place.",
+   "bn": "ডিক্টেট করার সময় বাক্যাংশটি বলুন: Macha তার জায়গায় পুরো লেখা পেস্ট করবে।",
+   "pt-BR": "Diga a frase ao ditar: o Macha cola o texto inteiro no lugar dela.",
+   "ru": "Произнесите фразу во время диктовки — Macha вставит вместо неё весь текст.",
+   "id": "Ucapkan pemicunya saat dikte: Macha menempel teks utuhnya sebagai gantinya.",
+   "de": "Sage beim Diktieren den Auslöser: Macha fügt stattdessen den ganzen Text ein.",
+   "tr": "Dikte ederken tetikleyici ifadeyi söyle: Macha onun yerine tüm metni yapıştırır."
   },
   "Say your command": {
    "zh-Hans": "说出您的命令",
@@ -6671,18 +6671,18 @@
    "de": "Wird gesendet…",
    "tr": "Gönderiliyor…"
   },
-  "Sends your sessions to your private iCloud for the Coucou app on iPhone. Project names, commands, and questions are encrypted with your iCloud keys. Disabling removes data from iCloud.": {
-   "zh-Hans": "将你的会话发送到私有 iCloud，供 Coucou iPhone 应用使用。项目名称、命令和问题使用你的 iCloud 密钥加密。关闭后将从 iCloud 中删除。",
-   "hi": "Coucou iPhone ऐप के लिए आपके सेशन आपके प्राइवेट iCloud में भेजता है। प्रोजेक्ट नाम, कमांड और सवाल आपकी iCloud कुंजियों से एन्क्रिप्ट किए जाते हैं। बंद करने पर iCloud से हटा दिए जाते हैं।",
-   "es": "Envía tus sesiones a tu iCloud privado para la app Coucou de iPhone. Los nombres de proyecto, comandos y preguntas se cifran con tus claves de iCloud. Desactivarlo las elimina de iCloud.",
-   "ar": "يُرسل جلساتك إلى iCloud الخاص بك لتطبيق Coucou على iPhone. تُشفَّر أسماء المشاريع والأوامر والأسئلة بمفاتيح iCloud الخاصة بك. إيقاف التشغيل يحذفها من iCloud.",
-   "fr": "Envoie tes sessions sur ton iCloud privé pour l'app Coucou sur iPhone. Les noms de projets, commandes et questions sont chiffrés avec tes clés iCloud. Désactiver supprime les données d'iCloud.",
-   "bn": "Coucou iPhone অ্যাপের জন্য আপনার সেশনগুলো আপনার প্রাইভেট iCloud-এ পাঠায়। প্রজেক্টের নাম, কমান্ড এবং প্রশ্নগুলো আপনার iCloud কী দিয়ে এনক্রিপ্ট করা হয়। বন্ধ করলে iCloud থেকে মুছে যাবে।",
-   "pt-BR": "Envia suas sessões para seu iCloud privado para o app Coucou no iPhone. Nomes de projetos, comandos e perguntas são criptografados com suas chaves do iCloud. Desativar remove-os do iCloud.",
-   "ru": "Отправляет твои сессии в личный iCloud для приложения Coucou на iPhone. Имена проектов, команды и вопросы шифруются твоими ключами iCloud. Отключение удаляет их из iCloud.",
-   "id": "Mengirim sesi Anda ke iCloud pribadi Anda untuk aplikasi Coucou iPhone. Nama proyek, perintah, dan pertanyaan dienkripsi dengan kunci iCloud Anda. Mematikannya menghapusnya dari iCloud.",
-   "de": "Sendet deine Sitzungen an deine private iCloud für Coucou auf dem iPhone. Projektnamen, Befehle und Fragen werden mit deinen iCloud-Schlüsseln verschlüsselt. Beim Deaktivieren werden die Daten aus iCloud entfernt.",
-   "tr": "Oturumlarını iPhone'daki Coucou uygulaması için özel iCloud hesabına gönderir. Proje adları, komutlar ve sorular iCloud anahtarlarınla şifrelenir. Kapatıldığında veriler iCloud'dan kaldırılır."
+  "Sends your sessions to your private iCloud for the Macha app on iPhone. Project names, commands, and questions are encrypted with your iCloud keys. Disabling removes data from iCloud.": {
+   "zh-Hans": "将你的会话发送到私有 iCloud，供 Macha iPhone 应用使用。项目名称、命令和问题使用你的 iCloud 密钥加密。关闭后将从 iCloud 中删除。",
+   "hi": "Macha iPhone ऐप के लिए आपके सेशन आपके प्राइवेट iCloud में भेजता है। प्रोजेक्ट नाम, कमांड और सवाल आपकी iCloud कुंजियों से एन्क्रिप्ट किए जाते हैं। बंद करने पर iCloud से हटा दिए जाते हैं।",
+   "es": "Envía tus sesiones a tu iCloud privado para la app Macha de iPhone. Los nombres de proyecto, comandos y preguntas se cifran con tus claves de iCloud. Desactivarlo las elimina de iCloud.",
+   "ar": "يُرسل جلساتك إلى iCloud الخاص بك لتطبيق Macha على iPhone. تُشفَّر أسماء المشاريع والأوامر والأسئلة بمفاتيح iCloud الخاصة بك. إيقاف التشغيل يحذفها من iCloud.",
+   "fr": "Envoie tes sessions sur ton iCloud privé pour l'app Macha sur iPhone. Les noms de projets, commandes et questions sont chiffrés avec tes clés iCloud. Désactiver supprime les données d'iCloud.",
+   "bn": "Macha iPhone অ্যাপের জন্য আপনার সেশনগুলো আপনার প্রাইভেট iCloud-এ পাঠায়। প্রজেক্টের নাম, কমান্ড এবং প্রশ্নগুলো আপনার iCloud কী দিয়ে এনক্রিপ্ট করা হয়। বন্ধ করলে iCloud থেকে মুছে যাবে।",
+   "pt-BR": "Envia suas sessões para seu iCloud privado para o app Macha no iPhone. Nomes de projetos, comandos e perguntas são criptografados com suas chaves do iCloud. Desativar remove-os do iCloud.",
+   "ru": "Отправляет твои сессии в личный iCloud для приложения Macha на iPhone. Имена проектов, команды и вопросы шифруются твоими ключами iCloud. Отключение удаляет их из iCloud.",
+   "id": "Mengirim sesi Anda ke iCloud pribadi Anda untuk aplikasi Macha iPhone. Nama proyek, perintah, dan pertanyaan dienkripsi dengan kunci iCloud Anda. Mematikannya menghapusnya dari iCloud.",
+   "de": "Sendet deine Sitzungen an deine private iCloud für Macha auf dem iPhone. Projektnamen, Befehle und Fragen werden mit deinen iCloud-Schlüsseln verschlüsselt. Beim Deaktivieren werden die Daten aus iCloud entfernt.",
+   "tr": "Oturumlarını iPhone'daki Macha uygulaması için özel iCloud hesabına gönderir. Proje adları, komutlar ve sorular iCloud anahtarlarınla şifrelenir. Kapatıldığında veriler iCloud'dan kaldırılır."
   },
   "Services": {
    "zh-Hans": "服务",
@@ -6736,18 +6736,18 @@
    "de": "Einstellungen",
    "tr": "Ayarlar"
   },
-  "Settings — Coucou": {
-   "zh-Hans": "设置 — Coucou",
-   "hi": "सेटिंग्स — Coucou",
-   "es": "Ajustes — Coucou",
-   "ar": "الإعدادات — Coucou",
-   "fr": "Réglages — Coucou",
-   "bn": "সেটিংস — Coucou",
-   "pt-BR": "Configurações — Coucou",
-   "ru": "Настройки — Coucou",
-   "id": "Pengaturan — Coucou",
-   "de": "Einstellungen — Coucou",
-   "tr": "Ayarlar — Coucou"
+  "Settings — Macha": {
+   "zh-Hans": "设置 — Macha",
+   "hi": "सेटिंग्स — Macha",
+   "es": "Ajustes — Macha",
+   "ar": "الإعدادات — Macha",
+   "fr": "Réglages — Macha",
+   "bn": "সেটিংস — Macha",
+   "pt-BR": "Configurações — Macha",
+   "ru": "Настройки — Macha",
+   "id": "Pengaturan — Macha",
+   "de": "Einstellungen — Macha",
+   "tr": "Ayarlar — Macha"
   },
   "Settings…": {
    "zh-Hans": "设置…",
@@ -6827,31 +6827,31 @@
    "de": "Codex-Tarif in der Notch anzeigen",
    "tr": "Codex planını adada göster"
   },
-  "Show Coucou in the Dock": {
-   "zh-Hans": "在程序坞中显示 Coucou",
-   "hi": "Coucou को Dock में दिखाएँ",
-   "es": "Mostrar Coucou en el Dock",
-   "ar": "إظهار Coucou في Dock",
-   "fr": "Afficher Coucou dans le Dock",
-   "bn": "Dock-এ Coucou দেখান",
-   "pt-BR": "Mostrar o Coucou no Dock",
-   "ru": "Показывать Coucou в Dock",
-   "id": "Tampilkan Coucou di Dock",
-   "de": "Coucou im Dock anzeigen",
-   "tr": "Coucou'yu Dock'ta göster"
+  "Show Macha in the Dock": {
+   "zh-Hans": "在程序坞中显示 Macha",
+   "hi": "Macha को Dock में दिखाएँ",
+   "es": "Mostrar Macha en el Dock",
+   "ar": "إظهار Macha في Dock",
+   "fr": "Afficher Macha dans le Dock",
+   "bn": "Dock-এ Macha দেখান",
+   "pt-BR": "Mostrar o Macha no Dock",
+   "ru": "Показывать Macha в Dock",
+   "id": "Tampilkan Macha di Dock",
+   "de": "Macha im Dock anzeigen",
+   "tr": "Macha'yu Dock'ta göster"
   },
-  "Show Mochi on": {
-   "zh-Hans": "Mochi 显示在",
+  "Show Macha on": {
+   "zh-Hans": "Macha 显示在",
    "hi": "मोची को यहाँ दिखाएँ",
-   "es": "Mostrar a Mochi en",
+   "es": "Mostrar a Macha en",
    "ar": "عرض موتشي على",
-   "fr": "Afficher Mochi sur",
+   "fr": "Afficher Macha sur",
    "bn": "মোচিকে দেখান",
-   "pt-BR": "Mostrar o Mochi em",
+   "pt-BR": "Mostrar o Macha em",
    "ru": "Показывать Мочи на",
-   "id": "Tampilkan Mochi di",
-   "de": "Mochi anzeigen auf",
-   "tr": "Mochi'yi göster:"
+   "id": "Tampilkan Macha di",
+   "de": "Macha anzeigen auf",
+   "tr": "Macha'yi göster:"
   },
   "Show approval requests in the notch": {
    "zh-Hans": "在刘海中显示审批请求",
@@ -6905,18 +6905,18 @@
    "de": "Meine Agentensitzungen auf meinem iPhone anzeigen",
    "tr": "Ajan oturumlarımı iPhone'umda göster"
   },
-  "Shows your Claude plan usage (5-hour and weekly limits) in the notch header. Coucou adds a status line relay in ~/.claude/settings.json. If you already have a status line, it keeps working as before. Pro and Max plans only.": {
-   "zh-Hans": "在刘海标头中显示你的 Claude 计划用量（5 小时及每周限额）。Coucou 会在 ~/.claude/settings.json 中添加一条状态栏中继。如果你已有状态栏，它将照常运行。仅限 Pro 和 Max 计划。",
-   "hi": "नॉच हेडर में आपके Claude प्लान का उपयोग (5 घंटे और साप्ताहिक सीमाएं) दिखाता है। Coucou ~/.claude/settings.json में एक स्टेटस लाइन रिले जोड़ता है। अगर आपके पास पहले से स्टेटस लाइन है, तो वह पहले की तरह काम करती रहेगी। केवल Pro और Max प्लान के लिए।",
-   "es": "Muestra el uso de tu plan Claude (límites de 5 horas y semanales) en el encabezado del notch. Coucou añade una línea de estado relay en ~/.claude/settings.json. Si ya tienes una línea de estado, seguirá funcionando como antes. Solo planes Pro y Max.",
-   "ar": "يعرض استخدام خطة Claude (الحدود الخمس ساعات والأسبوعية) في ترويسة الشريط العلوي. تضيف Coucou سطر حالة مُرحِّلاً إلى ~/.claude/settings.json. إن كان لديك سطر حالة بالفعل، يستمر في العمل كالمعتاد. للخططَين Pro وMax فقط.",
-   "fr": "Affiche ton utilisation du forfait Claude (limites de 5 heures et hebdomadaire) dans l'en-tête de l'encoche. Coucou ajoute un relais de ligne de statut dans ~/.claude/settings.json. Si tu as déjà une ligne de statut, elle continue de fonctionner comme avant. Forfaits Pro et Max uniquement.",
-   "bn": "নচ হেডারে আপনার Claude প্ল্যানের ব্যবহার (৫ ঘণ্টা ও সাপ্তাহিক সীমা) দেখায়। Coucou ~/.claude/settings.json-এ একটি স্ট্যাটাস লাইন রিলে যোগ করে। আপনার কাছে ইতিমধ্যে স্ট্যাটাস লাইন থাকলে তা আগের মতোই কাজ করবে। শুধুমাত্র Pro এবং Max প্ল্যানের জন্য।",
-   "pt-BR": "Mostra o uso do seu plano Claude (limites de 5 horas e semanais) no cabeçalho do notch. O Coucou adiciona um relay de linha de status ao ~/.claude/settings.json. Se você já tiver uma linha de status, ela continua funcionando normalmente. Apenas planos Pro e Max.",
-   "ru": "Показывает использование плана Claude (лимиты на 5 часов и на неделю) в шапке нотча. Coucou добавляет ретранслятор строки статуса в ~/.claude/settings.json. Если строка статуса уже есть, она продолжит работать как прежде. Только для планов Pro и Max.",
-   "id": "Menampilkan penggunaan paket Claude (batas 5 jam dan mingguan) di header notch. Coucou menambahkan relay baris status ke ~/.claude/settings.json. Jika Anda sudah memiliki baris status, tetap berjalan seperti sebelumnya. Hanya untuk paket Pro dan Max.",
-   "de": "Zeigt deine Claude-Tarifnutzung (5-Stunden- und Wochenlimits) im Notch-Kopfbereich. Coucou ergänzt einen Statuszeilen-Relay in ~/.claude/settings.json. Eine bestehende Statuszeile funktioniert wie bisher. Nur für Pro- und Max-Tarife.",
-   "tr": "Claude plan kullanımını (5 saatlik ve haftalık sınırlar) adanın başlığında gösterir. Coucou, ~/.claude/settings.json içine bir durum satırı aracısı ekler. Mevcut durum satırın varsa eskisi gibi çalışmaya devam eder. Yalnızca Pro ve Max planları için."
+  "Shows your Claude plan usage (5-hour and weekly limits) in the notch header. Macha adds a status line relay in ~/.claude/settings.json. If you already have a status line, it keeps working as before. Pro and Max plans only.": {
+   "zh-Hans": "在刘海标头中显示你的 Claude 计划用量（5 小时及每周限额）。Macha 会在 ~/.claude/settings.json 中添加一条状态栏中继。如果你已有状态栏，它将照常运行。仅限 Pro 和 Max 计划。",
+   "hi": "नॉच हेडर में आपके Claude प्लान का उपयोग (5 घंटे और साप्ताहिक सीमाएं) दिखाता है। Macha ~/.claude/settings.json में एक स्टेटस लाइन रिले जोड़ता है। अगर आपके पास पहले से स्टेटस लाइन है, तो वह पहले की तरह काम करती रहेगी। केवल Pro और Max प्लान के लिए।",
+   "es": "Muestra el uso de tu plan Claude (límites de 5 horas y semanales) en el encabezado del notch. Macha añade una línea de estado relay en ~/.claude/settings.json. Si ya tienes una línea de estado, seguirá funcionando como antes. Solo planes Pro y Max.",
+   "ar": "يعرض استخدام خطة Claude (الحدود الخمس ساعات والأسبوعية) في ترويسة الشريط العلوي. تضيف Macha سطر حالة مُرحِّلاً إلى ~/.claude/settings.json. إن كان لديك سطر حالة بالفعل، يستمر في العمل كالمعتاد. للخططَين Pro وMax فقط.",
+   "fr": "Affiche ton utilisation du forfait Claude (limites de 5 heures et hebdomadaire) dans l'en-tête de l'encoche. Macha ajoute un relais de ligne de statut dans ~/.claude/settings.json. Si tu as déjà une ligne de statut, elle continue de fonctionner comme avant. Forfaits Pro et Max uniquement.",
+   "bn": "নচ হেডারে আপনার Claude প্ল্যানের ব্যবহার (৫ ঘণ্টা ও সাপ্তাহিক সীমা) দেখায়। Macha ~/.claude/settings.json-এ একটি স্ট্যাটাস লাইন রিলে যোগ করে। আপনার কাছে ইতিমধ্যে স্ট্যাটাস লাইন থাকলে তা আগের মতোই কাজ করবে। শুধুমাত্র Pro এবং Max প্ল্যানের জন্য।",
+   "pt-BR": "Mostra o uso do seu plano Claude (limites de 5 horas e semanais) no cabeçalho do notch. O Macha adiciona um relay de linha de status ao ~/.claude/settings.json. Se você já tiver uma linha de status, ela continua funcionando normalmente. Apenas planos Pro e Max.",
+   "ru": "Показывает использование плана Claude (лимиты на 5 часов и на неделю) в шапке нотча. Macha добавляет ретранслятор строки статуса в ~/.claude/settings.json. Если строка статуса уже есть, она продолжит работать как прежде. Только для планов Pro и Max.",
+   "id": "Menampilkan penggunaan paket Claude (batas 5 jam dan mingguan) di header notch. Macha menambahkan relay baris status ke ~/.claude/settings.json. Jika Anda sudah memiliki baris status, tetap berjalan seperti sebelumnya. Hanya untuk paket Pro dan Max.",
+   "de": "Zeigt deine Claude-Tarifnutzung (5-Stunden- und Wochenlimits) im Notch-Kopfbereich. Macha ergänzt einen Statuszeilen-Relay in ~/.claude/settings.json. Eine bestehende Statuszeile funktioniert wie bisher. Nur für Pro- und Max-Tarife.",
+   "tr": "Claude plan kullanımını (5 saatlik ve haftalık sınırlar) adanın başlığında gösterir. Macha, ~/.claude/settings.json içine bir durum satırı aracısı ekler. Mevcut durum satırın varsa eskisi gibi çalışmaya devam eder. Yalnızca Pro ve Max planları için."
   },
   "Shuffle off": {
    "zh-Hans": "随机播放：关",
@@ -7269,18 +7269,18 @@
    "de": "PROGRAMMIERZEIT",
    "tr": "KODLAMA SÜRESİ"
   },
-  "Talk to Coucou": {
-   "zh-Hans": "与 Coucou 对话",
-   "hi": "Coucou से बात करें",
-   "es": "Hablar con Coucou",
-   "ar": "التحدث إلى Coucou",
-   "fr": "Parler à Coucou",
-   "bn": "Coucou-এর সাথে কথা বলুন",
-   "pt-BR": "Falar com Coucou",
-   "ru": "Говорить с Coucou",
-   "id": "Bicara ke Coucou",
-   "de": "Mit Coucou sprechen",
-   "tr": "Coucou ile konuş"
+  "Talk to Macha": {
+   "zh-Hans": "与 Macha 对话",
+   "hi": "Macha से बात करें",
+   "es": "Hablar con Macha",
+   "ar": "التحدث إلى Macha",
+   "fr": "Parler à Macha",
+   "bn": "Macha-এর সাথে কথা বলুন",
+   "pt-BR": "Falar com Macha",
+   "ru": "Говорить с Macha",
+   "id": "Bicara ke Macha",
+   "de": "Mit Macha sprechen",
+   "tr": "Macha ile konuş"
   },
   "Tap twice, speak as long as you like, tap once to paste.": {
    "zh-Hans": "连按两次，想说多久就说多久，再按一次即粘贴。",
@@ -7438,31 +7438,31 @@
    "de": "Der Download ist fehlgeschlagen. Versuch es noch mal oder hol es dir auf GitHub.",
    "tr": "İndirme başarısız oldu. Tekrar dene ya da GitHub'dan al."
   },
-  "The download isn’t signed and notarized by Coucou’s developer, so it wasn’t installed.": {
-   "zh-Hans": "下载的文件未经 Coucou 开发者签名和公证，因此未安装。",
-   "hi": "डाउनलोड पर Coucou के डेवलपर का सिग्नेचर और नोटराइज़ेशन नहीं है, इसलिए इंस्टॉल नहीं किया गया।",
-   "es": "La descarga no está firmada y notarizada por el desarrollador de Coucou, así que no se instaló.",
-   "ar": "الملف المنزَّل غير موقَّع وموثَّق من مطوّر Coucou، لذا لم يُثبَّت.",
-   "fr": "Le téléchargement n’est pas signé et notarisé par le développeur de Coucou : il n’a pas été installé.",
-   "bn": "ডাউনলোডটি Coucou-র ডেভেলপারের স্বাক্ষরিত ও নোটারাইজড নয়, তাই ইনস্টল করা হয়নি।",
-   "pt-BR": "O download não está assinado e notarizado pelo desenvolvedor do Coucou, então não foi instalado.",
-   "ru": "Загрузка не подписана и не нотаризована разработчиком Coucou, поэтому не установлена.",
-   "id": "Unduhan tidak ditandatangani dan dinotarisasi oleh pengembang Coucou, jadi tidak dipasang.",
-   "de": "Der Download ist nicht vom Entwickler von Coucou signiert und beglaubigt und wurde daher nicht installiert.",
-   "tr": "İndirilen dosya Coucou geliştiricisi tarafından imzalanmamış ve onaylanmamış, bu yüzden yüklenmedi."
+  "The download isn’t signed and notarized by Macha’s developer, so it wasn’t installed.": {
+   "zh-Hans": "下载的文件未经 Macha 开发者签名和公证，因此未安装。",
+   "hi": "डाउनलोड पर Macha के डेवलपर का सिग्नेचर और नोटराइज़ेशन नहीं है, इसलिए इंस्टॉल नहीं किया गया।",
+   "es": "La descarga no está firmada y notarizada por el desarrollador de Macha, así que no se instaló.",
+   "ar": "الملف المنزَّل غير موقَّع وموثَّق من مطوّر Macha، لذا لم يُثبَّت.",
+   "fr": "Le téléchargement n’est pas signé et notarisé par le développeur de Macha : il n’a pas été installé.",
+   "bn": "ডাউনলোডটি Macha-র ডেভেলপারের স্বাক্ষরিত ও নোটারাইজড নয়, তাই ইনস্টল করা হয়নি।",
+   "pt-BR": "O download não está assinado e notarizado pelo desenvolvedor do Macha, então não foi instalado.",
+   "ru": "Загрузка не подписана и не нотаризована разработчиком Macha, поэтому не установлена.",
+   "id": "Unduhan tidak ditandatangani dan dinotarisasi oleh pengembang Macha, jadi tidak dipasang.",
+   "de": "Der Download ist nicht vom Entwickler von Macha signiert und beglaubigt und wurde daher nicht installiert.",
+   "tr": "İndirilen dosya Macha geliştiricisi tarafından imzalanmamış ve onaylanmamış, bu yüzden yüklenmedi."
   },
-  "The download isn’t the announced version of Coucou. Nothing was changed.": {
-   "zh-Hans": "下载的不是公布的 Coucou 版本。未做任何更改。",
-   "hi": "डाउनलोड Coucou का घोषित वर्ज़न नहीं है। कुछ नहीं बदला गया।",
-   "es": "La descarga no es la versión anunciada de Coucou. No se cambió nada.",
-   "ar": "الملف المنزَّل ليس إصدار Coucou المُعلَن. لم يتغير شيء.",
-   "fr": "Le téléchargement n’est pas la version de Coucou annoncée. Rien n’a été modifié.",
-   "bn": "ডাউনলোডটি ঘোষিত Coucou সংস্করণ নয়। কিছুই বদলানো হয়নি।",
-   "pt-BR": "O download não é a versão anunciada do Coucou. Nada foi alterado.",
-   "ru": "Загрузка — не объявленная версия Coucou. Ничего не изменено.",
-   "id": "Unduhan bukan versi Coucou yang diumumkan. Tidak ada yang diubah.",
-   "de": "Der Download ist nicht die angekündigte Coucou-Version. Nichts wurde geändert.",
-   "tr": "İndirilen dosya duyurulan Coucou sürümü değil. Hiçbir şey değiştirilmedi."
+  "The download isn’t the announced version of Macha. Nothing was changed.": {
+   "zh-Hans": "下载的不是公布的 Macha 版本。未做任何更改。",
+   "hi": "डाउनलोड Macha का घोषित वर्ज़न नहीं है। कुछ नहीं बदला गया।",
+   "es": "La descarga no es la versión anunciada de Macha. No se cambió nada.",
+   "ar": "الملف المنزَّل ليس إصدار Macha المُعلَن. لم يتغير شيء.",
+   "fr": "Le téléchargement n’est pas la version de Macha annoncée. Rien n’a été modifié.",
+   "bn": "ডাউনলোডটি ঘোষিত Macha সংস্করণ নয়। কিছুই বদলানো হয়নি।",
+   "pt-BR": "O download não é a versão anunciada do Macha. Nada foi alterado.",
+   "ru": "Загрузка — не объявленная версия Macha. Ничего не изменено.",
+   "id": "Unduhan bukan versi Macha yang diumumkan. Tidak ada yang diubah.",
+   "de": "Der Download ist nicht die angekündigte Macha-Version. Nichts wurde geändert.",
+   "tr": "İndirilen dosya duyurulan Macha sürümü değil. Hiçbir şey değiştirilmedi."
   },
   "The history is off. Turn it on in Settings → Privacy.": {
    "zh-Hans": "历史记录已关闭。请在“设置”→“隐私”中打开。",
@@ -7477,18 +7477,18 @@
    "de": "Der Verlauf ist aus. Aktiviere ihn unter Einstellungen → Datenschutz.",
    "tr": "Geçmiş kapalı. Ayarlar → Gizlilik bölümünden aç."
   },
-  "The history, the statistics and your notes stay on this Mac, in Coucou's folder. Dictations are never saved as audio; a call's audio is deleted as soon as its transcript is written.": {
-   "zh-Hans": "历史记录、统计和你的笔记都保存在这台 Mac 上的 Coucou 文件夹中。听写从不保存为音频；通话的音频在转写完成后立即删除。",
-   "hi": "इतिहास, आँकड़े और आपके नोट्स इसी Mac पर, Coucou के फ़ोल्डर में रहते हैं। डिक्टेशन कभी ऑडियो के रूप में नहीं रखे जाते; कॉल का ऑडियो ट्रांसक्रिप्ट लिखते ही मिटा दिया जाता है।",
-   "es": "El historial, las estadísticas y tus notas se quedan en este Mac, en la carpeta de Coucou. Los dictados nunca se guardan como audio; el audio de una llamada se borra en cuanto se escribe su transcripción.",
-   "ar": "يبقى السجل والإحصاءات وملاحظاتك على جهاز Mac هذا، في مجلد Coucou. لا تُحفظ الإملاءات صوتيًا أبدًا، ويُحذف صوت المكالمة فور كتابة نصها.",
-   "fr": "L'historique, les statistiques et tes notes restent sur ce Mac, dans le dossier de Coucou. Les dictées ne sont jamais gardées en audio ; l'audio d'un call est effacé dès que sa transcription est écrite.",
-   "bn": "ইতিহাস, পরিসংখ্যান আর আপনার নোট এই Mac-এ, Coucou-র ফোল্ডারে থাকে। ডিক্টেশন কখনো অডিও হিসেবে রাখা হয় না; কলের অডিও ট্রান্সক্রিপ্ট লেখা হলেই মুছে ফেলা হয়।",
-   "pt-BR": "O histórico, as estatísticas e suas notas ficam neste Mac, na pasta do Coucou. Os ditados nunca são guardados em áudio; o áudio de uma chamada é apagado assim que a transcrição é escrita.",
-   "ru": "История, статистика и заметки хранятся на этом Mac, в папке Coucou. Диктовки никогда не сохраняются как аудио; запись звонка удаляется, как только готова расшифровка.",
-   "id": "Riwayat, statistik, dan catatanmu tetap di Mac ini, di folder Coucou. Dikte tidak pernah disimpan sebagai audio; audio panggilan dihapus begitu transkripnya selesai ditulis.",
-   "de": "Verlauf, Statistik und Notizen bleiben auf diesem Mac im Coucou-Ordner. Diktate werden nie als Audio gespeichert; die Gesprächsaufnahme wird gelöscht, sobald das Transkript geschrieben ist.",
-   "tr": "Geçmiş, istatistikler ve notların bu Mac'te, Coucou klasöründe kalır. Dikteler asla ses olarak kaydedilmez; görüşmenin sesi, dökümü yazılır yazılmaz silinir."
+  "The history, the statistics and your notes stay on this Mac, in Macha's folder. Dictations are never saved as audio; a call's audio is deleted as soon as its transcript is written.": {
+   "zh-Hans": "历史记录、统计和你的笔记都保存在这台 Mac 上的 Macha 文件夹中。听写从不保存为音频；通话的音频在转写完成后立即删除。",
+   "hi": "इतिहास, आँकड़े और आपके नोट्स इसी Mac पर, Macha के फ़ोल्डर में रहते हैं। डिक्टेशन कभी ऑडियो के रूप में नहीं रखे जाते; कॉल का ऑडियो ट्रांसक्रिप्ट लिखते ही मिटा दिया जाता है।",
+   "es": "El historial, las estadísticas y tus notas se quedan en este Mac, en la carpeta de Macha. Los dictados nunca se guardan como audio; el audio de una llamada se borra en cuanto se escribe su transcripción.",
+   "ar": "يبقى السجل والإحصاءات وملاحظاتك على جهاز Mac هذا، في مجلد Macha. لا تُحفظ الإملاءات صوتيًا أبدًا، ويُحذف صوت المكالمة فور كتابة نصها.",
+   "fr": "L'historique, les statistiques et tes notes restent sur ce Mac, dans le dossier de Macha. Les dictées ne sont jamais gardées en audio ; l'audio d'un call est effacé dès que sa transcription est écrite.",
+   "bn": "ইতিহাস, পরিসংখ্যান আর আপনার নোট এই Mac-এ, Macha-র ফোল্ডারে থাকে। ডিক্টেশন কখনো অডিও হিসেবে রাখা হয় না; কলের অডিও ট্রান্সক্রিপ্ট লেখা হলেই মুছে ফেলা হয়।",
+   "pt-BR": "O histórico, as estatísticas e suas notas ficam neste Mac, na pasta do Macha. Os ditados nunca são guardados em áudio; o áudio de uma chamada é apagado assim que a transcrição é escrita.",
+   "ru": "История, статистика и заметки хранятся на этом Mac, в папке Macha. Диктовки никогда не сохраняются как аудио; запись звонка удаляется, как только готова расшифровка.",
+   "id": "Riwayat, statistik, dan catatanmu tetap di Mac ini, di folder Macha. Dikte tidak pernah disimpan sebagai audio; audio panggilan dihapus begitu transkripnya selesai ditulis.",
+   "de": "Verlauf, Statistik und Notizen bleiben auf diesem Mac im Macha-Ordner. Diktate werden nie als Audio gespeichert; die Gesprächsaufnahme wird gelöscht, sobald das Transkript geschrieben ist.",
+   "tr": "Geçmiş, istatistikler ve notların bu Mac'te, Macha klasöründe kalır. Dikteler asla ses olarak kaydedilmez; görüşmenin sesi, dökümü yazılır yazılmaz silinir."
   },
   "The keys that open the notch and its actions.": {
    "zh-Hans": "打开刘海及其操作的按键。",
@@ -7542,18 +7542,18 @@
    "de": "Die Aufnahme dieses Gesprächs ist nicht mehr vorhanden.",
    "tr": "Bu görüşmenin kaydı artık yok."
   },
-  "The text Coucou pastes": {
-   "zh-Hans": "Coucou 要粘贴的文字",
-   "hi": "वह टेक्स्ट जो Coucou चिपकाएगा",
-   "es": "El texto que pega Coucou",
-   "ar": "النص الذي يلصقه Coucou",
-   "fr": "Le texte que Coucou colle",
-   "bn": "যে লেখা Coucou পেস্ট করবে",
-   "pt-BR": "O texto que o Coucou cola",
-   "ru": "Текст, который вставит Coucou",
-   "id": "Teks yang ditempel Coucou",
-   "de": "Der Text, den Coucou einfügt",
-   "tr": "Coucou'nun yapıştıracağı metin"
+  "The text Macha pastes": {
+   "zh-Hans": "Macha 要粘贴的文字",
+   "hi": "वह टेक्स्ट जो Macha चिपकाएगा",
+   "es": "El texto que pega Macha",
+   "ar": "النص الذي يلصقه Macha",
+   "fr": "Le texte que Macha colle",
+   "bn": "যে লেখা Macha পেস্ট করবে",
+   "pt-BR": "O texto que o Macha cola",
+   "ru": "Текст, который вставит Macha",
+   "id": "Teks yang ditempel Macha",
+   "de": "Der Text, den Macha einfügt",
+   "tr": "Macha'nun yapıştıracağı metin"
   },
   "The transcript could not be written.": {
    "zh-Hans": "无法生成转写。",
@@ -7867,31 +7867,31 @@
    "de": "Unbegrenzt und kostenlos",
    "tr": "Sınırsız ve ücretsiz"
   },
-  "Until Parakeet is downloaded, Coucou uses your Mac's speech recognition.": {
-   "zh-Hans": "在下载 Parakeet 之前，Coucou 使用 Mac 的语音识别。",
-   "hi": "जब तक Parakeet डाउनलोड नहीं होता, Coucou Mac की वाक् पहचान इस्तेमाल करता है।",
-   "es": "Hasta que Parakeet esté descargado, Coucou usa el reconocimiento de voz del Mac.",
-   "ar": "إلى أن يُنزَّل Parakeet، يستخدم Coucou التعرّف على الكلام في Mac.",
-   "fr": "Tant que Parakeet n'est pas téléchargé, Coucou utilise la reconnaissance vocale du Mac.",
-   "bn": "Parakeet ডাউনলোড না হওয়া পর্যন্ত Coucou Mac-এর স্পিচ রিকগনিশন ব্যবহার করে।",
-   "pt-BR": "Até o Parakeet ser baixado, o Coucou usa o reconhecimento de fala do Mac.",
-   "ru": "Пока Parakeet не скачан, Coucou использует распознавание речи Mac.",
-   "id": "Sampai Parakeet diunduh, Coucou memakai pengenalan suara Mac.",
-   "de": "Bis Parakeet heruntergeladen ist, nutzt Coucou die Spracherkennung deines Mac.",
-   "tr": "Parakeet indirilene kadar Coucou, Mac'inin konuşma tanıma özelliğini kullanır."
+  "Until Parakeet is downloaded, Macha uses your Mac's speech recognition.": {
+   "zh-Hans": "在下载 Parakeet 之前，Macha 使用 Mac 的语音识别。",
+   "hi": "जब तक Parakeet डाउनलोड नहीं होता, Macha Mac की वाक् पहचान इस्तेमाल करता है।",
+   "es": "Hasta que Parakeet esté descargado, Macha usa el reconocimiento de voz del Mac.",
+   "ar": "إلى أن يُنزَّل Parakeet، يستخدم Macha التعرّف على الكلام في Mac.",
+   "fr": "Tant que Parakeet n'est pas téléchargé, Macha utilise la reconnaissance vocale du Mac.",
+   "bn": "Parakeet ডাউনলোড না হওয়া পর্যন্ত Macha Mac-এর স্পিচ রিকগনিশন ব্যবহার করে।",
+   "pt-BR": "Até o Parakeet ser baixado, o Macha usa o reconhecimento de fala do Mac.",
+   "ru": "Пока Parakeet не скачан, Macha использует распознавание речи Mac.",
+   "id": "Sampai Parakeet diunduh, Macha memakai pengenalan suara Mac.",
+   "de": "Bis Parakeet heruntergeladen ist, nutzt Macha die Spracherkennung deines Mac.",
+   "tr": "Parakeet indirilene kadar Macha, Mac'inin konuşma tanıma özelliğini kullanır."
   },
-  "Update Coucou to {0}…": {
-   "zh-Hans": "将 Coucou 更新到 {0}…",
-   "hi": "Coucou को {0} पर अपडेट करें…",
-   "es": "Actualizar Coucou a la {0}…",
-   "ar": "تحديث Coucou إلى {0}…",
-   "fr": "Mettre à jour Coucou vers la {0}…",
-   "bn": "Coucou {0}-এ আপডেট করুন…",
-   "pt-BR": "Atualizar o Coucou para a {0}…",
-   "ru": "Обновить Coucou до {0}…",
-   "id": "Perbarui Coucou ke {0}…",
-   "de": "Coucou auf {0} aktualisieren…",
-   "tr": "Coucou'yu {0} sürümüne güncelle…"
+  "Update Macha to {0}…": {
+   "zh-Hans": "将 Macha 更新到 {0}…",
+   "hi": "Macha को {0} पर अपडेट करें…",
+   "es": "Actualizar Macha a la {0}…",
+   "ar": "تحديث Macha إلى {0}…",
+   "fr": "Mettre à jour Macha vers la {0}…",
+   "bn": "Macha {0}-এ আপডেট করুন…",
+   "pt-BR": "Atualizar o Macha para a {0}…",
+   "ru": "Обновить Macha до {0}…",
+   "id": "Perbarui Macha ke {0}…",
+   "de": "Macha auf {0} aktualisieren…",
+   "tr": "Macha'yu {0} sürümüne güncelle…"
   },
   "Update hooks": {
    "zh-Hans": "更新 Hooks",
@@ -8205,18 +8205,18 @@
    "de": "Was ist neu",
    "tr": "Yenilikler"
   },
-  "When Coucou hears the words on the left, it writes the ones on the right.": {
-   "zh-Hans": "Coucou 听到左边的词时，会写成右边的词。",
-   "hi": "जब Coucou बाईं ओर के शब्द सुनता है, तो दाईं ओर के शब्द लिखता है।",
-   "es": "Cuando Coucou oye las palabras de la izquierda, escribe las de la derecha.",
-   "ar": "عندما يسمع Coucou الكلمات على اليسار، يكتب الكلمات على اليمين.",
-   "fr": "Quand Coucou entend les mots de gauche, il écrit ceux de droite.",
-   "bn": "বাঁ দিকের শব্দ শুনলে Coucou ডান দিকের শব্দ লেখে।",
-   "pt-BR": "Quando o Coucou ouve as palavras da esquerda, escreve as da direita.",
-   "ru": "Услышав слова слева, Coucou пишет слова справа.",
-   "id": "Saat Coucou mendengar kata di kiri, ia menulis kata di kanan.",
-   "de": "Wenn Coucou die Wörter links hört, schreibt es die Wörter rechts.",
-   "tr": "Coucou soldaki sözcükleri duyduğunda sağdakileri yazar."
+  "When Macha hears the words on the left, it writes the ones on the right.": {
+   "zh-Hans": "Macha 听到左边的词时，会写成右边的词。",
+   "hi": "जब Macha बाईं ओर के शब्द सुनता है, तो दाईं ओर के शब्द लिखता है।",
+   "es": "Cuando Macha oye las palabras de la izquierda, escribe las de la derecha.",
+   "ar": "عندما يسمع Macha الكلمات على اليسار، يكتب الكلمات على اليمين.",
+   "fr": "Quand Macha entend les mots de gauche, il écrit ceux de droite.",
+   "bn": "বাঁ দিকের শব্দ শুনলে Macha ডান দিকের শব্দ লেখে।",
+   "pt-BR": "Quando o Macha ouve as palavras da esquerda, escreve as da direita.",
+   "ru": "Услышав слова слева, Macha пишет слова справа.",
+   "id": "Saat Macha mendengar kata di kiri, ia menulis kata di kanan.",
+   "de": "Wenn Macha die Wörter links hört, schreibt es die Wörter rechts.",
+   "tr": "Macha soldaki sözcükleri duyduğunda sağdakileri yazar."
   },
   "When a pill other than the one shown finishes or hits an error, the notch shows it for a moment, then the pill you had comes back.": {
    "zh-Hans": "当非当前显示的胶囊完成或出错时，刘海会短暂显示它，然后回到你原来的胶囊。",
@@ -8231,18 +8231,18 @@
    "de": "Wenn eine andere Pill als die angezeigte fertig wird oder auf einen Fehler stößt, zeigt die Notch sie kurz an, dann kehrt deine Pill zurück.",
    "tr": "Gösterilenden başka bir araç bittiğinde veya bir hatayla karşılaştığında ada onu kısa bir süre gösterir, sonra kendi aracın geri gelir."
   },
-  "When enabled, Coucou listens for the wake word « OK Coucou ». Speech recognition runs entirely on-device — no audio or transcript leaves your Mac.": {
-   "zh-Hans": "启用后，Coucou 会监听唤醒词« OK Coucou »。语音识别完全在设备上运行—任何音频或文字记录都不会离开您的 Mac。",
-   "hi": "सक्षम होने पर, Coucou वेक शब्द « OK Coucou » सुनता है। वाक् पहचान पूरी तरह डिवाइस पर चलती है — कोई ऑडियो या ट्रांसक्रिप्ट आपके Mac को नहीं छोड़ता।",
-   "es": "Cuando está activado, Coucou escucha la palabra de activación « OK Coucou ». El reconocimiento de voz se ejecuta completamente en el dispositivo — ningún audio ni transcripción sale de tu Mac.",
-   "ar": "عند التفعيل، يستمع Coucou لكلمة التنشيط « OK Coucou ». يعمل التعرف على الكلام بالكامل على الجهاز — لا يغادر أي صوت أو نص جهاز Mac.",
-   "fr": "Quand cette option est activée, Coucou écoute le mot de réveil « OK Coucou ». La reconnaissance vocale se fait entièrement sur l’appareil — aucun audio ni transcription ne quitte votre Mac.",
-   "bn": "সক্ষম হলে, Coucou ওয়েক ওয়ার্ড « OK Coucou » শোনে। ভাষণ স্বীকৃতি সম্পূর্ণ ডিভাইসে চলে — কোনো অডিও বা ট্রান্সক্রিপ্ট আপনার Mac ছেড়ে যায় না।",
-   "pt-BR": "Quando ativado, o Coucou escuta a palavra de ativação « OK Coucou ». O reconhecimento de fala é executado inteiramente no dispositivo — nenhum áudio ou transcrição sai do seu Mac.",
-   "ru": "Когда включено, Coucou слушает слово активации « OK Coucou ». Распознавание речи работает полностью на устройстве — никакие аудиозаписи или транскрипции не покидают ваш Mac.",
-   "id": "Saat diaktifkan, Coucou mendengarkan kata pengaktif « OK Coucou ». Pengenalan ucapan berjalan sepenuhnya di perangkat — tidak ada audio atau transkrip yang meninggalkan Mac Anda.",
-   "de": "Wenn aktiviert, wartet Coucou auf das Aktivierungswort « OK Coucou ». Die Spracherkennung läuft vollständig auf dem Gerät — weder Audio noch Transkripte verlassen deinen Mac.",
-   "tr": "Etkinleştirildiğinde Coucou, « OK Coucou » ifadesini dinler. Konuşma tanıma tamamen cihazda çalışır; ses veya döküm Mac'inden dışarı çıkmaz."
+  "When enabled, Macha listens for the wake word « OK Macha ». Speech recognition runs entirely on-device — no audio or transcript leaves your Mac.": {
+   "zh-Hans": "启用后，Macha 会监听唤醒词« OK Macha »。语音识别完全在设备上运行—任何音频或文字记录都不会离开您的 Mac。",
+   "hi": "सक्षम होने पर, Macha वेक शब्द « OK Macha » सुनता है। वाक् पहचान पूरी तरह डिवाइस पर चलती है — कोई ऑडियो या ट्रांसक्रिप्ट आपके Mac को नहीं छोड़ता।",
+   "es": "Cuando está activado, Macha escucha la palabra de activación « OK Macha ». El reconocimiento de voz se ejecuta completamente en el dispositivo — ningún audio ni transcripción sale de tu Mac.",
+   "ar": "عند التفعيل، يستمع Macha لكلمة التنشيط « OK Macha ». يعمل التعرف على الكلام بالكامل على الجهاز — لا يغادر أي صوت أو نص جهاز Mac.",
+   "fr": "Quand cette option est activée, Macha écoute le mot de réveil « OK Macha ». La reconnaissance vocale se fait entièrement sur l’appareil — aucun audio ni transcription ne quitte votre Mac.",
+   "bn": "সক্ষম হলে, Macha ওয়েক ওয়ার্ড « OK Macha » শোনে। ভাষণ স্বীকৃতি সম্পূর্ণ ডিভাইসে চলে — কোনো অডিও বা ট্রান্সক্রিপ্ট আপনার Mac ছেড়ে যায় না।",
+   "pt-BR": "Quando ativado, o Macha escuta a palavra de ativação « OK Macha ». O reconhecimento de fala é executado inteiramente no dispositivo — nenhum áudio ou transcrição sai do seu Mac.",
+   "ru": "Когда включено, Macha слушает слово активации « OK Macha ». Распознавание речи работает полностью на устройстве — никакие аудиозаписи или транскрипции не покидают ваш Mac.",
+   "id": "Saat diaktifkan, Macha mendengarkan kata pengaktif « OK Macha ». Pengenalan ucapan berjalan sepenuhnya di perangkat — tidak ada audio atau transkrip yang meninggalkan Mac Anda.",
+   "de": "Wenn aktiviert, wartet Macha auf das Aktivierungswort « OK Macha ». Die Spracherkennung läuft vollständig auf dem Gerät — weder Audio noch Transkripte verlassen deinen Mac.",
+   "tr": "Etkinleştirildiğinde Macha, « OK Macha » ifadesini dinler. Konuşma tanıma tamamen cihazda çalışır; ses veya döküm Mac'inden dışarı çıkmaz."
   },
   "When the words went to the wrong place.": {
    "zh-Hans": "当文字粘贴到了错误的位置时。",
@@ -8530,18 +8530,18 @@
    "de": "Schreibt",
    "tr": "Yazıyor"
   },
-  "Writes:\n• ~/.claude/coucou/nb-hook\n• ~/.claude/settings.json (backup created first)": {
-   "zh-Hans": "将写入：\n• ~/.claude/coucou/nb-hook\n• ~/.claude/settings.json（先创建备份）",
-   "hi": "लिखेगा:\n• ~/.claude/coucou/nb-hook\n• ~/.claude/settings.json (पहले बैकअप बनाया जाएगा)",
-   "es": "Escribirá:\n• ~/.claude/coucou/nb-hook\n• ~/.claude/settings.json (se crea una copia de seguridad primero)",
-   "ar": "سيكتب:\n• ~/.claude/coucou/nb-hook\n• ~/.claude/settings.json (يُنشئ نسخة احتياطية أولاً)",
-   "fr": "Écrira :\n• ~/.claude/coucou/nb-hook\n• ~/.claude/settings.json (sauvegarde créée d'abord)",
-   "bn": "লিখবে:\n• ~/.claude/coucou/nb-hook\n• ~/.claude/settings.json (আগে ব্যাকআপ তৈরি হবে)",
-   "pt-BR": "Vai escrever:\n• ~/.claude/coucou/nb-hook\n• ~/.claude/settings.json (backup criado antes)",
-   "ru": "Запишет:\n• ~/.claude/coucou/nb-hook\n• ~/.claude/settings.json (резервная копия создаётся сначала)",
-   "id": "Akan menulis:\n• ~/.claude/coucou/nb-hook\n• ~/.claude/settings.json (backup dibuat terlebih dahulu)",
-   "de": "Schreibt:\n• ~/.claude/coucou/nb-hook\n• ~/.claude/settings.json (vorher wird ein Backup erstellt)",
-   "tr": "Yazılacak dosyalar:\n• ~/.claude/coucou/nb-hook\n• ~/.claude/settings.json (önce yedek oluşturulur)"
+  "Writes:\n• ~/.claude/macha/nb-hook\n• ~/.claude/settings.json (backup created first)": {
+   "zh-Hans": "将写入：\n• ~/.claude/macha/nb-hook\n• ~/.claude/settings.json（先创建备份）",
+   "hi": "लिखेगा:\n• ~/.claude/macha/nb-hook\n• ~/.claude/settings.json (पहले बैकअप बनाया जाएगा)",
+   "es": "Escribirá:\n• ~/.claude/macha/nb-hook\n• ~/.claude/settings.json (se crea una copia de seguridad primero)",
+   "ar": "سيكتب:\n• ~/.claude/macha/nb-hook\n• ~/.claude/settings.json (يُنشئ نسخة احتياطية أولاً)",
+   "fr": "Écrira :\n• ~/.claude/macha/nb-hook\n• ~/.claude/settings.json (sauvegarde créée d'abord)",
+   "bn": "লিখবে:\n• ~/.claude/macha/nb-hook\n• ~/.claude/settings.json (আগে ব্যাকআপ তৈরি হবে)",
+   "pt-BR": "Vai escrever:\n• ~/.claude/macha/nb-hook\n• ~/.claude/settings.json (backup criado antes)",
+   "ru": "Запишет:\n• ~/.claude/macha/nb-hook\n• ~/.claude/settings.json (резервная копия создаётся сначала)",
+   "id": "Akan menulis:\n• ~/.claude/macha/nb-hook\n• ~/.claude/settings.json (backup dibuat terlebih dahulu)",
+   "de": "Schreibt:\n• ~/.claude/macha/nb-hook\n• ~/.claude/settings.json (vorher wird ein Backup erstellt)",
+   "tr": "Yazılacak dosyalar:\n• ~/.claude/macha/nb-hook\n• ~/.claude/settings.json (önce yedek oluşturulur)"
   },
   "Writing the summary…": {
    "zh-Hans": "正在生成摘要…",
@@ -8634,18 +8634,18 @@
    "de": "Du sprichst",
    "tr": "Konuştuğun dil"
   },
-  "Your Coucou so far": {
-   "zh-Hans": "你的 Coucou 至今",
-   "hi": "अब तक आपका Coucou",
-   "es": "Tu Coucou hasta ahora",
-   "ar": "Coucou الخاص بك حتى الآن",
-   "fr": "Ton Coucou jusqu’ici",
-   "bn": "এ পর্যন্ত আপনার Coucou",
-   "pt-BR": "Seu Coucou até agora",
-   "ru": "Ваш Coucou на сегодня",
-   "id": "Coucou-mu sejauh ini",
-   "de": "Dein Coucou bisher",
-   "tr": "Şimdiye kadar Coucou’n"
+  "Your Macha so far": {
+   "zh-Hans": "你的 Macha 至今",
+   "hi": "अब तक आपका Macha",
+   "es": "Tu Macha hasta ahora",
+   "ar": "Macha الخاص بك حتى الآن",
+   "fr": "Ton Macha jusqu’ici",
+   "bn": "এ পর্যন্ত আপনার Macha",
+   "pt-BR": "Seu Macha até agora",
+   "ru": "Ваш Macha на сегодня",
+   "id": "Macha-mu sejauh ini",
+   "de": "Dein Macha bisher",
+   "tr": "Şimdiye kadar Macha’n"
   },
   "Your Mac is hot": {
    "zh-Hans": "你的 Mac 很热",
@@ -8738,31 +8738,31 @@
    "de": "Deine Diktate erscheinen hier. Halte in einer beliebigen App {0} gedrückt und sprich.",
    "tr": "Diktelerin burada görünür. Herhangi bir uygulamada {0} tuşunu basılı tut ve konuş."
   },
-  "Your voice is turned into text by your Mac's speech recognition, on-device when your Mac supports it; Coucou sends it nowhere. After pasting, the clipboard gets back what it held.": {
-   "zh-Hans": "你的声音由 Mac 的语音识别转成文字，Mac 支持时在设备上完成；Coucou 不会把它发送到任何地方。粘贴之后，剪贴板会恢复原来的内容。",
-   "hi": "आपकी आवाज़ को आपके Mac की वाक् पहचान टेक्स्ट में बदलती है, जब आपका Mac समर्थन करे तो डिवाइस पर ही; Coucou इसे कहीं नहीं भेजता। चिपकाने के बाद क्लिपबोर्ड में पहले वाली चीज़ वापस आ जाती है।",
-   "es": "Tu voz se convierte en texto con el reconocimiento de voz de tu Mac, en el propio equipo cuando tu Mac lo admite; Coucou no la envía a ningún sitio. Tras pegar, el portapapeles recupera lo que tenía.",
-   "ar": "يحوّل التعرّف على الكلام في جهاز Mac صوتك إلى نص، على الجهاز نفسه عندما يدعم جهازك ذلك؛ ولا يرسله Coucou إلى أي مكان. بعد اللصق تعود الحافظة إلى ما كانت تحتويه.",
-   "fr": "Ta voix est transformée en texte par la reconnaissance vocale de ton Mac, sur l'appareil quand ton Mac le permet ; Coucou ne l'envoie nulle part. Après le collage, le presse-papiers retrouve ce qu'il contenait.",
-   "bn": "আপনার Mac-এর স্পিচ রিকগনিশন আপনার কণ্ঠকে টেক্সটে রূপান্তর করে, Mac সমর্থন করলে ডিভাইসেই; Coucou এটি কোথাও পাঠায় না। পেস্ট করার পর ক্লিপবোর্ডে আগের জিনিস ফিরে আসে।",
-   "pt-BR": "Sua voz vira texto pelo reconhecimento de fala do seu Mac, no próprio aparelho quando o Mac permite; o Coucou não a envia para lugar nenhum. Depois de colar, a área de transferência recupera o que tinha.",
-   "ru": "Ваш голос превращает в текст распознавание речи Mac — прямо на устройстве, если Mac это поддерживает; Coucou никуда его не отправляет. После вставки буфер обмена возвращает прежнее содержимое.",
-   "id": "Suaramu diubah menjadi teks oleh pengenalan suara Mac, langsung di perangkat bila Mac mendukungnya; Coucou tidak mengirimnya ke mana pun. Setelah menempel, papan klip kembali berisi apa yang ada sebelumnya.",
-   "de": "Deine Stimme wird mit der Spracherkennung deines Mac in Text umgewandelt, wenn unterstützt direkt auf dem Gerät; Coucou sendet sie nirgendwohin. Nach dem Einfügen wird der vorherige Inhalt der Zwischenablage wiederhergestellt.",
-   "tr": "Sesin, Mac'inin konuşma tanıma özelliğiyle metne dönüştürülür; Mac'in destekliyorsa bu işlem cihazda yapılır. Coucou sesini hiçbir yere göndermez. Yapıştırmadan sonra pano önceki içeriğine döner."
+  "Your voice is turned into text by your Mac's speech recognition, on-device when your Mac supports it; Macha sends it nowhere. After pasting, the clipboard gets back what it held.": {
+   "zh-Hans": "你的声音由 Mac 的语音识别转成文字，Mac 支持时在设备上完成；Macha 不会把它发送到任何地方。粘贴之后，剪贴板会恢复原来的内容。",
+   "hi": "आपकी आवाज़ को आपके Mac की वाक् पहचान टेक्स्ट में बदलती है, जब आपका Mac समर्थन करे तो डिवाइस पर ही; Macha इसे कहीं नहीं भेजता। चिपकाने के बाद क्लिपबोर्ड में पहले वाली चीज़ वापस आ जाती है।",
+   "es": "Tu voz se convierte en texto con el reconocimiento de voz de tu Mac, en el propio equipo cuando tu Mac lo admite; Macha no la envía a ningún sitio. Tras pegar, el portapapeles recupera lo que tenía.",
+   "ar": "يحوّل التعرّف على الكلام في جهاز Mac صوتك إلى نص، على الجهاز نفسه عندما يدعم جهازك ذلك؛ ولا يرسله Macha إلى أي مكان. بعد اللصق تعود الحافظة إلى ما كانت تحتويه.",
+   "fr": "Ta voix est transformée en texte par la reconnaissance vocale de ton Mac, sur l'appareil quand ton Mac le permet ; Macha ne l'envoie nulle part. Après le collage, le presse-papiers retrouve ce qu'il contenait.",
+   "bn": "আপনার Mac-এর স্পিচ রিকগনিশন আপনার কণ্ঠকে টেক্সটে রূপান্তর করে, Mac সমর্থন করলে ডিভাইসেই; Macha এটি কোথাও পাঠায় না। পেস্ট করার পর ক্লিপবোর্ডে আগের জিনিস ফিরে আসে।",
+   "pt-BR": "Sua voz vira texto pelo reconhecimento de fala do seu Mac, no próprio aparelho quando o Mac permite; o Macha não a envia para lugar nenhum. Depois de colar, a área de transferência recupera o que tinha.",
+   "ru": "Ваш голос превращает в текст распознавание речи Mac — прямо на устройстве, если Mac это поддерживает; Macha никуда его не отправляет. После вставки буфер обмена возвращает прежнее содержимое.",
+   "id": "Suaramu diubah menjadi teks oleh pengenalan suara Mac, langsung di perangkat bila Mac mendukungnya; Macha tidak mengirimnya ke mana pun. Setelah menempel, papan klip kembali berisi apa yang ada sebelumnya.",
+   "de": "Deine Stimme wird mit der Spracherkennung deines Mac in Text umgewandelt, wenn unterstützt direkt auf dem Gerät; Macha sendet sie nirgendwohin. Nach dem Einfügen wird der vorherige Inhalt der Zwischenablage wiederhergestellt.",
+   "tr": "Sesin, Mac'inin konuşma tanıma özelliğiyle metne dönüştürülür; Mac'in destekliyorsa bu işlem cihazda yapılır. Macha sesini hiçbir yere göndermez. Yapıştırmadan sonra pano önceki içeriğine döner."
   },
-  "You’re on Coucou {0}": {
-   "zh-Hans": "你已更新到 Coucou {0}",
-   "hi": "आप Coucou {0} पर हैं",
-   "es": "Ya tienes Coucou {0}",
-   "ar": "أنت الآن على Coucou {0}",
-   "fr": "Tu es sur Coucou {0}",
-   "bn": "আপনি এখন Coucou {0}-এ",
-   "pt-BR": "Você está no Coucou {0}",
-   "ru": "У вас Coucou {0}",
-   "id": "Kamu sekarang di Coucou {0}",
-   "de": "Du hast jetzt Coucou {0}",
-   "tr": "Artık Coucou {0} kullanıyorsun"
+  "You’re on Macha {0}": {
+   "zh-Hans": "你已更新到 Macha {0}",
+   "hi": "आप Macha {0} पर हैं",
+   "es": "Ya tienes Macha {0}",
+   "ar": "أنت الآن على Macha {0}",
+   "fr": "Tu es sur Macha {0}",
+   "bn": "আপনি এখন Macha {0}-এ",
+   "pt-BR": "Você está no Macha {0}",
+   "ru": "У вас Macha {0}",
+   "id": "Kamu sekarang di Macha {0}",
+   "de": "Du hast jetzt Macha {0}",
+   "tr": "Artık Macha {0} kullanıyorsun"
   },
   "coding": {
    "zh-Hans": "编程",
@@ -9258,44 +9258,44 @@
    "de": "vor {n} Min.",
    "tr": "{n} dk önce"
   },
-  "« OK Coucou », Mochi's voice and the dictation key.": {
-   "zh-Hans": "“OK Coucou”、Mochi 的声音和听写按键。",
-   "hi": "“OK Coucou”, मोची की आवाज़ और डिक्टेशन कुंजी।",
-   "es": "«OK Coucou», la voz de Mochi y la tecla de dictado.",
-   "ar": "«OK Coucou» وصوت موتشي ومفتاح الإملاء.",
-   "fr": "« OK Coucou », la voix de Mochi et la touche de dictée.",
-   "bn": "“OK Coucou”, মোচির কণ্ঠ আর ডিক্টেশন কী।",
-   "pt-BR": "“OK Coucou”, a voz do Mochi e a tecla de ditado.",
-   "ru": "«OK Coucou», голос Мочи и клавиша диктовки.",
-   "id": "“OK Coucou”, suara Mochi, dan tombol dikte.",
-   "de": "« OK Coucou », Mochis Stimme und die Diktiertaste.",
-   "tr": "« OK Coucou », Mochi'nin sesi ve dikte tuşu."
+  "« OK Macha », Macha's voice and the dictation key.": {
+   "zh-Hans": "“OK Macha”、Macha 的声音和听写按键。",
+   "hi": "“OK Macha”, मोची की आवाज़ और डिक्टेशन कुंजी।",
+   "es": "«OK Macha», la voz de Macha y la tecla de dictado.",
+   "ar": "«OK Macha» وصوت موتشي ومفتاح الإملاء.",
+   "fr": "« OK Macha », la voix de Macha et la touche de dictée.",
+   "bn": "“OK Macha”, মোচির কণ্ঠ আর ডিক্টেশন কী।",
+   "pt-BR": "“OK Macha”, a voz do Macha e a tecla de ditado.",
+   "ru": "«OK Macha», голос Мочи и клавиша диктовки.",
+   "id": "“OK Macha”, suara Macha, dan tombol dikte.",
+   "de": "« OK Macha », Machas Stimme und die Diktiertaste.",
+   "tr": "« OK Macha », Macha'nin sesi ve dikte tuşu."
   },
-  "« OK Coucou » — voice wake word": {
-   "zh-Hans": "« OK Coucou » — 语音唤醒词",
-   "hi": "« OK Coucou » — वॉइस वेक वर्ड",
-   "es": "« OK Coucou » — palabra de activación de voz",
-   "ar": "« OK Coucou » — كلمة التنشيط الصوتية",
-   "fr": "« OK Coucou » — commande vocale mains libres",
-   "bn": "« OK Coucou » — ভয়েস ওয়েক ওয়ার্ড",
-   "pt-BR": "« OK Coucou » — palavra de ativação de voz",
-   "ru": "« OK Coucou » — голосовая активация",
-   "id": "« OK Coucou » — kata pengaktif suara",
-   "de": "« OK Coucou » — Aktivierungswort",
-   "tr": "« OK Coucou » — sesle etkinleştirme ifadesi"
+  "« OK Macha » — voice wake word": {
+   "zh-Hans": "« OK Macha » — 语音唤醒词",
+   "hi": "« OK Macha » — वॉइस वेक वर्ड",
+   "es": "« OK Macha » — palabra de activación de voz",
+   "ar": "« OK Macha » — كلمة التنشيط الصوتية",
+   "fr": "« OK Macha » — commande vocale mains libres",
+   "bn": "« OK Macha » — ভয়েস ওয়েক ওয়ার্ড",
+   "pt-BR": "« OK Macha » — palavra de ativação de voz",
+   "ru": "« OK Macha » — голосовая активация",
+   "id": "« OK Macha » — kata pengaktif suara",
+   "de": "« OK Macha » — Aktivierungswort",
+   "tr": "« OK Macha » — sesle etkinleştirme ifadesi"
   },
-  "✓ Amp plugin installed in ~/.config/amp/plugins/coucou.ts": {
-   "zh-Hans": "✓ Amp 插件已安装至 ~/.config/amp/plugins/coucou.ts",
-   "hi": "✓ ~/.config/amp/plugins/coucou.ts में Amp प्लगइन इंस्टॉल हुआ",
-   "es": "✓ Plugin de Amp instalado en ~/.config/amp/plugins/coucou.ts",
-   "ar": "✓ ملحق Amp مثبَّت في ~/.config/amp/plugins/coucou.ts",
-   "fr": "✓ Plugin Amp installé dans ~/.config/amp/plugins/coucou.ts",
-   "bn": "✓ ~/.config/amp/plugins/coucou.ts-এ Amp প্লাগইন ইনস্টল হয়েছে",
-   "pt-BR": "✓ Plugin do Amp instalado em ~/.config/amp/plugins/coucou.ts",
-   "ru": "✓ Плагин Amp установлен в ~/.config/amp/plugins/coucou.ts",
-   "id": "✓ Plugin Amp terpasang di ~/.config/amp/plugins/coucou.ts",
-   "de": "✓ Amp-Plugin in ~/.config/amp/plugins/coucou.ts installiert",
-   "tr": "✓ Amp eklentisi ~/.config/amp/plugins/coucou.ts içine kuruldu"
+  "✓ Amp plugin installed in ~/.config/amp/plugins/macha.ts": {
+   "zh-Hans": "✓ Amp 插件已安装至 ~/.config/amp/plugins/macha.ts",
+   "hi": "✓ ~/.config/amp/plugins/macha.ts में Amp प्लगइन इंस्टॉल हुआ",
+   "es": "✓ Plugin de Amp instalado en ~/.config/amp/plugins/macha.ts",
+   "ar": "✓ ملحق Amp مثبَّت في ~/.config/amp/plugins/macha.ts",
+   "fr": "✓ Plugin Amp installé dans ~/.config/amp/plugins/macha.ts",
+   "bn": "✓ ~/.config/amp/plugins/macha.ts-এ Amp প্লাগইন ইনস্টল হয়েছে",
+   "pt-BR": "✓ Plugin do Amp instalado em ~/.config/amp/plugins/macha.ts",
+   "ru": "✓ Плагин Amp установлен в ~/.config/amp/plugins/macha.ts",
+   "id": "✓ Plugin Amp terpasang di ~/.config/amp/plugins/macha.ts",
+   "de": "✓ Amp-Plugin in ~/.config/amp/plugins/macha.ts installiert",
+   "tr": "✓ Amp eklentisi ~/.config/amp/plugins/macha.ts içine kuruldu"
   },
   "✓ Amp plugin removed.": {
    "zh-Hans": "✓ Amp 插件已移除。",
@@ -9412,18 +9412,18 @@
     "other": "✓ Connected · {count} models"
    }
   },
-  "✓ Copilot CLI hooks installed in ~/.copilot/hooks/coucou.json": {
-   "zh-Hans": "✓ Copilot CLI Hooks 已安装至 ~/.copilot/hooks/coucou.json",
-   "hi": "✓ ~/.copilot/hooks/coucou.json में Copilot CLI हुक इंस्टॉल हुए",
-   "es": "✓ Hooks de Copilot CLI instalados en ~/.copilot/hooks/coucou.json",
-   "ar": "✓ خطافات Copilot CLI مثبَّتة في ~/.copilot/hooks/coucou.json",
-   "fr": "✓ Hooks Copilot CLI installés dans ~/.copilot/hooks/coucou.json",
-   "bn": "✓ ~/.copilot/hooks/coucou.json-এ Copilot CLI হুক ইনস্টল হয়েছে",
-   "pt-BR": "✓ Hooks do Copilot CLI instalados em ~/.copilot/hooks/coucou.json",
-   "ru": "✓ Хуки Copilot CLI установлены в ~/.copilot/hooks/coucou.json",
-   "id": "✓ Hooks Copilot CLI terpasang di ~/.copilot/hooks/coucou.json",
-   "de": "✓ Copilot CLI-Hooks in ~/.copilot/hooks/coucou.json installiert",
-   "tr": "✓ Copilot CLI hook'ları ~/.copilot/hooks/coucou.json içine kuruldu"
+  "✓ Copilot CLI hooks installed in ~/.copilot/hooks/macha.json": {
+   "zh-Hans": "✓ Copilot CLI Hooks 已安装至 ~/.copilot/hooks/macha.json",
+   "hi": "✓ ~/.copilot/hooks/macha.json में Copilot CLI हुक इंस्टॉल हुए",
+   "es": "✓ Hooks de Copilot CLI instalados en ~/.copilot/hooks/macha.json",
+   "ar": "✓ خطافات Copilot CLI مثبَّتة في ~/.copilot/hooks/macha.json",
+   "fr": "✓ Hooks Copilot CLI installés dans ~/.copilot/hooks/macha.json",
+   "bn": "✓ ~/.copilot/hooks/macha.json-এ Copilot CLI হুক ইনস্টল হয়েছে",
+   "pt-BR": "✓ Hooks do Copilot CLI instalados em ~/.copilot/hooks/macha.json",
+   "ru": "✓ Хуки Copilot CLI установлены в ~/.copilot/hooks/macha.json",
+   "id": "✓ Hooks Copilot CLI terpasang di ~/.copilot/hooks/macha.json",
+   "de": "✓ Copilot CLI-Hooks in ~/.copilot/hooks/macha.json installiert",
+   "tr": "✓ Copilot CLI hook'ları ~/.copilot/hooks/macha.json içine kuruldu"
   },
   "✓ Copilot CLI hooks removed.": {
    "zh-Hans": "✓ Copilot CLI Hooks 已移除。",
@@ -9490,18 +9490,18 @@
    "de": "✓ Hermes-Plugin installiert",
    "tr": "✓ Hermes eklentisi kuruldu"
   },
-  "✓ Hermes plugin installed in ~/.hermes/plugins/coucou/": {
-   "zh-Hans": "✓ Hermes 插件已安装至 ~/.hermes/plugins/coucou/",
-   "hi": "✓ Hermes प्लगइन ~/.hermes/plugins/coucou/ में इंस्टॉल हुआ",
-   "es": "✓ Plugin de Hermes instalado en ~/.hermes/plugins/coucou/",
-   "ar": "✓ ملحق Hermes مثبَّت في ~/.hermes/plugins/coucou/",
-   "fr": "✓ Plugin Hermes installé dans ~/.hermes/plugins/coucou/",
-   "bn": "✓ Hermes প্লাগইন ~/.hermes/plugins/coucou/-এ ইনস্টল হয়েছে",
-   "pt-BR": "✓ Plugin do Hermes instalado em ~/.hermes/plugins/coucou/",
-   "ru": "✓ Плагин Hermes установлен в ~/.hermes/plugins/coucou/",
-   "id": "✓ Plugin Hermes terpasang di ~/.hermes/plugins/coucou/",
-   "de": "✓ Hermes-Plugin in ~/.hermes/plugins/coucou/ installiert",
-   "tr": "✓ Hermes eklentisi ~/.hermes/plugins/coucou/ içine kuruldu"
+  "✓ Hermes plugin installed in ~/.hermes/plugins/macha/": {
+   "zh-Hans": "✓ Hermes 插件已安装至 ~/.hermes/plugins/macha/",
+   "hi": "✓ Hermes प्लगइन ~/.hermes/plugins/macha/ में इंस्टॉल हुआ",
+   "es": "✓ Plugin de Hermes instalado en ~/.hermes/plugins/macha/",
+   "ar": "✓ ملحق Hermes مثبَّت في ~/.hermes/plugins/macha/",
+   "fr": "✓ Plugin Hermes installé dans ~/.hermes/plugins/macha/",
+   "bn": "✓ Hermes প্লাগইন ~/.hermes/plugins/macha/-এ ইনস্টল হয়েছে",
+   "pt-BR": "✓ Plugin do Hermes instalado em ~/.hermes/plugins/macha/",
+   "ru": "✓ Плагин Hermes установлен в ~/.hermes/plugins/macha/",
+   "id": "✓ Plugin Hermes terpasang di ~/.hermes/plugins/macha/",
+   "de": "✓ Hermes-Plugin in ~/.hermes/plugins/macha/ installiert",
+   "tr": "✓ Hermes eklentisi ~/.hermes/plugins/macha/ içine kuruldu"
   },
   "✓ Hooks installed in ~/.claude/settings.json": {
    "zh-Hans": "✓ Hooks 已安装至 ~/.claude/settings.json",
@@ -9607,18 +9607,18 @@
    "de": "✓ OpenAI-Schlüssel gespeichert.",
    "tr": "✓ OpenAI anahtarı kaydedildi."
   },
-  "✓ OpenCode plugin installed in ~/.config/opencode/plugins/coucou.js": {
-   "zh-Hans": "✓ OpenCode 插件已安装至 ~/.config/opencode/plugins/coucou.js",
-   "hi": "✓ ~/.config/opencode/plugins/coucou.js में OpenCode प्लगइन इंस्टॉल हुआ",
-   "es": "✓ Plugin de OpenCode instalado en ~/.config/opencode/plugins/coucou.js",
-   "ar": "✓ ملحق OpenCode مثبَّت في ~/.config/opencode/plugins/coucou.js",
-   "fr": "✓ Plugin OpenCode installé dans ~/.config/opencode/plugins/coucou.js",
-   "bn": "✓ ~/.config/opencode/plugins/coucou.js-এ OpenCode প্লাগইন ইনস্টল হয়েছে",
-   "pt-BR": "✓ Plugin do OpenCode instalado em ~/.config/opencode/plugins/coucou.js",
-   "ru": "✓ Плагин OpenCode установлен в ~/.config/opencode/plugins/coucou.js",
-   "id": "✓ Plugin OpenCode terpasang di ~/.config/opencode/plugins/coucou.js",
-   "de": "✓ OpenCode-Plugin in ~/.config/opencode/plugins/coucou.js installiert",
-   "tr": "✓ OpenCode eklentisi ~/.config/opencode/plugins/coucou.js içine kuruldu"
+  "✓ OpenCode plugin installed in ~/.config/opencode/plugins/macha.js": {
+   "zh-Hans": "✓ OpenCode 插件已安装至 ~/.config/opencode/plugins/macha.js",
+   "hi": "✓ ~/.config/opencode/plugins/macha.js में OpenCode प्लगइन इंस्टॉल हुआ",
+   "es": "✓ Plugin de OpenCode instalado en ~/.config/opencode/plugins/macha.js",
+   "ar": "✓ ملحق OpenCode مثبَّت في ~/.config/opencode/plugins/macha.js",
+   "fr": "✓ Plugin OpenCode installé dans ~/.config/opencode/plugins/macha.js",
+   "bn": "✓ ~/.config/opencode/plugins/macha.js-এ OpenCode প্লাগইন ইনস্টল হয়েছে",
+   "pt-BR": "✓ Plugin do OpenCode instalado em ~/.config/opencode/plugins/macha.js",
+   "ru": "✓ Плагин OpenCode установлен в ~/.config/opencode/plugins/macha.js",
+   "id": "✓ Plugin OpenCode terpasang di ~/.config/opencode/plugins/macha.js",
+   "de": "✓ OpenCode-Plugin in ~/.config/opencode/plugins/macha.js installiert",
+   "tr": "✓ OpenCode eklentisi ~/.config/opencode/plugins/macha.js içine kuruldu"
   },
   "✓ OpenCode plugin removed.": {
    "zh-Hans": "✓ OpenCode 插件已移除。",

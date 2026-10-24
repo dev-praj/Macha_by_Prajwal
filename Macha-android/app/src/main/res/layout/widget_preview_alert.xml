@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Preview of Waiting Alert: Mochi with a "!" and a bright orange "2 waiting" on the orange-bordered card.
+<!-- Preview of Waiting Alert: Macha with a "!" and a bright orange "2 waiting" on the orange-bordered card.
      A still picture for the Widget picker (android:previewLayout): sample text, no ids, nothing from the app, no runtime bitmap.
      It uses the same card, border, gradient, type scale and state colours as the real Widget, so the picker shows what you will get. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -26,7 +26,7 @@
             android:layout_weight="1"
             android:importantForAccessibility="no"
             android:scaleType="fitCenter"
-            android:src="@drawable/preview_mochi_waiting" />
+            android:src="@drawable/preview_macha_waiting" />
 
         <TextView
             android:layout_width="match_parent"

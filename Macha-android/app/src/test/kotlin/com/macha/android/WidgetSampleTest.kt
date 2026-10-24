@@ -5,7 +5,7 @@ import com.macha.android.core.PlanUsageLook
 import com.macha.android.core.WidgetData
 import com.macha.android.core.WidgetSample
 import com.macha.android.core.WidgetTone
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull

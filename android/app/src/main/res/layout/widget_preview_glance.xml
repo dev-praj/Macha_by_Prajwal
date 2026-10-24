@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Preview of the summary widget: a working Mochi on the left, "2 agents are working" and three lines, each with a dot in the state's tone.
+<!-- Preview of the summary widget: a working Macha on the left, "2 agents are working" and three lines, each with a dot in the state's tone.
      A still picture for the Widget picker (android:previewLayout): sample text, no ids, nothing from the app, no runtime bitmap.
      It uses the same card, border, gradient, type scale, buttons and state colours as the real Widget, so the picker shows what you will get. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -25,7 +25,7 @@
             android:layout_height="64dp"
             android:importantForAccessibility="no"
             android:scaleType="fitCenter"
-            android:src="@drawable/preview_mochi_working" />
+            android:src="@drawable/preview_macha_working" />
 
         <LinearLayout
             android:layout_width="0dp"

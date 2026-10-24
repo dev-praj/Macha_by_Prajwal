@@ -1,6 +1,6 @@
-# Coucou link relay (docs/RELAY_LINK.md). Deploy: see README.md.
+# Macha link relay (docs/RELAY_LINK.md). Deploy: see README.md.
 # No secret belongs in this file. The one secret, ACCESS_KEY, is set with:  npx wrangler secret put ACCESS_KEY
-name = "coucou-link"
+name = "macha-link"
 main = "src/index.ts"
 compatibility_date = "2026-09-01"
 workers_dev = true

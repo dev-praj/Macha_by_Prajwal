@@ -271,10 +271,10 @@ What it does not do: a device that floods from many addresses at once can still 
 for a few seconds at a time; it cannot keep out the phone that is already paired. A wrong token still costs the caller
 a pause and is never admitted.
 
-## Mochi's outfit (optional capability `prefs`)
+## Macha's outfit (optional capability `prefs`)
 
 A phone that sends `caps: ["prefs"]` in its `hello` is offered `prefs` in `welcome.caps` (no switch on the computer: what
-Mochi wears is no secret and says nothing about the user's work). It is then sent what the island's wardrobe says, right
+Macha wears is no secret and says nothing about the user's work). It is then sent what the island's wardrobe says, right
 after the first `sessions` and again whenever it changes:
 
 ```json
@@ -283,9 +283,9 @@ after the first `sessions` and again whenever it changes:
 
 `outfit` is one of `auto`, `none`, `partyHat`, `beanie`, `crown`, `sunglasses`, `roundGlasses`, `bow`, `scarf`, `witchHat`,
 `pumpkin`, `santaHat`, `bunnyEars`: the PC's and the Mac's stored values, nothing else is ever sent (the computer checks the
-list; a test compares it with `windows/src/mochi/wardrobe.ts`). `auto` means "dress for the season": **the phone applies the
+list; a test compares it with `windows/src/macha/wardrobe.ts`). `auto` means "dress for the season": **the phone applies the
 seasons to its own calendar**, the computer sends no date. A phone ignores a value it does not know and keeps what it wore.
-The phone has its own choice too (Settings > Mochi's wardrobe): "Same as my computer" (default) or one outfit, which then wins.
+The phone has its own choice too (Settings > Macha's wardrobe): "Same as my computer" (default) or one outfit, which then wins.
 Nothing goes back to the computer.
 
 ## Finding the computer again (optional, still protocol v1)
@@ -338,13 +338,12 @@ simply keeps using the saved address.**
   does not start.
 - One token at a time: "Pair again" replaces it and disconnects the phone that had the old one. The
   pairing code is shown only after a click, and only to the settings window.
-- Chat (Settings → Android phone → "Let the phone chat with my AI providers"): off by default, owned by Rust like
-  `phoneLink` (`phoneChat`, `phoneChatModels` in settings.json; the webview cannot change them). The user ticks the
-  provider/model pairs the phone may use (a provider's model list is asked for only when its "Choose models" button is
-  pressed). Turning the switch on or off disconnects the phones once so they reconnect and learn about the capability;
-  turning it off also stops a running answer and forgets the phone's conversation. The phone's conversation is a
-  separate in-memory `Chat`, not the island's. The provider code is the island's (`chat::send_for_phone`); a provider's
-  error text is never forwarded or logged, only a kind (no key, unreachable, auth, provider).
+- Chat (Settings → Android phone → "Let the phone chat with my AI providers") is off by default. The user enables it
+  and adds the provider/model IDs that the phone may use. Each connected phone has a separate in-memory conversation;
+  no computer-action tools are available through this chat. API keys stay in the OS credential manager. Changing the
+  switch or model list reconnects phones so they learn the updated capability, and turning chat off cancels any answer
+  and forgets the conversations. Provider error text is never forwarded or logged, only a safe category (no key,
+  unreachable, auth, provider).
 - Permission requests (Allow/Deny) go to every phone. A question from Claude Code goes only to a phone with the `answers`
   capability (Settings → Android phone → "Let the phone answer Claude Code's questions", off by default); otherwise its
   options are picked on the island.
@@ -407,4 +406,3 @@ What actually happens when the screen is off, as found and fixed (Galaxy A12s, A
   computer announces itself, the pinned certificate, the pairing code and version, and the relay if the pairing has one. Its copyable
   report names the checks and what they found, and never contains the pairing code, the certificate fingerprint, the computer's name or
   the full address.
-

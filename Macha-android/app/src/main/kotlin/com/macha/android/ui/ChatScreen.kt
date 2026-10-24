@@ -70,9 +70,9 @@ import com.macha.android.core.ChatTab
 import com.macha.android.core.ChatTabState
 import com.macha.android.core.Screen
 import com.macha.android.core.ShareDraft
-import com.macha.android.mochi.BotState
-import com.macha.android.mochi.MochiEngine
-import com.macha.android.mochi.MochiView
+import com.macha.android.macha.BotState
+import com.macha.android.macha.MachaEngine
+import com.macha.android.macha.MachaView
 import com.macha.android.core.ChatRole
 import com.macha.android.core.ChatSession
 import com.macha.android.core.ChatStatus
@@ -117,18 +117,18 @@ internal fun chatStateBody(state: ChatTabState): Int = when (state) {
     ChatTabState.READY -> R.string.chat_title
 }
 
-/** The Chat tab with nothing to chat with: a sleeping Mochi, what is wrong in plain words, and the one button that helps (if any). */
+/** The Chat tab with nothing to chat with: a sleeping Macha, what is wrong in plain words, and the one button that helps (if any). */
 @Composable
 private fun ChatEmpty(state: ChatTabState, onHome: () -> Unit, onSettings: () -> Unit) {
     val t = tokens()
-    val engine = remember { MochiEngine({ android.os.SystemClock.elapsedRealtimeNanos() / 1e6 }).apply { setState(BotState.SLEEPING, force = true) } }
+    val engine = remember { MachaEngine({ android.os.SystemClock.elapsedRealtimeNanos() / 1e6 }).apply { setState(BotState.SLEEPING, force = true) } }
     Column(Modifier.fillMaxSize().padding(horizontal = Gutter)) {
         ScreenTitle(stringResource(R.string.chat_title), null)
         Column(
             Modifier.weight(1f).fillMaxWidth().padding(horizontal = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
         ) {
-            MochiView(engine, Modifier.size(120.dp))
+            MachaView(engine, Modifier.size(120.dp))
             Text(
                 stringResource(chatStateTitle(state)), Modifier.padding(top = 16.dp),
                 style = TypeScale.TITLE.style(t.text.c()).copy(textAlign = TextAlign.Center),

@@ -1,6 +1,6 @@
 package com.macha.android.core
 
-import com.macha.android.mochi.BotState
+import com.macha.android.macha.BotState
 
 /**
  * The Team widget: the user picks which agents it shows (up to [MAX]), one choice per widget. This is the pure part: what can be picked, how
