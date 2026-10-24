@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-const SERVICE: &str = "fr.louisraille.macha";
+const SERVICE: &str = "fr.prajwal.macha";
 const OPENROUTER_META: &str = "openrouter-accounts.json";
 const LEGACY_OPENROUTER_KEY: &str = "openrouter-api-key";
 static ACCOUNT_SEQUENCE: AtomicU64 = AtomicU64::new(0);
@@ -36,11 +36,32 @@ pub const KNOWN_KEYS: &[&str] = &[
     "calcom-api-key",
 ];
 
+/// Private credentials used only by the phone link; never exposed to the settings webview.
+pub const INTERNAL_KEYS: &[&str] = &[
+    "phone-link-cert",
+    "phone-link-key",
+    "phone-link-token",
+    "phone-relay-room",
+    "phone-relay-key",
+    "phone-relay-access",
+];
+
 fn entry(key: &str) -> Option<Entry> {
     if !KNOWN_KEYS.contains(&key) {
         return None;
     }
     Entry::new(SERVICE, key).ok()
+}
+
+fn internal_entry(key: &str) -> Option<Entry> {
+    if !INTERNAL_KEYS.contains(&key) {
+        return None;
+    }
+    Entry::new(SERVICE, key).ok()
+}
+
+pub fn is_internal(key: &str) -> bool {
+    INTERNAL_KEYS.contains(&key)
 }
 
 fn account_entry(id: &str) -> Result<Entry, String> {
@@ -201,6 +222,21 @@ pub fn openrouter_key_for_account(id: &str) -> Result<String, String> {
 
 pub fn get(key: &str) -> Option<String> {
     entry(key)?.get_password().ok().filter(|v| !v.is_empty())
+}
+
+pub fn get_internal(key: &str) -> Option<String> {
+    internal_entry(key)?.get_password().ok().filter(|value| !value.is_empty())
+}
+
+pub fn set_internal(key: &str, value: &str) -> Result<(), String> {
+    let credential = internal_entry(key).ok_or_else(|| format!("unknown internal key {key}"))?;
+    if value.is_empty() {
+        return match credential.delete_credential() {
+            Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+            Err(error) => Err(error.to_string()),
+        };
+    }
+    credential.set_password(value).map_err(|error| error.to_string())
 }
 
 pub fn set(key: &str, value: &str) -> Result<(), String> {

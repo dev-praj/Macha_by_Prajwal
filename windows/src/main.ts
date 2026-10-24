@@ -8,6 +8,7 @@ import { Island } from "./island/island";
 import { registerHookHandlers } from "./island/hooks";
 import { registerIntegrationHandlers, refreshConfigured } from "./island/integrations";
 import { registerNixiHotkeyHandlers } from "./nixi/hotkeys";
+import { resolveLanguage, setLanguage, systemLanguages } from "./i18n/i18n";
 
 async function main() {
   const root = document.getElementById("root");
@@ -21,6 +22,7 @@ async function main() {
   if (boot) {
     State.settings = { ...State.settings, ...boot.settings };
   }
+  setLanguage(resolveLanguage(State.settings.language, systemLanguages()));
   window.dispatchEvent(new Event("macha-settings-ready"));
   island.applySettings();
   State.loadIntegrationTasks();
@@ -28,6 +30,7 @@ async function main() {
 
   await onEvent<Settings>("settings-changed", (settings) => {
     State.settings = { ...State.settings, ...settings };
+    setLanguage(resolveLanguage(State.settings.language, systemLanguages()));
     island.applySettings();
   });
 
@@ -57,6 +60,10 @@ async function main() {
         break;
       case "auto-hide":
         void Bridge.toggleAutoHide();
+        break;
+      case "recap":
+        setPaused(false);
+        island.alert("recap");
         break;
     }
   });

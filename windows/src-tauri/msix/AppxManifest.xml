@@ -7,13 +7,13 @@
   xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
   IgnorableNamespaces="uap uap3 rescap desktop">
   <Identity
-    Name="LouisRaille.Macha"
+    Name="Prajwal.Macha"
     Publisher="__PUBLISHER__"
     Version="0.1.2.0"
     ProcessorArchitecture="x64" />
   <Properties>
     <DisplayName>Macha</DisplayName>
-    <PublisherDisplayName>Louis Raille</PublisherDisplayName>
+    <PublisherDisplayName>Prajwal</PublisherDisplayName>
     <Description>Macha lives at the top of your screen</Description>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>

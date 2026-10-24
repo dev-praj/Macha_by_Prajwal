@@ -1,13 +1,30 @@
+use std::collections::HashMap;
+use std::sync::{LazyLock, Mutex};
 use std::time::Duration;
 
+use base64::Engine;
 use crate::integrations;
 use crate::island::WINDOW_LABEL;
 use crate::log;
 use serde::Serialize;
+use sha2::{Digest, Sha256};
 use tauri::{AppHandle, Emitter};
+use windows::core::Interface;
+use windows::Media::MediaPlaybackAutoRepeatMode;
 use windows::Media::Control::{
     GlobalSystemMediaTransportControlsSession, GlobalSystemMediaTransportControlsSessionManager,
+    GlobalSystemMediaTransportControlsSessionMediaProperties,
     GlobalSystemMediaTransportControlsSessionPlaybackStatus,
+};
+use windows::Storage::Streams::DataReader;
+use windows::Win32::Foundation::CloseHandle;
+use windows::Win32::Media::Audio::{
+    eMultimedia, eRender, IAudioSessionControl2, IAudioSessionManager2, IMMDeviceEnumerator,
+    ISimpleAudioVolume, MMDeviceEnumerator,
+};
+use windows::Win32::System::Com::{CoCreateInstance, CLSCTX_ALL};
+use windows::Win32::System::Threading::{
+    OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
 };
 use windows::Win32::System::WinRT::{RoInitialize, RoUninitialize, RO_INIT_MULTITHREADED};
 
@@ -18,7 +35,9 @@ const POLL_INTERVAL: Duration = Duration::from_secs(4);
 pub struct SpotifyTrack {
     pub name: String,
     pub artists: String,
+    pub album: String,
     pub duration_ms: u64,
+    pub artwork_data_url: Option<String>,
 }
 
 #[derive(Clone, Serialize)]
@@ -27,8 +46,15 @@ pub struct SpotifySnapshot {
     pub connected: bool,
     pub playing: bool,
     pub progress_ms: u64,
+    pub shuffle: bool,
+    pub repeat: bool,
+    pub volume: u8,
+    pub spotify_app: bool,
     pub track: Option<SpotifyTrack>,
 }
+
+static ARTWORK_CACHE: LazyLock<Mutex<HashMap<String, String>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
 
 struct WinRtApartment;
 
@@ -64,20 +90,27 @@ fn active_session(
     }
 
     let current = manager.GetCurrentSession().ok();
+    let mut fallback = current;
     for index in 0..count {
         let session = sessions
             .GetAt(index)
             .map_err(|error| winrt_error("Could not read a Windows media session", error))?;
+        if session
+            .SourceAppUserModelId()
+            .is_ok_and(|id| id.to_string_lossy().to_ascii_lowercase().contains("spotify"))
+        {
+            return Ok(Some(session));
+        }
         let status = session
             .GetPlaybackInfo()
             .and_then(|info| info.PlaybackStatus())
             .map_err(|error| winrt_error("Could not read media playback status", error))?;
         if status == GlobalSystemMediaTransportControlsSessionPlaybackStatus::Playing {
-            return Ok(Some(session));
+            fallback = Some(session);
         }
     }
 
-    Ok(current.or_else(|| sessions.GetAt(0).ok()))
+    Ok(fallback.or_else(|| sessions.GetAt(0).ok()))
 }
 
 fn media_manager() -> Result<GlobalSystemMediaTransportControlsSessionManager, String> {
@@ -127,16 +160,49 @@ fn read_snapshot() -> Result<SpotifySnapshot, String> {
         .Artist()
         .map_err(|error| winrt_error("Could not read the current track artist", error))?
         .to_string();
+    let album = properties
+        .AlbumTitle()
+        .map_err(|error| winrt_error("Could not read the current track album", error))?
+        .to_string();
+    let spotify_app = session
+        .SourceAppUserModelId()
+        .is_ok_and(|id| id.to_string_lossy().to_ascii_lowercase().contains("spotify"));
+    let playback_info = session
+        .GetPlaybackInfo()
+        .map_err(|error| winrt_error("Could not read media playback controls", error))?;
+    let shuffle = playback_info
+        .IsShuffleActive()
+        .and_then(|value| value.Value())
+        .unwrap_or(false);
+    let repeat = playback_info
+        .AutoRepeatMode()
+        .and_then(|value| value.Value())
+        .is_ok_and(|mode| mode != MediaPlaybackAutoRepeatMode::None);
+    let artwork_data_url = if spotify_app {
+        artwork(&properties)
+    } else {
+        None
+    };
     let track = (!name.trim().is_empty()).then_some(SpotifyTrack {
         name,
         artists,
+        album,
         duration_ms: end.saturating_sub(start).max(0) as u64 / 10_000,
+        artwork_data_url,
     });
 
     Ok(SpotifySnapshot {
         connected: true,
         playing,
         progress_ms: position.saturating_sub(start).max(0) as u64 / 10_000,
+        shuffle,
+        repeat,
+        volume: if spotify_app {
+            spotify_volume().unwrap_or(50)
+        } else {
+            50
+        },
+        spotify_app,
         track,
     })
 }
@@ -146,8 +212,119 @@ fn empty_snapshot() -> SpotifySnapshot {
         connected: false,
         playing: false,
         progress_ms: 0,
+        shuffle: false,
+        repeat: false,
+        volume: 50,
+        spotify_app: false,
         track: None,
     }
+}
+
+fn artwork(
+    properties: &GlobalSystemMediaTransportControlsSessionMediaProperties,
+) -> Option<String> {
+    let thumbnail = properties.Thumbnail().ok()?;
+    let stream = thumbnail.OpenReadAsync().ok()?.get().ok()?;
+    let size = stream.Size().ok()?;
+    if size == 0 || size > 3 * 1024 * 1024 {
+        return None;
+    }
+    let reader = DataReader::CreateDataReader(&stream).ok()?;
+    let loaded = reader.LoadAsync(size as u32).ok()?.get().ok()?;
+    let mut bytes = vec![0; loaded as usize];
+    reader.ReadBytes(&mut bytes).ok()?;
+    let mime = if bytes.starts_with(&[0xFF, 0xD8, 0xFF]) {
+        "image/jpeg"
+    } else if bytes.starts_with(b"\x89PNG\r\n\x1a\n") {
+        "image/png"
+    } else if bytes.starts_with(b"RIFF") && bytes.get(8..12) == Some(b"WEBP") {
+        "image/webp"
+    } else {
+        return None;
+    };
+    let key = format!("{mime}:{}", hex_digest(&bytes));
+    if let Some(cached) = ARTWORK_CACHE.lock().ok()?.get(&key).cloned() {
+        return Some(cached);
+    }
+
+    fn hex_digest(bytes: &[u8]) -> String {
+        let digest = Sha256::digest(bytes);
+        digest.iter().map(|byte| format!("{byte:02x}")).collect()
+    }
+    let url = format!(
+        "data:{mime};base64,{}",
+        base64::engine::general_purpose::STANDARD.encode(bytes)
+    );
+    let mut cache = ARTWORK_CACHE.lock().ok()?;
+    if cache.len() >= 12 {
+        cache.clear();
+    }
+    cache.insert(key, url.clone());
+    Some(url)
+}
+
+fn spotify_audio() -> Vec<ISimpleAudioVolume> {
+    let mut volumes = Vec::new();
+    unsafe {
+        let Ok(devices) =
+            CoCreateInstance::<_, IMMDeviceEnumerator>(&MMDeviceEnumerator, None, CLSCTX_ALL)
+        else {
+            return volumes;
+        };
+        let Ok(device) = devices.GetDefaultAudioEndpoint(eRender, eMultimedia) else {
+            return volumes;
+        };
+        let Ok(manager) = device.Activate::<IAudioSessionManager2>(CLSCTX_ALL, None) else {
+            return volumes;
+        };
+        let Ok(sessions) = manager.GetSessionEnumerator() else {
+            return volumes;
+        };
+        for index in 0..sessions.GetCount().unwrap_or(0) {
+            let Ok(control) = sessions.GetSession(index) else {
+                continue;
+            };
+            let Ok(control) = control.cast::<IAudioSessionControl2>() else {
+                continue;
+            };
+            let pid = control.GetProcessId().unwrap_or(0);
+            if pid != 0 && is_spotify_process(pid) {
+                if let Ok(volume) = control.cast::<ISimpleAudioVolume>() {
+                    volumes.push(volume);
+                }
+            }
+        }
+    }
+    volumes
+}
+
+fn is_spotify_process(pid: u32) -> bool {
+    unsafe {
+        let Ok(process) = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid) else {
+            return false;
+        };
+        let mut buffer = [0u16; 1024];
+        let mut length = buffer.len() as u32;
+        let named = QueryFullProcessImageNameW(
+            process,
+            PROCESS_NAME_WIN32,
+            windows::core::PWSTR(buffer.as_mut_ptr()),
+            &mut length,
+        );
+        let _ = CloseHandle(process);
+        if named.is_err() {
+            return false;
+        }
+        String::from_utf16_lossy(&buffer[..length as usize])
+            .rsplit(['\\', '/'])
+            .next()
+            .is_some_and(|name| name.eq_ignore_ascii_case("spotify.exe"))
+    }
+}
+
+fn spotify_volume() -> Option<u8> {
+    let volume = unsafe { spotify_audio().first()?.GetMasterVolume().ok()? };
+    Some((volume * 100.0).round().clamp(0.0, 100.0) as u8)
 }
 
 fn run_media_action(
@@ -181,6 +358,28 @@ fn run_media_action(
                 .and_then(|operation| operation.get())
                 .map_err(|error| winrt_error("Could not change the track position", error))
         }
+        "shuffle" => session
+            .TryChangeShuffleActiveAsync(position_ms.unwrap_or(0) != 0)
+            .and_then(|operation| operation.get())
+            .map_err(|error| winrt_error("Could not change Spotify shuffle", error)),
+        "repeat" => session
+            .TryChangeAutoRepeatModeAsync(if position_ms.unwrap_or(0) != 0 {
+                MediaPlaybackAutoRepeatMode::List
+            } else {
+                MediaPlaybackAutoRepeatMode::None
+            })
+            .and_then(|operation| operation.get())
+            .map_err(|error| winrt_error("Could not change Spotify repeat", error)),
+        "volume" => {
+            let percent = position_ms.unwrap_or(50).min(100);
+            let level = (percent as f32) / 100.0;
+            let volumes = spotify_audio();
+            let mut updated = false;
+            for volume in volumes {
+                updated |= unsafe { volume.SetMasterVolume(level, std::ptr::null()).is_ok() };
+            }
+            Ok(updated)
+        }
         _ => Err("Unsupported media playback action.".into()),
     }
 }
@@ -190,6 +389,22 @@ fn position_to_ticks(position_ms: u64) -> Result<i64, String> {
         .checked_mul(10_000)
         .and_then(|value| i64::try_from(value).ok())
         .ok_or_else(|| "Track position is out of range.".to_string())
+}
+
+#[tauri::command]
+pub fn open_spotify() -> Result<(), String> {
+    let desktop = std::env::var_os("APPDATA")
+        .map(|base| std::path::PathBuf::from(base).join(r"Spotify\Spotify.exe"))
+        .is_some_and(|path| path.is_file());
+    let store = std::env::var_os("LOCALAPPDATA")
+        .map(|base| std::path::PathBuf::from(base).join(r"Microsoft\WindowsApps\Spotify.exe"))
+        .is_some_and(|path| std::fs::symlink_metadata(path).is_ok());
+    let url = if desktop || store {
+        "spotify:"
+    } else {
+        "https://www.spotify.com/download/windows/"
+    };
+    crate::platform::open_url(url)
 }
 
 #[tauri::command]

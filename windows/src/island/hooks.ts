@@ -3,7 +3,8 @@
 // Difference from macOS: no terminal filter. On Windows the hook fires from any
 // terminal (Windows Terminal, VS Code, PowerShell…) and all of them are handled.
 
-import { Bridge, onEvent } from "../core/bridge";
+import { Bridge, onEvent, type PhoneLinkApproval, type PhoneLinkSession } from "../core/bridge";
+import { buildFileDiff, fileName, makeDiffStep } from "../core/diff";
 import { Sound } from "../core/sound";
 import { State } from "../core/state";
 import type { Island } from "./island";
@@ -23,6 +24,7 @@ interface HookPayload {
   prompt?: string;
   tool_name?: string;
   tool_input?: Record<string, unknown>;
+  macha_diff_truncated?: boolean;
   /** Optional agent tag: lowercase, digits and hyphens, ≤ 24 chars. */
   macha_agent?: string;
 }
@@ -134,10 +136,63 @@ function clearSession() {
   t.stepIndex = 0;
   t.name = "VS Code";
   t.pillBadge = null;
+  State.clearSessionDiffs(CLAUDE_ID);
+}
+
+function recordDiff(agentId: string, payload: HookPayload) {
+  if (payload.macha_diff_truncated || !State.tasks.some((task) => task.id === agentId)) return;
+  const diff = buildFileDiff(payload.tool_name ?? "", payload.tool_input ?? {});
+  if (!diff) return;
+  const id = State.appendSessionDiff(agentId, diff);
+  State.appendStep(agentId, makeDiffStep(fileName(diff.path), diff.added, diff.removed, id));
 }
 
 export function registerHookHandlers(island: Island) {
   void onEvent<HookPayload>("hook", (payload) => handleHook(island, payload));
+  void onEvent<string>("phone-link-decided", (requestId) => {
+    if (State.pendingApproval?.requestId !== requestId) return;
+    if (pendingTimeout != null) window.clearTimeout(pendingTimeout);
+    pendingTimeout = null;
+    State.pendingApproval = null;
+    State.isPinned = false;
+    island.dropPin();
+    State.updateTask(CLAUDE_ID, "working");
+    State.setPillBadge(CLAUDE_ID, null);
+    if (State.view === "approval") island.setView(State.defaultView());
+    State.notify();
+    void publishPhoneState();
+  });
+}
+
+function publishPhoneState(): Promise<void> {
+  const sessions: PhoneLinkSession[] = State.tasks
+    .filter((task) => task.id === CLAUDE_ID || (task.source === "agent" && !task.isIntegration))
+    .map((task) => {
+      const session: PhoneLinkSession = {
+        pillId: task.id,
+        agent: task.id === CLAUDE_ID ? "Claude Code" : task.id.replace(/^agent_/, ""),
+        state: task.state,
+        statusText: task.steps.at(-1) ?? task.name,
+        stepIndex: task.stepIndex,
+        stepCount: task.steps.length,
+        steps: task.steps.slice(-20),
+        project: task.name,
+        color: task.color,
+      };
+      return session;
+    });
+  let approval: PhoneLinkApproval | null = null;
+  const pending = State.pendingApproval;
+  if (pending) {
+    approval = {
+      requestId: pending.requestId,
+      sessionId: pending.sessionId,
+      pillId: CLAUDE_ID,
+      tool: pending.tool,
+      command: pending.command,
+    };
+  }
+  return Bridge.phoneLinkPublish(sessions, approval).then(() => undefined);
 }
 
 function handleHook(island: Island, payload: HookPayload) {
@@ -210,6 +265,7 @@ function handleHook(island: Island, payload: HookPayload) {
 
     case "PostToolUse":
       State.updateTask(agentId, "working");
+      recordDiff(agentId, payload);
       break;
 
     case "PostToolUseFailure":
@@ -255,6 +311,7 @@ function handleHook(island: Island, payload: HookPayload) {
 
     case "SessionEnd":
       if (isExternalAgent) {
+        State.clearSessionDiffs(agentId);
         State.removeTask(agentId);
       } else {
         State.updateTask(agentId, "idle");
@@ -324,6 +381,7 @@ function handleHook(island: Island, payload: HookPayload) {
         State.setPillBadge(CLAUDE_ID, null);
         if (State.view === "approval") island.setView(State.defaultView());
         State.notify();
+        void publishPhoneState();
       }, 110_000);
       break;
     }
@@ -332,4 +390,5 @@ function handleHook(island: Island, payload: HookPayload) {
       break;
   }
   State.notify();
+  void publishPhoneState();
 }

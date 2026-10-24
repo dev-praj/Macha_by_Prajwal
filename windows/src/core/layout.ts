@@ -21,6 +21,7 @@ export type IslandViewName =
   | "result"
   | "note"
   | "settings"
+  | "recap"
   | "greeting";
 
 export type BotStateName =
@@ -85,6 +86,7 @@ export const VIEW_LAYOUTS: Record<IslandViewName, ViewLayout> = {
   result: { height: 160, botX: 52, botY: null, botDiameter: 44, agentMode: "column" },
   note: { height: 160, botX: 60, botY: null, botDiameter: 50, agentMode: "column" },
   settings: { height: 160, botX: 54, botY: null, botDiameter: 46, agentMode: "none" },
+  recap: { height: 232, botX: 54, botY: null, botDiameter: 46, agentMode: "none" },
   greeting: { height: 150, botX: 320, botY: 90, botDiameter: 0, agentMode: "none" },
 };
 
@@ -197,8 +199,8 @@ const PROJECT_COLORS: Record<string, string> = {
   "morning ai brief": "#F29B38",
   "publication ig": "#7C5CFF",
   "ig post": "#7C5CFF",
-  "louisraille.fr": "#38BDF8",
-  louisraille: "#38BDF8",
+  macha_by_prajwal: "#38BDF8",
+  prajwal: "#38BDF8",
   "notch buddy": "#EC4899",
   "notch-buddy": "#EC4899",
   notchbuddy: "#EC4899",

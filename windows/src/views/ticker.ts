@@ -10,6 +10,7 @@
 import { h, svg } from "./dom";
 import { ICONS } from "./icons";
 import { cubicBezier, clamp, lerp } from "../core/anim";
+import { parseDiffStep, type DiffStep } from "../core/diff";
 import type { AgentTask } from "../core/state";
 
 const ROW_H = 22;
@@ -26,7 +27,10 @@ interface Row {
   check: SVGElement;
   shimmer: HTMLElement;
   dim: HTMLElement;
+  body: HTMLElement;
+  counts: HTMLElement;
   text: string;
+  diff: DiffStep | null;
 }
 
 function makeRow(): Row {
@@ -40,20 +44,37 @@ function makeRow(): Row {
     class: "tick-text",
     style: "position:absolute;left:0;right:0;color:#6b7079",
   });
+  const body = h("span", { style: "position:relative;flex:1 1 auto;min-width:0" }, shimmer, dim);
+  const counts = h("span", { class: "tick-counts" });
   const el = h(
     "div",
     { class: "ticker-row" },
     h("span", { class: "tick-icon", style: "position:relative" }, chevron, check),
-    h("span", { style: "position:relative;flex:1 1 auto;min-width:0" }, shimmer, dim),
+    body,
+    counts,
   );
-  return { el, chevron, check, shimmer, dim, text: "" };
+  return { el, chevron, check, shimmer, dim, body, counts, text: "", diff: null };
 }
 
 function setText(row: Row, text: string) {
   if (row.text === text) return;
   row.text = text;
-  row.shimmer.textContent = text;
-  row.dim.textContent = text;
+  row.diff = parseDiffStep(text);
+  const shown = row.diff?.filename ?? text;
+  row.shimmer.textContent = shown;
+  row.dim.textContent = shown;
+  if (row.diff) {
+    row.body.style.flex = "0 1 auto";
+    row.counts.textContent = [
+      row.diff.added > 0 ? `+${row.diff.added}` : "",
+      row.diff.removed > 0 ? `−${row.diff.removed}` : "",
+    ].filter(Boolean).join(" ");
+    row.el.classList.add("diff-step");
+  } else {
+    row.body.style.flex = "1 1 auto";
+    row.counts.textContent = "";
+    row.el.classList.remove("diff-step");
+  }
 }
 
 /**
@@ -79,8 +100,13 @@ export class Ticker {
   private startMs: number | null = null;
   private displayIndex = -1;
 
-  constructor() {
+  constructor(onDiffTap?: (diffId: number) => void) {
     this.el = h("div", { class: "ticker" }, this.a.el, this.b.el, this.c.el);
+    for (const row of [this.a, this.b]) {
+      row.el.addEventListener("click", () => {
+        if (row.diff) onDiffTap?.(row.diff.diffId);
+      });
+    }
     this.rest();
   }
 

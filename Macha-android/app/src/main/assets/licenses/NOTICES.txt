@@ -1,0 +1,25 @@
+MACHA FOR ANDROID: LICENCES AND NOTICES
+
+Macha for Android is an unofficial port by Rhytam Biswas, based on Macha by Prajwal (https://github.com/dev-praj/Macha_by_Prajwal.git). It is free, has no ads and no analytics.
+
+1. The code of Macha for Android
+
+The Android port's code is Copyright (c) 2026 Rhytam Biswas and is released under the MIT License. The full text is below ("MIT License").
+
+2. Macha's name, character, icon and sounds
+
+Macha's name and the Mochi character (its design, look, expressions and animations), the app icon and sounds are Copyright (c) 2026 Prajwal. All rights reserved and NOT covered by the MIT License. They are used in this Android app with written permission, only under the terms in PERMISSION.md; they may not be reused elsewhere without permission.
+
+3. ZXing
+
+The pairing QR code is read with ZXing Core 3.5.3 ("Zebra Crossing", https://github.com/zxing/zxing), Copyright ZXing authors. It is licensed under the Apache License, Version 2.0, the full text of which is below ("Apache License"). The library is used unmodified; it makes no network connection.
+
+4. AndroidX, Jetpack Compose, CameraX and Kotlin
+
+The user interface, the camera preview and the language runtime come from AndroidX (Jetpack Compose, Material 3, Activity, Lifecycle, CameraX), Copyright The Android Open Source Project, and the Kotlin standard library, Copyright JetBrains s.r.o. and Kotlin Programming Language contributors. They are licensed under the Apache License, Version 2.0, the full text of which is below. They are used unmodified.
+
+No warranty: the software is provided "as is", as the licences below say.
+
+------------------------------
+MIT License
+------------------------------

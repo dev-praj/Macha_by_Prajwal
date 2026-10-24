@@ -10,6 +10,7 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
     let open = MenuItem::with_id(app, "open", "Open Macha", true, None::<&str>)?;
     let settings = MenuItem::with_id(app, "settings", "Settings…", true, None::<&str>)?;
     let pause = MenuItem::with_id(app, "pause", "Pause", true, None::<&str>)?;
+    let recap = MenuItem::with_id(app, "recap", "Weekly recap", true, None::<&str>)?;
     let auto_hide = MenuItem::with_id(app, "auto-hide", "Toggle Auto-hide", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
     let sep1 = PredefinedMenuItem::separator(app)?;
@@ -19,7 +20,7 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
     let menu = Menu::with_items(
         app,
         &[
-            &open, &sep1, &settings, &pause, &sep2, &auto_hide, &sep3, &quit,
+            &open, &sep1, &recap, &settings, &pause, &sep2, &auto_hide, &sep3, &quit,
         ],
     )?;
 

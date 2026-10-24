@@ -49,6 +49,8 @@ export interface MessageNotification {
 }
 
 export interface SpotifyTrack {
+  album: string;
+  artworkDataUrl: string | null;
   name: string;
   artists: string;
   durationMs: number;
@@ -58,6 +60,10 @@ export interface SpotifySnapshot {
   connected: boolean;
   playing: boolean;
   progressMs: number;
+  shuffle: boolean;
+  repeat: boolean;
+  volume: number;
+  spotifyApp: boolean;
   track: SpotifyTrack | null;
 }
 
@@ -134,6 +140,11 @@ export const Bridge = {
    */
   hooksApply: (install: boolean, fingerprint: string) =>
     callOrThrow<string>("hooks_apply", { install, fingerprint }),
+  agentHooksList: () => callOrThrow<AgentHookStatus[]>("agent_hooks_list"),
+  agentHooksPreview: (agent: string, install: boolean) =>
+    callOrThrow<AgentHookPlan>("agent_hooks_preview", { agent, install }),
+  agentHooksApply: (agent: string, install: boolean, fingerprint: string) =>
+    callOrThrow<string>("agent_hooks_apply", { agent, install, fingerprint }),
 
   approvalDecision: (requestId: string, decision: "allow" | "deny") =>
     call<void>("approval_decision", { requestId, decision }),
@@ -209,6 +220,18 @@ export const Bridge = {
     callOrThrow<void>("workflow_set_archived", { id, archived }),
   workflowDelete: (id: string) => callOrThrow<void>("workflow_delete", { id }),
   workflowRun: (id: string) => callOrThrow<void>("workflow_run", { id }),
+  recapSnapshot: () => callOrThrow<RecapSnapshot>("recap_snapshot"),
+  recapSetEnabled: (enabled: boolean) => callOrThrow<void>("recap_set_enabled", { enabled }),
+  recapClear: () => callOrThrow<void>("recap_clear"),
+  phoneLinkStatus: () => call<PhoneLinkStatus>("phone_link_status"),
+  phoneLinkSetEnabled: (enabled: boolean) =>
+    callOrThrow<PhoneLinkStatus>("phone_link_set_enabled", { enabled }),
+  phoneLinkPairing: () => callOrThrow<PhoneLinkPairing>("phone_link_pairing"),
+  phoneLinkNewPairing: () => callOrThrow<PhoneLinkPairing>("phone_link_new_pairing"),
+  phoneDetailsSetEnabled: (enabled: boolean) =>
+    callOrThrow<{ enabled: boolean }>("phone_details_set_enabled", { enabled }),
+  phoneLinkPublish: (sessions: PhoneLinkSession[], approval: PhoneLinkApproval | null) =>
+    call<void>("phone_link_publish", { sessions, approval }),
   chatReset: () => call<void>("chat_reset"),
   /** Copies a dropped file into the inbox. */
   ingestFile: (path: string) => callOrThrow<DroppedFile>("ingest_file", { path }),
@@ -242,13 +265,14 @@ export const Bridge = {
   openMessageSource: (id: string) =>
     callOrThrow<void>("open_message_source", { notificationId: id }),
   spotifyControl: (
-    action: "play" | "pause" | "next" | "previous" | "seek",
-    positionMs?: number,
+    action: "play" | "pause" | "next" | "previous" | "seek" | "shuffle" | "repeat" | "volume",
+    value?: number,
   ) => callOrThrow<void>("spotify_control", {
     action,
-    positionMs: positionMs ?? null,
+    positionMs: value ?? null,
   }),
   refreshSpotify: () => callOrThrow<SpotifySnapshot>("refresh_spotify"),
+  openSpotify: () => callOrThrow<void>("open_spotify"),
 
   // ── Vision Mode ─────────────────────────────────────────────────────────
   gestureMouseStart: () => callOrThrow<void>("gesture_mouse_start"),
@@ -322,6 +346,57 @@ export interface MemoryRecord {
   updatedAt: number;
 }
 
+export interface RecapSnapshot {
+  enabled: boolean;
+  sessions: number;
+  filesChanged: number;
+  linesAdded: number;
+  linesRemoved: number;
+  commandsRun: number;
+  permissionsAllowed: number;
+  permissionsDenied: number;
+}
+
+export interface PhoneLinkStatus {
+  enabled: boolean;
+  running: boolean;
+  port: number;
+  host: string;
+  name: string;
+  clients: number;
+  error: string | null;
+  relayState: string;
+}
+
+export interface PhoneLinkPairing {
+  link: string;
+  qrSvg: string;
+  host: string;
+  port: number;
+  name: string;
+  relay: string | null;
+}
+
+export interface PhoneLinkSession {
+  pillId: string;
+  agent: string;
+  state: string;
+  statusText: string;
+  stepIndex: number;
+  stepCount: number;
+  steps?: string[];
+  project?: string;
+  color?: string;
+}
+
+export interface PhoneLinkApproval {
+  requestId: string;
+  sessionId: string;
+  pillId: string;
+  tool: string;
+  command: string;
+}
+
 export interface SavedWorkflow {
   id: string;
   name: string;
@@ -349,6 +424,23 @@ export interface HookStatus {
   settingsPath: string;
   hookPath: string;
   hookReady: boolean;
+}
+
+export interface AgentHookStatus {
+  id: string;
+  name: string;
+  installed: boolean;
+  path: string;
+  hookReady: boolean;
+  approvals: boolean;
+  note: string;
+}
+
+export interface AgentHookPlan {
+  diff: string;
+  backup: string;
+  path: string;
+  fingerprint: string;
 }
 
 export interface HookPreview {

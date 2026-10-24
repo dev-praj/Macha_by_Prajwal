@@ -8,6 +8,8 @@ use std::path::PathBuf;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
+    #[serde(default)]
+    pub language: String,
     #[serde(default = "default_avatar")]
     pub avatar: String,
     pub sound_enabled: bool,
@@ -55,6 +57,28 @@ pub struct Settings {
     pub dictation_replacements: Vec<DictationReplacement>,
     #[serde(default)]
     pub dictation_app_styles: Vec<DictationAppStyle>,
+    #[serde(default)]
+    pub phone_link: bool,
+    #[serde(default)]
+    pub phone_chat: bool,
+    #[serde(default)]
+    pub phone_chat_models: Vec<String>,
+    #[serde(default)]
+    pub phone_details: bool,
+    #[serde(default)]
+    pub phone_answers: bool,
+    #[serde(default)]
+    pub phone_diffs: bool,
+    #[serde(default)]
+    pub phone_usage: bool,
+    #[serde(default)]
+    pub phone_recap: bool,
+    #[serde(default)]
+    pub phone_services: Vec<String>,
+    #[serde(default)]
+    pub phone_relay: bool,
+    #[serde(default)]
+    pub phone_relay_url: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -122,6 +146,7 @@ fn default_auto_hide() -> bool {
 impl Default for Settings {
     fn default() -> Self {
         Self {
+            language: String::new(),
             avatar: default_avatar(),
             sound_enabled: true,
             sound_volume: 0.12,
@@ -153,6 +178,17 @@ impl Default for Settings {
             dictation_vocabulary: Vec::new(),
             dictation_replacements: Vec::new(),
             dictation_app_styles: Vec::new(),
+            phone_link: false,
+            phone_chat: false,
+            phone_chat_models: Vec::new(),
+            phone_details: false,
+            phone_answers: false,
+            phone_diffs: false,
+            phone_usage: false,
+            phone_recap: false,
+            phone_services: Vec::new(),
+            phone_relay: false,
+            phone_relay_url: String::new(),
         }
     }
 }

@@ -32,6 +32,7 @@ const DROPPED_FIELDS: &[&str] = &["tool_response", "transcript_path"];
 /// Longest string forwarded for any single field; the island truncates to far
 /// less than this anyway.
 const MAX_FIELD_LEN: usize = 2_000;
+const MAX_DIFF_INPUT_LEN: usize = 256 * 1024;
 
 #[cfg(windows)]
 mod win;
@@ -160,20 +161,61 @@ fn read_event() -> Option<(String, String)> {
         }
     }
 
-    truncate_strings(&mut payload);
+    truncate_event(&mut payload);
 
     let mut line = payload.to_string();
     line.push('\n');
     Some((line, event))
 }
 
+fn truncate_event(payload: &mut serde_json::Value) {
+    let tool = payload
+        .get("tool_name")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("");
+    let is_file_edit = payload
+        .get("hook_event_name")
+        .and_then(serde_json::Value::as_str)
+        == Some("PostToolUse")
+        && matches!(tool, "Edit" | "MultiEdit" | "Write");
+
+    if is_file_edit {
+        let input = payload
+            .as_object_mut()
+            .and_then(|map| map.remove("tool_input"));
+        if let Some(mut input) = input {
+            let input_size = input.to_string().len();
+            if input_size <= MAX_DIFF_INPUT_LEN {
+                truncate_strings(payload);
+                truncate_strings_with_limit(&mut input, MAX_DIFF_INPUT_LEN);
+                if let Some(map) = payload.as_object_mut() {
+                    map.insert("tool_input".into(), input);
+                }
+                return;
+            }
+            if let Some(map) = payload.as_object_mut() {
+                map.insert(
+                    "macha_diff_truncated".into(),
+                    serde_json::Value::Bool(true),
+                );
+            }
+        }
+    }
+
+    truncate_strings(payload);
+}
+
 /// Caps every string in the payload. A single Write can carry a whole file.
 fn truncate_strings(value: &mut serde_json::Value) {
+    truncate_strings_with_limit(value, MAX_FIELD_LEN);
+}
+
+fn truncate_strings_with_limit(value: &mut serde_json::Value, max_len: usize) {
     match value {
         serde_json::Value::String(s) => {
-            if s.len() > MAX_FIELD_LEN {
+            if s.len() > max_len {
                 // Cut on a char boundary; a lone byte index can split UTF-8.
-                let mut end = MAX_FIELD_LEN;
+                let mut end = max_len;
                 while end > 0 && !s.is_char_boundary(end) {
                     end -= 1;
                 }
@@ -181,8 +223,12 @@ fn truncate_strings(value: &mut serde_json::Value) {
                 s.push('…');
             }
         }
-        serde_json::Value::Array(items) => items.iter_mut().for_each(truncate_strings),
-        serde_json::Value::Object(map) => map.values_mut().for_each(truncate_strings),
+        serde_json::Value::Array(items) => {
+            items.iter_mut().for_each(|item| truncate_strings_with_limit(item, max_len));
+        }
+        serde_json::Value::Object(map) => {
+            map.values_mut().for_each(|item| truncate_strings_with_limit(item, max_len));
+        }
         _ => {}
     }
 }
@@ -222,6 +268,87 @@ fn talk(payload: &str, waits_for_answer: bool) -> Option<String> {
 mod tests {
     use super::*;
 
+    #[test]
+    fn preserves_bounded_file_edit_content_for_diffing() {
+        let mut payload = serde_json::json!({
+            "hook_event_name": "PostToolUse",
+            "tool_name": "Write",
+            "tool_input": { "content": "x".repeat(MAX_FIELD_LEN + 1) }
+        });
+        truncate_event(&mut payload);
+        assert_eq!(
+            payload["tool_input"]["content"].as_str().unwrap().len(),
+            MAX_FIELD_LEN + 1
+        );
+        assert_eq!(payload.get("macha_diff_truncated"), None);
+    }
+
+    #[test]
+    fn drops_oversized_file_edit_content_and_marks_the_event() {
+        let mut payload = serde_json::json!({
+            "hook_event_name": "PostToolUse",
+            "tool_name": "Write",
+            "tool_input": { "content": "x".repeat(MAX_DIFF_INPUT_LEN + 1) }
+        });
+        truncate_event(&mut payload);
+        assert_eq!(payload["macha_diff_truncated"], true);
+        assert_eq!(payload.get("tool_input"), None);
+    }
+
+    #[test]
+    fn continues_to_cap_unrelated_hook_fields() {
+        let mut payload = serde_json::json!({
+            "hook_event_name": "PostToolUse",
+            "tool_name": "Bash",
+            "tool_input": { "command": "x".repeat(MAX_FIELD_LEN + 1) }
+        });
+        truncate_event(&mut payload);
+        assert_eq!(payload["tool_input"]["command"].as_str().unwrap().len(), MAX_FIELD_LEN + 3);
+        assert_eq!(payload.get("macha_diff_truncated"), None);
+    }
+
+    #[test]
+    fn truncates_unrelated_events_as_before() {
+        let mut payload = serde_json::json!({
+            "hook_event_name": "PreToolUse",
+            "tool_name": "Write",
+            "tool_input": { "content": "x".repeat(MAX_FIELD_LEN + 1) }
+        });
+        truncate_event(&mut payload);
+        assert_eq!(payload["tool_input"]["content"].as_str().unwrap().len(), MAX_FIELD_LEN + 3);
+    }
+
+    #[test]
+    fn does_not_mark_unrelated_tools_as_truncated_diffs() {
+        let mut payload = serde_json::json!({
+            "hook_event_name": "PostToolUse",
+            "tool_name": "Bash",
+            "tool_input": { "command": "echo hello" }
+        });
+        truncate_event(&mut payload);
+        assert_eq!(payload.get("macha_diff_truncated"), None);
+    }
+
+    #[test]
+    fn truncate_strings_still_respects_utf8_boundaries() {
+        let mut payload = serde_json::json!({
+            "command": "é".repeat(MAX_FIELD_LEN / 2 + 1)
+        });
+        truncate_event(&mut payload);
+        assert!(payload["command"].as_str().unwrap().ends_with('…'));
+    }
+
+    #[test]
+    fn unrelated_fields_on_file_edit_events_remain_bounded() {
+        let mut payload = serde_json::json!({
+            "hook_event_name": "PostToolUse",
+            "tool_name": "Write",
+            "message": "x".repeat(MAX_FIELD_LEN + 1),
+            "tool_input": { "content": "short" }
+        });
+        truncate_event(&mut payload);
+        assert_eq!(payload["message"].as_str().unwrap().len(), MAX_FIELD_LEN + 3);
+    }
     #[test]
     fn decision_json_matches_the_documented_shape() {
         assert_eq!(

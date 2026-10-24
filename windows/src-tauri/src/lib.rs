@@ -1,7 +1,11 @@
 // Macha for Windows — app wiring and the commands the island calls.
 
 mod automation;
+mod agent_hooks;
+mod agent_text;
+mod agents;
 mod claude;
+mod config_file;
 mod files;
 mod gesture_mouse;
 mod hooks;
@@ -13,6 +17,8 @@ mod memory;
 mod messages;
 mod pipe;
 mod platform;
+mod phone_link;
+mod recap;
 mod secrets;
 mod settings;
 mod spotify;
@@ -90,7 +96,19 @@ fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) -> R
         let mut current = shared.settings.lock().unwrap();
         let screen_changed = current.screen != settings.screen;
         let autostart_changed = current.autostart != settings.autostart;
-        *current = settings.clone();
+        let mut settings = settings.clone();
+        settings.phone_link = current.phone_link;
+        settings.phone_chat = current.phone_chat;
+        settings.phone_chat_models = current.phone_chat_models.clone();
+        settings.phone_details = current.phone_details;
+        settings.phone_answers = current.phone_answers;
+        settings.phone_diffs = current.phone_diffs;
+        settings.phone_usage = current.phone_usage;
+        settings.phone_recap = current.phone_recap;
+        settings.phone_services = current.phone_services.clone();
+        settings.phone_relay = current.phone_relay;
+        settings.phone_relay_url = current.phone_relay_url.clone();
+        *current = settings;
         (screen_changed, autostart_changed)
     };
     if autostart_changed {
@@ -274,7 +292,27 @@ fn hooks_apply(
 }
 
 #[tauri::command]
+fn agent_hooks_list() -> Vec<agents::AgentStatus> {
+    agents::list()
+}
+
+#[tauri::command]
+fn agent_hooks_preview(agent: String, install: bool) -> Result<config_file::Plan, String> {
+    agents::preview(&agent, install)
+}
+
+#[tauri::command]
+fn agent_hooks_apply(
+    agent: String,
+    install: bool,
+    fingerprint: String,
+) -> Result<String, String> {
+    agents::apply(&agent, install, &fingerprint)
+}
+
+#[tauri::command]
 fn approval_decision(app: AppHandle, request_id: String, decision: String) {
+    recap::record_permission(&app, &decision);
     pipe::answer(&app, &request_id, &decision);
 }
 
@@ -589,8 +627,8 @@ fn create_settings_window(app: &AppHandle) {
     match WebviewWindowBuilder::new(app, "settings", url)
         .additional_browser_args(BROWSER_ARGS)
         .title("Settings — Macha")
-        .inner_size(560.0, 680.0)
-        .min_inner_size(460.0, 480.0)
+        .inner_size(1120.0, 760.0)
+        .min_inner_size(760.0, 560.0)
         .resizable(true)
         .visible(false)
         .center()
@@ -732,6 +770,7 @@ pub fn run() {
         })
         .manage(Pending::default())
         .manage(Chat::default())
+        .manage(recap::Store::load())
         .manage(voice::SttProcess::default())
         .manage(voice::TtsProcess::default())
         .manage(gesture_mouse::GestureMouseProcess::default())
@@ -748,6 +787,38 @@ pub fn run() {
             hooks_status,
             hooks_preview,
             hooks_apply,
+            agent_hooks_list,
+            agent_hooks_preview,
+            agent_hooks_apply,
+            phone_link::phone_link_status,
+            phone_link::phone_link_set_enabled,
+            phone_link::phone_link_pairing,
+            phone_link::phone_link_new_pairing,
+            phone_link::phone_link_publish,
+            phone_link::phone_link_publish_question,
+            phone_link::phone_link_publish_prefs,
+            phone_link::phone_answers_status,
+            phone_link::phone_answers_set_enabled,
+            phone_link::phone_diffs_status,
+            phone_link::phone_diffs_set_enabled,
+            phone_link::phone_link_send_diff,
+            phone_link::phone_usage_status,
+            phone_link::phone_usage_set_enabled,
+            phone_link::phone_recap_status,
+            phone_link::phone_recap_set_enabled,
+            phone_link::phone_relay_status,
+            phone_link::phone_relay_set,
+            phone_link::phone_relay_set_access,
+            phone_link::phone_link_publish_usage,
+            phone_link::phone_link_publish_recap,
+            phone_link::phone_services_status,
+            phone_link::phone_services_set,
+            phone_link::phone_link_publish_services,
+            phone_link::phone_details_status,
+            phone_link::phone_details_set_enabled,
+            phone_link::phone_chat_status,
+            phone_link::phone_chat_set_enabled,
+            phone_link::phone_chat_set_models,
             approval_decision,
             approval_ack,
             approval_decline,
@@ -774,6 +845,9 @@ pub fn run() {
             workflow_set_archived,
             workflow_delete,
             workflow_run,
+            recap::recap_snapshot,
+            recap::recap_set_enabled,
+            recap::recap_clear,
             ingest_file,
             secret_present,
             secret_set,
@@ -787,6 +861,7 @@ pub fn run() {
             messages::message_access_status,
             messages::open_message_source,
             spotify::spotify_control,
+            spotify::open_spotify,
             refresh_spotify,
             open_settings_window,
             open_first_run_setup_window,
@@ -812,6 +887,7 @@ pub fn run() {
         ])
         .setup(move |app| {
             let handle = app.handle().clone();
+            app.manage(phone_link::PhoneLink::new(handle.clone()));
             if loaded.autostart {
                 if let Err(error) = app.autolaunch().enable() {
                     eprintln!("[macha] autostart: {error}");
@@ -848,6 +924,7 @@ pub fn run() {
             ));
             hooks::ensure_hook_exe(&handle);
             pipe::start(handle.clone());
+            phone_link::start_if_enabled(&handle);
             integrations::start(handle.clone());
             messages::start(handle.clone());
             spotify::start(handle.clone());
@@ -857,6 +934,7 @@ pub fn run() {
         .expect("error while building Macha")
         .run(|app, event| {
             if matches!(event, tauri::RunEvent::Exit) {
+                phone_link::stop_on_exit(app);
                 nixi_hotkeys::stop();
                 voice::stop_stt_server(&app.state::<voice::SttProcess>());
                 if let Err(error) = app.state::<gesture_mouse::GestureMouseProcess>().stop() {

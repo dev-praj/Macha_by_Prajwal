@@ -22,6 +22,10 @@ import { recordWakePronunciation } from "../core/wakeWord";
 import { insertTextAtCursor } from "../nixi/setupDictation";
 import { registerSetupDictationTest } from "../nixi/setupDictationTest";
 import { h, clear } from "../views/dom";
+import { LANGUAGES, resolveLanguage, setLanguage, systemLanguages } from "../i18n/i18n";
+import { agentsSection } from "./agents";
+import { mountSettingsHub, weeklyRecapSection } from "./hub";
+import { phoneSection } from "./phone";
 
 let settings: Settings = { ...DEFAULT_SETTINGS };
 let version = "";
@@ -1162,6 +1166,18 @@ function avatarSection(): HTMLElement {
 }
 
 function generalSection(): HTMLElement {
+  const language = h("select", {}) as HTMLSelectElement;
+  language.append(h("option", { value: "", text: "System language" }));
+  for (const item of LANGUAGES) {
+    language.append(h("option", { value: item.code, text: item.name }));
+  }
+  language.value = settings.language;
+  language.addEventListener("change", () => {
+    settings.language = language.value;
+    setLanguage(resolveLanguage(settings.language, systemLanguages()));
+    void save();
+  });
+
   const volume = h("input", {
     type: "range", min: "0", max: "0.2", step: "0.005",
     value: String(settings.soundVolume),
@@ -1336,6 +1352,10 @@ function generalSection(): HTMLElement {
     "section",
     {},
     h("h2", {}, h("span", { text: "General" })),
+    h("div", { class: "row" },
+      h("label", { text: "Language" }),
+      language,
+    ),
     h("div", { class: "row" },
       h("label", { text: "Sound" }),
       toggle(settings.soundEnabled, (v) => { settings.soundEnabled = v; void save(); }),
@@ -3375,9 +3395,17 @@ async function main() {
     State.settings = { ...State.settings, ...boot.settings };
     version = boot.version;
   }
+  setLanguage(resolveLanguage(settings.language, systemLanguages()));
   const status = (await Bridge.hooksStatus()) ?? {
     installed: false, settingsPath: "", hookPath: "", hookReady: false,
   };
+  let agents: Awaited<ReturnType<typeof Bridge.agentHooksList>> | null = null;
+  let agentError = "";
+  try {
+    agents = await Bridge.agentHooksList();
+  } catch (err) {
+    agentError = String(err).replace(/^Error:\s*/, "");
+  }
 
   let openRouterAccounts: OpenRouterAccount[] = [];
   let openRouterError: string | undefined;
@@ -3401,25 +3429,80 @@ async function main() {
   const present: Record<string, boolean> = {};
   for (const k of keys) present[k] = (await Bridge.secretPresent(k)) ?? false;
 
-  clear(root);
-  root.append(
-    h("h1", {}, h("span", { text: "Macha" }), h("span", { class: "version", text: version })),
-    voiceSetupSection(present, openRouterAccounts),
-    dictationSection(),
-    claudeSection(status),
-    avatarSection(),
-    apiSection(openRouterAccounts, ollamaStatus, present, openRouterError),
-    memorySection(),
-    workflowsSection(),
-    automationSection(),
-    gestureMouseSection(),
-    integrationsSection(present),
-    generalSection(),
-    h("div", {
-      class: "hint",
-      text: "No telemetry. Network requests only go to the services you configure yourself.",
-    }),
+  const voiceSetup = voiceSetupSection(present, openRouterAccounts);
+  const dictation = dictationSection();
+  const claude = claudeSection(status);
+  const externalAgents = agentsSection(agents, agentError);
+  const avatar = avatarSection();
+  const chat = apiSection(openRouterAccounts, ollamaStatus, present, openRouterError);
+  const memory = memorySection();
+  const workflows = workflowsSection();
+  const automation = automationSection();
+  const vision = gestureMouseSection();
+  const integrations = integrationsSection(present);
+  const general = generalSection();
+  const phone = phoneSection(settings.phoneLink ?? false, settings.phoneDetails ?? false, toggle);
+  const featureNotice = (title: string, message: string) => h(
+    "section",
+    { class: "hub-unavailable" },
+    h("h2", {}, h("span", { text: title })),
+    h("p", { class: "hint", text: message }),
   );
+
+  mountSettingsHub(root, {
+    dictation: { sections: [voiceSetup, dictation] },
+    notetaker: {
+      unavailable: "The Coucou Notetaker recording and transcript backend has not been ported to Macha yet.",
+    },
+    statistics: {
+      sections: [
+        featureNotice(
+          "Dictation statistics",
+          "Coucou's dictation totals and usage charts have not been ported. Macha's local weekly recap is shown below.",
+        ),
+        weeklyRecapSection(),
+      ],
+    },
+    dictionary: {
+      sections: [
+        featureNotice("Dictionary", "Macha's existing Nixi dictation settings include custom vocabulary and spoken-word replacements."),
+        dictation,
+      ],
+    },
+    snippets: {
+      unavailable: "Coucou's standalone text-snippet manager has not been ported to Macha yet.",
+    },
+    styles: {
+      sections: [
+        featureNotice("Styles", "Macha's existing Nixi dictation settings include per-application writing styles."),
+        dictation,
+      ],
+    },
+    "flow-settings": { sections: [general] },
+    general: { sections: [avatar, general] },
+    "active-pills": {
+      sections: [featureNotice(
+        "Active pills",
+        "Macha uses its own island and integration controls rather than Coucou's pill manager.",
+      )],
+    },
+    agents: {
+      sections: [
+        claude,
+        externalAgents,
+        featureNotice("Agent plan usage", "Codex and Claude plan-usage tracking has not been ported yet."),
+      ],
+    },
+    chat: { sections: [chat] },
+    voice: { sections: [voiceSetup] },
+    integrations: { sections: [integrations] },
+    phone: { sections: [phone] },
+    shortcuts: { sections: [dictation] },
+    memory: { sections: [memory] },
+    workflows: { sections: [workflows] },
+    automation: { sections: [automation] },
+    vision: { sections: [vision] },
+  }, version);
 
   void onEvent<Settings>("settings-changed", (s) => {
     settings = { ...settings, ...s };

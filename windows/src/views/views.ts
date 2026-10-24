@@ -6,11 +6,13 @@ import { h, svg, clear, dot } from "./dom";
 import { ICONS } from "./icons";
 import { Ticker } from "./ticker";
 import { State, type AgentTask } from "../core/state";
+import { Bridge, type RecapSnapshot } from "../core/bridge";
 import { washRGBA, type IslandViewName, type Wash } from "../core/layout";
 import { createMiniBot, pruneMiniBots } from "../macha/minibots";
 import { buildPrompt } from "./chat";
 import { buildChoose, buildUpload, buildUploading } from "./upload";
-import { renderIntegrationCard, type IntegrationCardHooks } from "./integrations";
+import { renderIntegrationCard, spotifyAction, type IntegrationCardHooks } from "./integrations";
+import { buildDiffCard } from "./diff";
 
 export interface ViewActions {
   setView(v: IslandViewName): void;
@@ -118,7 +120,11 @@ export function buildHeader(actions: ViewActions): ViewHost {
 // ── Overview ──────────────────────────────────────────────────────────────────
 
 function buildOverview(actions: ViewActions): ViewHost {
-  const ticker = new Ticker();
+  let selectedDiff: ReturnType<typeof State.findDiff> = null;
+  const ticker = new Ticker((id) => {
+    selectedDiff = State.focusId ? State.findDiff(State.focusId, id) : null;
+    State.notify();
+  });
   const who = h("div", { class: "who" });
   const tickerBody = h("div", { class: "card-body" }, who, ticker.el);
   const leftBody = h("div", { class: "left-body" });
@@ -139,7 +145,7 @@ function buildOverview(actions: ViewActions): ViewHost {
   let pillIds = "";
   let detailOpen = false;
   let lastFocus: string | null = null;
-  let mode: "ticker" | "card" | null = null;
+  let mode: "ticker" | "card" | "diff" | null = null;
   let cardKey = "";
 
   const hooks: IntegrationCardHooks = {
@@ -168,6 +174,7 @@ function buildOverview(actions: ViewActions): ViewHost {
       const task = State.focusTask;
       if (task?.id !== lastFocus) {
         lastFocus = task?.id ?? null;
+        selectedDiff = null;
         detailOpen = false;
         cardKey = "";
         mode = null;
@@ -178,7 +185,21 @@ function buildOverview(actions: ViewActions): ViewHost {
       const sessionActive =
         task?.id === "integration_claude" && (task.state !== "idle" || task.steps.length > 0);
 
-      if (task && sessionActive) {
+      if (selectedDiff) {
+        if (mode !== "diff") {
+          clear(leftBody);
+          leftBody.append(buildDiffCard(selectedDiff, {
+            dismiss: () => {
+              selectedDiff = null;
+              mode = null;
+              State.notify();
+            },
+            open: (path) => { void Bridge.openInVSCode(path); },
+          }));
+          mode = "diff";
+          cardKey = "";
+        }
+      } else if (task && sessionActive) {
         if (mode !== "ticker") {
           clear(leftBody);
           leftBody.append(tickerBody);
@@ -213,7 +234,7 @@ function buildOverview(actions: ViewActions): ViewHost {
         }
       }
 
-      jump.style.display = detailOpen ? "none" : "";
+      jump.style.display = detailOpen || selectedDiff ? "none" : "";
 
       const others = State.otherTasks.slice(0, 4);
       const pillKey = others.map((t) => `${t.id}:${t.pillBadge ?? ""}`).join("|");
@@ -223,6 +244,7 @@ function buildOverview(actions: ViewActions): ViewHost {
         for (const t of others) pills.append(buildPill(t, actions));
         pruneMiniBots();
       }
+      syncSpotifyPill(pills);
     },
   };
 }
@@ -230,11 +252,38 @@ function buildOverview(actions: ViewActions): ViewHost {
 function buildPill(task: AgentTask, actions: ViewActions): HTMLElement {
   const label = task.id === "integration_claude" ? "VS Code" : task.name;
   const canvas = createMiniBot(task, 24);
+  const isSpotify = task.id === "integration_spotify";
+  const spotifyControls = isSpotify
+    ? h("span", { class: "spotify-pill-controls" },
+      h("button", {
+        class: "spotify-pill-action spotify-pill-play",
+        type: "button",
+        title: "Play or pause",
+        "aria-label": "Play or pause",
+        onclick: (event: Event) => {
+          event.stopPropagation();
+          const playing = State.integrations.integration_spotify?.data.playing === true;
+          void spotifyAction(playing ? "pause" : "play");
+        },
+      }, svg("M8 5v14l11-7z", 9)),
+      h("button", {
+        class: "spotify-pill-action",
+        type: "button",
+        title: "Next track",
+        "aria-label": "Next track",
+        onclick: (event: Event) => {
+          event.stopPropagation();
+          void spotifyAction("next");
+        },
+      }, svg("M18 5v14M6 6v12l10-6L6 6z", 9)),
+    )
+    : null;
   const pill = h(
     "div",
-    { class: "pill", onclick: () => actions.setFocus(task.id) },
+    { class: isSpotify ? "pill spotify-pill" : "pill", onclick: () => actions.setFocus(task.id) },
     canvas,
     h("span", { class: "lbl", text: label }),
+    spotifyControls,
   );
   pill.style.borderColor = `${task.color}24`;
   pill.addEventListener("mouseenter", () => {
@@ -259,6 +308,15 @@ function buildPill(task: AgentTask, actions: ViewActions): HTMLElement {
     pill.append(badge);
   }
   return pill;
+}
+
+function syncSpotifyPill(pills: HTMLElement) {
+  const play = pills.querySelector<HTMLElement>(".spotify-pill-play");
+  if (!play) return;
+  const playing = State.integrations.integration_spotify?.data.playing === true;
+  clear(play);
+  play.append(svg(playing ? "M7 5h4v14H7zM15 5h4v14h-4z" : "M8 5v14l11-7z", 9));
+  play.title = playing ? "Pause" : "Play";
 }
 
 function lighten(hex: string, amount: number): string {
@@ -482,6 +540,69 @@ function buildPlaceholder(title: string, sub: string): ViewHost {
   return { el: h("div", { class: "view" }, card(null, body)), sync() {} };
 }
 
+function buildRecap(): ViewHost {
+  const content = h("div", { class: "recap-content" });
+  const status = h("div", { class: "recap-status", text: "Loading weekly recap…" });
+  const refresh = async () => {
+    status.textContent = "Loading weekly recap…";
+    try {
+      const snapshot = await Bridge.recapSnapshot();
+      render(snapshot);
+    } catch (error) {
+      status.textContent = `Could not load weekly recap: ${String(error)}`;
+    }
+  };
+
+  const render = (snapshot: RecapSnapshot) => {
+    clear(content);
+    const metric = (label: string, value: number) =>
+      h("div", { class: "recap-metric" }, h("b", { text: String(value) }), h("span", { text: label }));
+    content.append(
+      h("div", { class: "recap-grid" },
+        metric("Sessions", snapshot.sessions),
+        metric("Files changed", snapshot.filesChanged),
+        metric("Lines added", snapshot.linesAdded),
+        metric("Lines removed", snapshot.linesRemoved),
+        metric("Commands", snapshot.commandsRun),
+        metric("Approvals", snapshot.permissionsAllowed),
+        metric("Denied", snapshot.permissionsDenied),
+      ),
+      h("div", { class: "recap-actions" },
+        h("button", {
+          class: "btn secondary",
+          text: snapshot.enabled ? "Pause history" : "Resume history",
+          onclick: () => {
+            void Bridge.recapSetEnabled(!snapshot.enabled).then(refresh).catch((error: unknown) => {
+              status.textContent = `Could not update recap settings: ${String(error)}`;
+            });
+          },
+        }),
+        h("button", {
+          class: "btn secondary",
+          text: "Clear history",
+          onclick: () => {
+            void Bridge.recapClear().then(refresh).catch((error: unknown) => {
+              status.textContent = `Could not clear recap history: ${String(error)}`;
+            });
+          },
+        }),
+      ),
+    );
+    status.textContent = "Last 7 days · Counts stay on this device.";
+  };
+
+  const body = h("div", { class: "stack recap-stack" },
+    h("div", { class: "title", text: "Weekly recap" }),
+    status,
+    content,
+    h("button", { class: "btn secondary recap-refresh", text: "Refresh", onclick: () => void refresh() }),
+  );
+  return {
+    el: h("div", { class: "view recap-view" }, card(null, body)),
+    sync() { if (!content.childElementCount) void refresh(); },
+  };
+}
+
 // ── Registry ──────────────────────────────────────────────────────────────────
 
 export function buildViews(
@@ -498,6 +619,7 @@ export function buildViews(
   map.set("confused", buildConfused());
   map.set("note", buildNote());
   map.set("settings", buildSettings(actions));
+  map.set("recap", buildRecap());
   map.set("prompt", buildPrompt(onChatHeightChange));
   map.set("upload", buildUpload(actions));
   map.set("uploading", buildUploading());

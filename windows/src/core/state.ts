@@ -2,6 +2,7 @@
 
 import type { BotEmoteName, BotStateName, IslandMode, IslandViewName } from "./layout";
 import type { EyeShape } from "../macha/engine";
+import type { FileDiff } from "./diff";
 
 export type AgentSource = "claudeCode" | "n8n" | "agent";
 export type PillBadge = "approval" | "finished" | "error";
@@ -158,6 +159,7 @@ export interface DictationAppStyle {
 }
 
 export interface Settings {
+  language: string;
   avatar: AvatarChoice;
   soundEnabled: boolean;
   soundVolume: number;
@@ -191,11 +193,14 @@ export interface Settings {
   dictationVocabulary: string[];
   dictationReplacements: DictationReplacement[];
   dictationAppStyles: DictationAppStyle[];
+  phoneLink?: boolean;
+  phoneDetails?: boolean;
   /** Kept to read settings.json files written by earlier Windows builds. */
   spokenReplies: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
+  language: "",
   avatar: "macha",
   soundEnabled: true,
   soundVolume: 0.12,
@@ -274,6 +279,9 @@ class AppState {
   pendingApproval: ApprovalInfo | null = null;
 
   integrations: Record<string, IntegrationInfo> = {};
+  sessionDiffs = new Map<string, FileDiff[]>();
+  private sessionDiffTimers = new Map<string, number>();
+  private nextDiffId = 0;
 
   lastActivity = performance.now();
 
@@ -427,6 +435,32 @@ class AppState {
     if (t.steps.length > 20) t.steps.shift();
     t.stepIndex = t.steps.length - 1;
     this.notify();
+  }
+
+  appendSessionDiff(pillId: string, diff: FileDiff): number {
+    const id = this.nextDiffId++;
+    const list = this.sessionDiffs.get(pillId) ?? [];
+    list.push({ ...diff, id });
+    if (list.length > 50) list.shift();
+    this.sessionDiffs.set(pillId, list);
+    const timer = this.sessionDiffTimers.get(pillId);
+    if (timer != null) window.clearTimeout(timer);
+    this.sessionDiffTimers.set(
+      pillId,
+      window.setTimeout(() => this.clearSessionDiffs(pillId), 3_600_000),
+    );
+    return id;
+  }
+
+  findDiff(pillId: string, id: number): FileDiff | null {
+    return this.sessionDiffs.get(pillId)?.find((diff) => diff.id === id) ?? null;
+  }
+
+  clearSessionDiffs(pillId: string) {
+    const timer = this.sessionDiffTimers.get(pillId);
+    if (timer != null) window.clearTimeout(timer);
+    this.sessionDiffTimers.delete(pillId);
+    this.sessionDiffs.delete(pillId);
   }
 
   setPillBadge(id: string, badge: PillBadge | null) {

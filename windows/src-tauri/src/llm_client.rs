@@ -1132,7 +1132,7 @@ async fn send_json(
     } else if provider == "openrouter" {
         request = request
             .bearer_auth(credential)
-            .header("HTTP-Referer", "https://github.com/Louis-CFM/macha")
+            .header("HTTP-Referer", "https://github.com/dev-praj/Macha_by_Prajwal.git")
             .header("X-Title", "Macha");
     } else if provider == "claude" {
         request = request
@@ -1214,7 +1214,7 @@ async fn send_json_stream(
     } else if provider == "openrouter" {
         request = request
             .bearer_auth(credential)
-            .header("HTTP-Referer", "https://github.com/Louis-CFM/macha")
+            .header("HTTP-Referer", "https://github.com/dev-praj/Macha_by_Prajwal.git")
             .header("X-Title", "Macha");
     } else if provider == "claude" {
         request = request

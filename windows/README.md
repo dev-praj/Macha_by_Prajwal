@@ -61,6 +61,15 @@ wants to keep. Review and remove those entries separately if desired.
 | `Esc` | Closes the island |
 | Tray icon | Open, Settings…, Pause, Quit |
 
+**Settings…** opens Macha's hub with Flow, Notch, and Macha navigation on the
+left. Existing Macha settings—including Nixi dictation, agents, chat, memory,
+workflows, automation, integrations, and Vision Mode—remain available as
+separate pages. The weekly recap is also available under **Flow → Statistics**.
+The upstream Notetaker, dictation statistics, standalone snippets manager,
+active-pill manager, agent plan-usage tracking, and Android phone-link service
+are not yet ported; their pages are identified as unavailable instead of
+showing nonfunctional controls.
+
 Everything else happens on its own: a Claude Code permission request opens the
 island with **Deny / Allow**, a finished session shows what it did, and
 your integrations sit in the coloured pills next to Macha.
@@ -85,6 +94,33 @@ never blocked or slowed down by Macha.** If nobody answers a permission request
 in time, Macha stays quiet and Claude Code asks in the terminal as usual.
 
 It works from any terminal — Windows Terminal, PowerShell, VS Code, Git Bash.
+
+### Live file diffs
+
+When a Claude Code `Edit`, `MultiEdit`, or `Write` completes, its file appears
+as a clickable step in the session ticker with added and removed line counts.
+Click the step to review a context diff in the island, or open the file in VS
+Code. Diffs stay in memory, are limited to 50 per session, and expire after an
+hour without another edit. Very large hook payloads are omitted rather than
+shown as incomplete diffs.
+
+## Weekly recap and languages
+
+**Tray → Weekly recap** shows locally counted Claude Code sessions, file edits,
+line changes, shell commands, and approval decisions from the last seven days.
+Only daily totals are persisted in `%LOCALAPPDATA%\Macha\weekly-recap.json`;
+prompts, commands, file paths, and file contents are not stored. The recap card
+lets you pause or clear its history.
+
+**Settings → General → Language** supports English, Simplified Chinese, Hindi,
+Spanish, Arabic, French, Bengali, Brazilian Portuguese, Russian, Indonesian,
+German, and Turkish. **System language** follows the Windows/WebView language
+when supported and otherwise uses English. Strings without a translation remain
+in English.
+
+Macha’s existing **Nixi dictation** already includes local Whisper transcription,
+custom vocabulary, spoken-word replacements, and per-application writing styles;
+these remain available alongside the new recap and language settings.
 
 ## LLM providers
 

@@ -336,7 +336,11 @@ function spotifyTrack(value: unknown): SpotifyTrack | null {
   return {
     name: value.name,
     artists: value.artists,
+    album: "album" in value && typeof value.album === "string" ? value.album : "",
     durationMs: value.durationMs,
+    artworkDataUrl: "artworkDataUrl" in value && typeof value.artworkDataUrl === "string"
+      ? value.artworkDataUrl
+      : null,
   };
 }
 
@@ -346,6 +350,10 @@ function spotifySnapshot(): SpotifySnapshot {
     connected: data.connected === true,
     playing: data.playing === true,
     progressMs: typeof data.progressMs === "number" ? data.progressMs : 0,
+    shuffle: data.shuffle === true,
+    repeat: data.repeat === true,
+    volume: typeof data.volume === "number" ? Math.max(0, Math.min(100, data.volume)) : 50,
+    spotifyApp: data.spotifyApp === true,
     track: spotifyTrack(data.track),
   };
 }
@@ -358,12 +366,12 @@ function wait(milliseconds: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
-async function spotifyAction(
-  action: "play" | "pause" | "next" | "previous" | "seek",
-  positionMs?: number,
+export async function spotifyAction(
+  action: "play" | "pause" | "next" | "previous" | "seek" | "shuffle" | "repeat" | "volume",
+  value?: number,
 ): Promise<void> {
   try {
-    await Bridge.spotifyControl(action, positionMs);
+    await Bridge.spotifyControl(action, value);
     const info = State.integrations.integration_spotify;
     if (info) info.error = null;
   } catch (error) {
@@ -479,7 +487,7 @@ function spotifyCard(): HTMLElement {
     return h(
       "div",
       { class: "int-card spotify-card" },
-      header("#1DB954", "Music", "Windows media"),
+      header("#1DB954", "Spotify", "Windows media"),
       h("div", {
         class: "int-status",
         text: error ?? (data.connected
@@ -491,6 +499,13 @@ function spotifyCard(): HTMLElement {
           class: "link-btn",
           text: "Refresh",
           onclick: () => void Bridge.refreshIntegration("integration_spotify"),
+        }),
+        h("button", {
+          class: "link-btn",
+          text: "Open Spotify",
+          onclick: () => void Bridge.openSpotify().catch((openError: unknown) => {
+            console.error("[macha] could not open Spotify", openError);
+          }),
         }),
       ),
     );
@@ -517,6 +532,14 @@ function spotifyCard(): HTMLElement {
   });
   const controls = h("div", { class: "spotify-controls" },
     h("button", {
+      class: `spotify-skip spotify-flag${data.shuffle ? " is-on" : ""}`,
+      type: "button",
+      title: data.shuffle ? "Turn shuffle off" : "Turn shuffle on",
+      "aria-label": data.shuffle ? "Turn shuffle off" : "Turn shuffle on",
+      disabled: !data.spotifyApp,
+      onclick: () => void spotifyAction("shuffle", data.shuffle ? 0 : 1),
+    }, spotifyIcon("M3 7h2.5c3.5 0 4.5 10 8 10H21m-4-4 4 4-4 4M3 17h2.5c1.1 0 2-1.2 2.8-2.7M14 9.7c.7-1.4 1.5-2.7 2.5-2.7H21m-4-4 4 4-4 4", 15)),
+    h("button", {
       class: "spotify-skip",
       type: "button",
       title: "Previous track",
@@ -537,32 +560,66 @@ function spotifyCard(): HTMLElement {
       "aria-label": "Next track",
       onclick: () => void spotifyAction("next"),
     }, spotifyIcon(MUSIC_ICONS.next)),
+    h("button", {
+      class: `spotify-skip spotify-flag${data.repeat ? " is-on" : ""}`,
+      type: "button",
+      title: data.repeat ? "Turn repeat off" : "Turn repeat on",
+      "aria-label": data.repeat ? "Turn repeat off" : "Turn repeat on",
+      disabled: !data.spotifyApp,
+      onclick: () => void spotifyAction("repeat", data.repeat ? 0 : 1),
+    }, spotifyIcon("M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4m14-1v2a3 3 0 0 1-3 3H3", 15)),
   );
 
   const artwork = h("div", {
     class: `spotify-artwork spotify-artwork-empty${data.playing ? " is-playing" : ""}`,
-    text: "♪",
-  });
+    title: "Open Spotify",
+    onclick: () => void Bridge.openSpotify(),
+  }, track.artworkDataUrl
+    ? h("img", { class: "spotify-artwork-image", src: track.artworkDataUrl, alt: "" })
+    : h("span", { text: "♪" }));
   const nowPlaying = h("div", { class: "spotify-now-playing" },
     artwork,
     h("div", { class: "spotify-track" },
       h("b", { text: track.name }),
       h("span", { text: track.artists }),
+      track.album ? h("span", { text: track.album }) : null,
     ),
   );
   const timeline = h("div", { class: "spotify-timeline" },
     h("span", { text: formatPlaybackTime(data.progressMs) }),
     seek,
-    h("span", { text: formatPlaybackTime(track.durationMs) }),
+    h("span", { text: `-${formatPlaybackTime(Math.max(0, track.durationMs - data.progressMs))}` }),
+  );
+  const volume = h("input", {
+    class: "spotify-volume",
+    type: "range",
+    min: "0",
+    max: "100",
+    step: "1",
+    value: String(data.volume),
+    "aria-label": "Spotify volume",
+    disabled: !data.spotifyApp,
+    oninput: (event: Event) => {
+      const input = event.target as HTMLInputElement;
+      input.style.setProperty("--spotify-volume", `${input.value}%`);
+    },
+    onchange: (event: Event) => void spotifyAction("volume", Number((event.target as HTMLInputElement).value)),
+  }) as HTMLInputElement;
+  volume.style.setProperty("--spotify-volume", `${data.volume}%`);
+  const volumeRow = h("div", { class: "spotify-volume-row" },
+    h("span", { class: "spotify-volume-label", text: "Volume" }),
+    volume,
+    h("span", { class: "spotify-volume-value", text: `${data.volume}%` }),
   );
   return h(
     "div",
     { class: "int-card spotify-card" },
-    header("#1DB954", "Music", error ? "Status unavailable" : "Now playing"),
+    header("#1DB954", "Spotify", error ? "Status unavailable" : data.spotifyApp ? "Now playing" : "Windows media"),
     error ? h("div", { class: "int-status", text: error }) : null,
     nowPlaying,
     timeline,
     controls,
+    volumeRow,
   );
 }
 
