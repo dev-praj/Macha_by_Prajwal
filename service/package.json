@@ -1,0 +1,19 @@
+{
+  "name": "macha-account-service",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "start": "node src/server.mjs",
+    "check": "node --check src/server.mjs"
+  },
+  "dependencies": {
+    "@github/copilot-sdk": "1.0.28"
+  },
+  "overrides": {
+    "zod": "4.6.6"
+  }
+}

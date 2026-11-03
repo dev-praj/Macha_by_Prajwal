@@ -1,8 +1,10 @@
 // Macha for Windows — app wiring and the commands the island calls.
 
 mod automation;
+mod ai_provider;
 mod agent_hooks;
 mod agent_text;
+mod api_service;
 mod agents;
 mod claude;
 mod config_file;
@@ -942,6 +944,10 @@ pub fn run() {
             remote_mode::remote_revoke_device,
             remote_mode::remote_sign_out,
             remote_mode::remote_delete_account,
+            remote_mode::copilot_device_start,
+            remote_mode::copilot_device_poll,
+            remote_mode::copilot_accounts,
+            remote_mode::copilot_disconnect,
             notetaker::notes_state,
             notetaker::notes_start,
             notetaker::notes_stop,

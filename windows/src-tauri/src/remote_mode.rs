@@ -192,6 +192,10 @@ pub async fn remote_sign_in(window: WebviewWindow) -> Result<RemoteStatus, Strin
     let body: Value = response.json().await.unwrap_or(Value::Null);
     if !status.is_success() { return Err(format!("Supabase sign-in failed (HTTP {}): {}", status.as_u16(), error_text(&body))); }
     let session = parse_session(&body)?;
+    // The app service verifies the Supabase access token and upserts the
+    // account under Google's stable provider ID. Tokens stay in Rust and are
+    // never returned to the webview.
+    crate::api_service::register_google_user(&session.access).await?;
     // Persist a completed Google login before calling the device RPC. Registration
     // can fail transiently (or before migrations are installed); that must not turn
     // a successful OAuth callback into an apparent sign-out.
@@ -251,6 +255,80 @@ pub async fn remote_devices(window: WebviewWindow) -> Result<Vec<RemoteDevice>, 
         secrets::set_internal("remote-device-status", status)?;
     }
     Ok(devices)
+}
+
+#[tauri::command]
+pub async fn copilot_device_start(window: WebviewWindow) -> Result<Value, String> {
+    only_settings(&window)?;
+    let (url, key) = project()?;
+    let client = client()?;
+    let session = refresh(&client, &url, &key).await?;
+    crate::api_service::copilot_start(&session.access).await
+}
+
+#[tauri::command]
+pub async fn copilot_device_poll(window: WebviewWindow, flow_id: String) -> Result<Value, String> {
+    only_settings(&window)?;
+    let (url, key) = project()?;
+    let client = client()?;
+    let session = refresh(&client, &url, &key).await?;
+    crate::api_service::copilot_poll(&session.access, &flow_id).await
+}
+
+#[tauri::command]
+pub async fn copilot_accounts(window: WebviewWindow) -> Result<Value, String> {
+    only_settings(&window)?;
+    let (url, key) = project()?;
+    let client = client()?;
+    let session = refresh(&client, &url, &key).await?;
+    crate::api_service::copilot_accounts(&session.access).await
+}
+
+#[tauri::command]
+pub async fn copilot_disconnect(window: WebviewWindow, account_id: String) -> Result<(), String> {
+    only_settings(&window)?;
+    if account_id.len() != 36 || !account_id.chars().all(|c| c.is_ascii_hexdigit() || c == '-') {
+        return Err("Copilot account ID is invalid.".into());
+    }
+    let (url, key) = project()?;
+    let client = client()?;
+    let session = refresh(&client, &url, &key).await?;
+    crate::api_service::copilot_disconnect(&session.access, &account_id).await
+}
+
+pub(crate) async fn copilot_provider_completion(
+    body: &Value,
+    cancel: &mut tokio::sync::watch::Receiver<bool>,
+) -> Result<Value, String> {
+    let (url, key) = project()?;
+    let client = client()?;
+    let session = refresh(&client, &url, &key).await?;
+    tokio::select! {
+        result = crate::api_service::copilot_provider_completion(&session.access, body) => result,
+        changed = cancel.changed() => {
+            if changed.is_err() || *cancel.borrow() { Err("Request cancelled.".into()) }
+            else { Err("Copilot request was interrupted.".into()) }
+        }
+    }
+}
+
+pub(crate) async fn copilot_provider_status() -> Result<Value, String> {
+    let (url, key) = project()?;
+    let client = client()?;
+    let session = refresh(&client, &url, &key).await?;
+    crate::api_service::copilot_provider_accounts(&session.access).await
+}
+
+pub(crate) async fn copilot_provider_stream(
+    body: &Value,
+    cancel: &mut tokio::sync::watch::Receiver<bool>,
+    deltas: &tokio::sync::mpsc::UnboundedSender<String>,
+    emitted_text: &mut bool,
+) -> Result<Value, String> {
+    let (url, key) = project()?;
+    let client = client()?;
+    let session = refresh(&client, &url, &key).await?;
+    crate::api_service::copilot_provider_stream(&session.access, body, cancel, deltas, emitted_text).await
 }
 
 /// Finds approved account peers for the Windows message tunnel. This stays

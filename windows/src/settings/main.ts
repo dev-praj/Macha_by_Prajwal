@@ -10,6 +10,7 @@ import {
   type HookStatus,
   type MemoryRecord,
   type OllamaStatus,
+  type CopilotAccount,
   type OpenRouterAccount,
   type SavedWorkflow,
 } from "../core/bridge";
@@ -220,15 +221,24 @@ const MODELS: [string, string][] = [
 
 function apiSection(
   initialAccounts: OpenRouterAccount[],
+  initialCopilotAccounts: CopilotAccount[],
   initialOllamaStatus: OllamaStatus,
   providerKeysPresent: Record<string, boolean>,
   accountLoadError?: string,
 ): HTMLElement {
   let accounts = initialAccounts;
+  let copilotAccounts = initialCopilotAccounts;
   let ollama = initialOllamaStatus;
   const dot = statusDot(accounts.length > 0 || ollama.reachable);
   const state = h("span", { class: "hint" });
   const feedback = h("div", {});
+  const copilotFeedback = h("div", {});
+  const copilotDot = statusDot(copilotAccounts.some((account) => account.status === "connected"));
+  const copilotState = h("span", { class: "hint" });
+  const copilotAccountsPanel = h("div", { class: "openrouter-accounts", style: "display:none" });
+  const copilotToggleAccounts = h("button", { text: "View connected accounts" });
+  const copilotConnect = h("button", { class: "primary", text: "Connect with GitHub" });
+  const copilotAdd = h("button", { class: "primary", text: "+ Add account" });
   const accountsPanel = h("div", { class: "openrouter-accounts", style: "display:none" });
   const toggleAccounts = h("button", { text: "View uploaded keys" });
   const addButton = h("button", { class: "primary", text: "+ Add account" });
@@ -260,6 +270,129 @@ function apiSection(
       saveAccount,
     ),
   );
+
+  function updateCopilotState() {
+    const connected = copilotAccounts.filter((account) => account.status === "connected").length;
+    const reconnect = copilotAccounts.filter((account) => account.status === "needs_reconnect").length;
+    const active = copilotAccounts.filter((account) => account.subscriptionStatus === "active").length;
+    copilotDot.style.background = active ? "#22c55e" : connected || reconnect ? "#f59e0b" : "#f4505e";
+    copilotState.textContent = copilotAccounts.length
+      ? `${connected} connected account${connected === 1 ? "" : "s"}${reconnect ? ` · ${reconnect} need reconnect` : ""}.`
+      : "No GitHub Copilot accounts connected.";
+    copilotToggleAccounts.textContent = copilotAccountsPanel.style.display === "none"
+      ? "View connected accounts"
+      : "Hide connected accounts";
+  }
+
+  function renderCopilotAccounts() {
+    clear(copilotAccountsPanel);
+    for (const account of copilotAccounts) {
+      const reconnecting = account.status === "needs_reconnect";
+      const reconnectButton = h("button", { class: "primary", text: "Reconnect" });
+      const disconnectButton = h("button", { class: "danger", text: "Disconnect" });
+      const subscriptionText = account.subscriptionStatus === "active"
+        ? "Copilot subscription active"
+        : account.subscriptionStatus === "inactive"
+          ? "No active Copilot subscription detected."
+          : "Copilot subscription could not be confirmed.";
+      const identity = h("div", { class: "openrouter-account-name", text: account.login });
+      const statusLine = h("div", { class: "hint", text: reconnecting ? "Needs reconnect" : subscriptionText });
+      const plansButton = h("button", { text: "View GitHub Copilot plans" });
+      plansButton.addEventListener("click", () => { void Bridge.openUrl("https://github.com/features/copilot/plans"); });
+      reconnectButton.addEventListener("click", () => { void beginCopilotDeviceFlow(); });
+      disconnectButton.addEventListener("click", async () => {
+        if (!confirm(`Disconnect GitHub Copilot account ${account.login}?`)) return;
+        disconnectButton.disabled = true;
+        clear(copilotFeedback);
+        try {
+          await Bridge.copilotDisconnect(account.id);
+          copilotAccounts = copilotAccounts.filter((item) => item.id !== account.id);
+          renderCopilotAccounts();
+          updateCopilotState();
+          copilotFeedback.append(h("div", { class: "notice ok", text: "GitHub Copilot account disconnected." }));
+        } catch (error) {
+          disconnectButton.disabled = false;
+          copilotFeedback.append(h("div", { class: "notice err", text: `Could not disconnect Copilot: ${String(error).replace(/^Error:\s*/, "")}` }));
+        }
+      });
+      const actions = h("div", { class: "row openrouter-account-key" },
+        ...(reconnecting ? [reconnectButton] : []),
+        disconnectButton,
+        ...(account.subscriptionStatus !== "active" ? [plansButton] : []),
+      );
+      copilotAccountsPanel.append(h("div", { class: "openrouter-account" }, identity, statusLine, actions));
+    }
+  }
+
+  async function beginCopilotDeviceFlow() {
+    copilotConnect.disabled = true;
+    copilotAdd.disabled = true;
+    clear(copilotFeedback);
+    try {
+      const flow = await Bridge.copilotDeviceStart();
+      const code = h("strong", { text: flow.userCode });
+      const openVerification = h("button", { class: "primary", text: "Open verification link" });
+      openVerification.addEventListener("click", () => { void Bridge.openUrl(flow.verificationUri); });
+      copilotFeedback.append(h("div", { class: "notice warn" },
+        h("div", { text: "Enter this code on GitHub to connect your Copilot account:" }),
+        code,
+        h("div", { class: "row" }, h("span", { class: "hint", text: flow.verificationUri }), openVerification),
+      ));
+      const deadline = Date.now() + flow.expiresIn * 1000;
+      while (Date.now() < deadline) {
+        await new Promise((resolve) => window.setTimeout(resolve, Math.max(1000, flow.interval * 1000)));
+        const result = await Bridge.copilotDevicePoll(flow.flowId);
+        if (result.status === "pending") continue;
+        if (result.status !== "connected") {
+          copilotFeedback.append(h("div", { class: "notice err", text: "GitHub authorization expired or was denied. Start the connection again." }));
+          return;
+        }
+        copilotAccounts = await Bridge.copilotAccounts();
+        renderCopilotAccounts();
+        updateCopilotState();
+        if (result.account.subscriptionStatus === "active") {
+          copilotFeedback.append(h("div", { class: "notice ok", text: `GitHub Copilot connected for ${result.account.login}. Subscription verified.` }));
+        } else if (result.account.subscriptionStatus === "inactive") {
+          const plans = h("button", { text: "View GitHub Copilot plans" });
+          plans.addEventListener("click", () => { void Bridge.openUrl("https://github.com/features/copilot/plans"); });
+          copilotFeedback.append(h("div", { class: "notice warn" },
+            h("div", { text: `GitHub account ${result.account.login} has no active Copilot subscription.` }),
+            plans,
+          ));
+        } else {
+          copilotFeedback.append(h("div", { class: "notice warn", text: `GitHub Copilot connected for ${result.account.login}, but the subscription could not be verified. You can reconnect or check your Copilot plans.` }));
+        }
+        return;
+      }
+      copilotFeedback.append(h("div", { class: "notice err", text: "GitHub device code expired. Start the connection again." }));
+    } catch (error) {
+      copilotFeedback.append(h("div", { class: "notice err", text: `Could not connect GitHub Copilot: ${String(error).replace(/^Error:\s*/, "")}` }));
+    } finally {
+      copilotConnect.disabled = false;
+      copilotAdd.disabled = false;
+    }
+  }
+
+  copilotConnect.addEventListener("click", () => { void beginCopilotDeviceFlow(); });
+  copilotAdd.addEventListener("click", () => { void beginCopilotDeviceFlow(); });
+  copilotToggleAccounts.addEventListener("click", async () => {
+    clear(copilotFeedback);
+    if (copilotAccountsPanel.style.display !== "none") {
+      copilotAccountsPanel.style.display = "none";
+      updateCopilotState();
+      return;
+    }
+    try {
+      copilotAccounts = await Bridge.copilotAccounts();
+      renderCopilotAccounts();
+      copilotAccountsPanel.style.display = "";
+      updateCopilotState();
+    } catch (error) {
+      copilotFeedback.append(h("div", { class: "notice err", text: `Could not load Copilot accounts: ${String(error).replace(/^Error:\s*/, "")}` }));
+    }
+  });
+  renderCopilotAccounts();
+  updateCopilotState();
 
   function updateState() {
     dot.style.background = accounts.length || ollama.reachable ? "#22c55e" : "#f4505e";
@@ -571,6 +704,15 @@ function apiSection(
     h("div", { class: "row" }, connectButton, addButton, toggleAccounts),
     addForm,
     accountsPanel,
+    h("h3", {}, copilotDot, h("span", { text: "GitHub Copilot" })),
+    copilotState,
+    h("p", {
+      class: "hint",
+      text: "Connect your GitHub account to use its Copilot subscription. GitHub authorization uses a device code; account tokens stay encrypted in the Macha service.",
+    }),
+    h("div", { class: "row" }, copilotConnect, copilotAdd, copilotToggleAccounts),
+    copilotAccountsPanel,
+    copilotFeedback,
     h("div", { class: "row" }, h("label", { text: "Model" }), model),
     h("p", { class: "hint", text: "Automatic selects a suitable free model for each fallback prompt. You can choose any listed model to pin it instead. Some providers may retain prompts; avoid sending sensitive data to models you do not trust." }),
     feedback,
@@ -3453,12 +3595,18 @@ async function main() {
   }
 
   let openRouterAccounts: OpenRouterAccount[] = [];
+  let connectedCopilotAccounts: CopilotAccount[] = [];
   let openRouterError: string | undefined;
   let ollamaStatus: OllamaStatus = { reachable: false, models: [], error: "Ollama status has not been checked." };
   try {
     openRouterAccounts = await Bridge.openRouterAccounts();
   } catch (err) {
     openRouterError = String(err);
+  }
+  try {
+    connectedCopilotAccounts = await Bridge.copilotAccounts();
+  } catch {
+    // The card loads accounts on demand and reports service errors there.
   }
   try {
     ollamaStatus = await Bridge.ollamaStatus();
@@ -3480,7 +3628,7 @@ async function main() {
   const claude = claudeSection(status);
   const externalAgents = agentsSection(agents, agentError);
   const avatar = avatarSection();
-  const chat = apiSection(openRouterAccounts, ollamaStatus, present, openRouterError);
+  const chat = apiSection(openRouterAccounts, connectedCopilotAccounts, ollamaStatus, present, openRouterError);
   const memory = memorySection();
   const workflows = workflowsSection();
   const automation = automationSection();

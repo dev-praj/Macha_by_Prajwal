@@ -43,6 +43,26 @@ export interface OpenRouterAccount {
   authMode: "api_key" | "oauth";
 }
 
+export interface CopilotAccount {
+  id: string;
+  login: string;
+  status: "connected" | "needs_reconnect";
+  subscriptionStatus: "unverified" | "active" | "inactive";
+}
+
+export interface CopilotDeviceFlow {
+  flowId: string;
+  userCode: string;
+  verificationUri: string;
+  expiresIn: number;
+  interval: number;
+}
+
+export type CopilotDevicePoll =
+  | { status: "pending"; retryAfter: number }
+  | { status: "expired" | "needs_reconnect" }
+  | { status: "connected"; account: CopilotAccount };
+
 export interface MessageNotification {
   id: string;
   appName: string;
@@ -369,6 +389,13 @@ export const Bridge = {
     callOrThrow<void>("openrouter_account_remove", { id }),
   openRouterAccountReveal: (id: string) =>
     callOrThrow<string>("openrouter_account_reveal", { id }),
+  copilotDeviceStart: () => callOrThrow<CopilotDeviceFlow>("copilot_device_start"),
+  copilotDevicePoll: (flowId: string) => callOrThrow<CopilotDevicePoll>("copilot_device_poll", { flowId }),
+  copilotAccounts: async () => {
+    const result = await callOrThrow<{ accounts: CopilotAccount[] }>("copilot_accounts");
+    return result.accounts;
+  },
+  copilotDisconnect: (id: string) => callOrThrow<void>("copilot_disconnect", { accountId: id }),
 
   // ── Integrations ──────────────────────────────────────────────────────────
   refreshIntegration: (id: string) => call<void>("refresh_integration", { id }),

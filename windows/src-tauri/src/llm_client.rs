@@ -79,14 +79,14 @@ impl ProviderMode {
 }
 
 #[derive(Debug)]
-struct ProviderError {
-    message: String,
-    retry_openrouter: bool,
-    status: Option<StatusCode>,
+pub(crate) struct ProviderError {
+    pub(crate) message: String,
+    pub(crate) retry_openrouter: bool,
+    pub(crate) status: Option<StatusCode>,
 }
 
 impl ProviderError {
-    fn local(message: impl Into<String>, retry_openrouter: bool) -> Self {
+    pub(crate) fn local(message: impl Into<String>, retry_openrouter: bool) -> Self {
         Self {
             message: message.into(),
             retry_openrouter,
@@ -156,6 +156,71 @@ pub async fn phone_chat(
         .ok_or_else(|| "The provider returned an empty reply.".into())
 }
 
+async fn available_copilot_accounts(mode: ProviderMode) -> Vec<String> {
+    if mode != ProviderMode::Auto {
+        return Vec::new();
+    }
+    let accounts = match tokio::time::timeout(
+        Duration::from_secs(4),
+        crate::remote_mode::copilot_provider_status(),
+    )
+    .await
+    {
+        Ok(Ok(accounts)) => accounts,
+        Ok(Err(_)) | Err(_) => {
+            crate::log::line("Copilot service unavailable; continuing with the existing provider fallback");
+            return Vec::new();
+        }
+    };
+    let account_ids = crate::ai_provider::active_copilot_accounts(&accounts);
+    let route = crate::ai_provider::automatic_provider_order(!account_ids.is_empty());
+    if route.first() == Some(&crate::ai_provider::ProviderKind::Copilot) {
+        account_ids
+    } else {
+        Vec::new()
+    }
+}
+
+async fn copilot_complete_accounts(
+    accounts: Vec<String>,
+    request: crate::ai_provider::CompletionRequest,
+    cancel: &mut watch::Receiver<bool>,
+) -> Result<Option<crate::ai_provider::ProviderResponse>, ProviderError> {
+    use crate::ai_provider::AiProvider;
+    for account_id in accounts {
+        let provider = crate::ai_provider::CopilotProvider { account_id };
+        match provider.complete(request.clone(), cancel).await {
+            Ok(reply) => return Ok(Some(reply)),
+            Err(error) if error.message == "Request cancelled." => return Err(error),
+            Err(_) => continue,
+        }
+    }
+    Ok(None)
+}
+
+async fn copilot_stream_accounts(
+    accounts: Vec<String>,
+    request: crate::ai_provider::CompletionRequest,
+    cancel: &mut watch::Receiver<bool>,
+    deltas: &tokio::sync::mpsc::UnboundedSender<String>,
+    emitted_text: &mut bool,
+) -> Result<Option<crate::ai_provider::ProviderResponse>, ProviderError> {
+    use crate::ai_provider::AiProvider;
+    for account_id in accounts {
+        let provider = crate::ai_provider::CopilotProvider { account_id };
+        match provider
+            .stream(request.clone(), cancel, deltas, emitted_text)
+            .await
+        {
+            Ok(reply) => return Ok(Some(reply)),
+            Err(error) if error.message == "Request cancelled." => return Err(error),
+            Err(error) if *emitted_text => return Err(error),
+            Err(_) => continue,
+        }
+    }
+    Ok(None)
+}
+
 pub async fn chat(
     messages: Vec<Value>,
     tools: Option<Value>,
@@ -175,6 +240,76 @@ pub async fn chat(
             model: actual_model,
             fallback_notice: None,
         });
+    }
+    let copilot_accounts = available_copilot_accounts(mode).await;
+    if !copilot_accounts.is_empty() {
+        let request = crate::ai_provider::CompletionRequest {
+            messages: messages.clone(),
+            tools: tools.clone(),
+            model: "default".into(),
+        };
+        match copilot_complete_accounts(copilot_accounts, request, cancel).await {
+            Ok(Some(reply)) => {
+                crate::log::line(format!("chat provider=copilot model={}", reply.model));
+                return Ok(ChatReply {
+                    response: reply.response,
+                    provider: "copilot".into(),
+                    model: reply.model,
+                    fallback_notice: None,
+                });
+            }
+            Err(error) if error.message == "Request cancelled." => return Err(error.message),
+            Ok(None) | Err(_) => {
+                crate::log::line("Copilot chat unavailable; trying OpenRouter then Ollama");
+                let openrouter_result =
+                    openrouter_completion(messages.clone(), tools.clone(), openrouter_model, cancel)
+                        .await;
+                match openrouter_result {
+                    Ok((response, actual_model)) => {
+                        return Ok(ChatReply {
+                            response,
+                            provider: "openrouter".into(),
+                            model: actual_model,
+                            fallback_notice: Some("Using OpenRouter (Copilot unavailable)".into()),
+                        })
+                    }
+                    Err(error) if error == "Request cancelled." => return Err(error),
+                    Err(openrouter_error) => {
+                        match ollama_completion(
+                            messages.clone(),
+                            tools.clone(),
+                            ollama_model,
+                            false,
+                            cancel,
+                            None,
+                            None,
+                        )
+                        .await
+                        {
+                            Ok(response) => {
+                                return Ok(ChatReply {
+                                    response,
+                                    provider: "ollama".into(),
+                                    model: ollama_model.into(),
+                                    fallback_notice: Some(
+                                        "Using Ollama (Copilot and OpenRouter unavailable)".into(),
+                                    ),
+                                })
+                            }
+                            Err(error) if error.message == "Request cancelled." => {
+                                return Err(error.message)
+                            }
+                            Err(ollama_error) => {
+                                return Err(format!(
+                                    "Copilot, OpenRouter, and Ollama failed. OpenRouter: {openrouter_error}. Ollama: {}",
+                                    ollama_error.message,
+                                ))
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     if mode == ProviderMode::VoiceAuto {
         let local_result = ollama_completion(
@@ -318,6 +453,96 @@ pub async fn chat_stream(
             fallback_notice: None,
         });
     }
+    let copilot_accounts = available_copilot_accounts(mode).await;
+    if !copilot_accounts.is_empty() {
+        let request = crate::ai_provider::CompletionRequest {
+            messages: messages.clone(),
+            tools: tools.clone(),
+            model: "default".into(),
+        };
+        match copilot_stream_accounts(
+            copilot_accounts,
+            request,
+            cancel,
+            deltas,
+            &mut emitted_text,
+        )
+        .await
+        {
+            Ok(Some(reply)) => {
+                crate::log::line(format!("chat stream provider=copilot model={}", reply.model));
+                return Ok(ChatReply {
+                    response: reply.response,
+                    provider: "copilot".into(),
+                    model: reply.model,
+                    fallback_notice: None,
+                });
+            }
+            Err(error) if error.message == "Request cancelled." => return Err(error.message),
+            Err(error) => return Err(error.message),
+            Ok(None) => {
+                crate::log::line("Copilot chat unavailable; trying OpenRouter then Ollama");
+                match openrouter_completion_stream(
+                    messages.clone(),
+                    tools.clone(),
+                    openrouter_model,
+                    cancel,
+                    Duration::from_secs(60),
+                    OPENROUTER_MAX_TOKENS,
+                    deltas,
+                    &mut emitted_text,
+                )
+                .await
+                {
+                    Ok((response, actual_model)) => {
+                        return Ok(ChatReply {
+                            response,
+                            provider: "openrouter".into(),
+                            model: actual_model,
+                            fallback_notice: Some("Using OpenRouter (Copilot unavailable)".into()),
+                        })
+                    }
+                    Err(error) if error == "Request cancelled." => return Err(error),
+                    Err(error) if emitted_text => return Err(error),
+                    Err(openrouter_error) => {
+                        match ollama_completion_stream(
+                            messages.clone(),
+                            tools.clone(),
+                            ollama_model,
+                            false,
+                            cancel,
+                            None,
+                            None,
+                            deltas,
+                            &mut emitted_text,
+                        )
+                        .await
+                        {
+                            Ok(response) => {
+                                return Ok(ChatReply {
+                                    response,
+                                    provider: "ollama".into(),
+                                    model: ollama_model.into(),
+                                    fallback_notice: Some(
+                                        "Using Ollama (Copilot and OpenRouter unavailable)".into(),
+                                    ),
+                                })
+                            }
+                            Err(error) if error.message == "Request cancelled." => {
+                                return Err(error.message)
+                            }
+                            Err(error) => {
+                                return Err(format!(
+                                    "Copilot, OpenRouter, and Ollama failed. OpenRouter: {openrouter_error}. Ollama: {}",
+                                    error.message,
+                                ))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     if mode == ProviderMode::VoiceAuto {
         let local_result = ollama_completion_stream(
             messages.clone(),
@@ -447,7 +672,7 @@ pub async fn chat_stream(
     })
 }
 
-async fn ollama_completion(
+pub(crate) async fn ollama_completion_existing(
     messages: Vec<Value>,
     tools: Option<Value>,
     model: &str,
@@ -497,7 +722,7 @@ async fn ollama_completion(
     .await
 }
 
-async fn ollama_completion_stream(
+pub(crate) async fn ollama_completion_stream_existing(
     messages: Vec<Value>,
     tools: Option<Value>,
     model: &str,
@@ -552,6 +777,40 @@ async fn ollama_completion_stream(
     .await
 }
 
+async fn ollama_completion(
+    messages: Vec<Value>,
+    tools: Option<Value>,
+    model: &str,
+    wait_for_start: bool,
+    cancel: &mut watch::Receiver<bool>,
+    response_timeout: Option<Duration>,
+    max_tokens: Option<u32>,
+) -> Result<Value, ProviderError> {
+    use crate::ai_provider::AiProvider;
+    let reply = crate::ai_provider::OllamaProvider { wait_for_start, response_timeout, max_tokens }
+        .complete(crate::ai_provider::CompletionRequest { messages, tools, model: model.to_string() }, cancel)
+        .await?;
+    Ok(reply.response)
+}
+
+async fn ollama_completion_stream(
+    messages: Vec<Value>,
+    tools: Option<Value>,
+    model: &str,
+    wait_for_start: bool,
+    cancel: &mut watch::Receiver<bool>,
+    response_timeout: Option<Duration>,
+    max_tokens: Option<u32>,
+    deltas: &tokio::sync::mpsc::UnboundedSender<String>,
+    emitted_text: &mut bool,
+) -> Result<Value, ProviderError> {
+    use crate::ai_provider::AiProvider;
+    let reply = crate::ai_provider::OllamaProvider { wait_for_start, response_timeout, max_tokens }
+        .stream(crate::ai_provider::CompletionRequest { messages, tools, model: model.to_string() }, cancel, deltas, emitted_text)
+        .await?;
+    Ok(reply.response)
+}
+
 async fn openrouter_completion(
     messages: Vec<Value>,
     tools: Option<Value>,
@@ -567,6 +826,51 @@ async fn openrouter_completion(
         OPENROUTER_MAX_TOKENS,
     )
     .await
+}
+
+pub(crate) async fn openrouter_completion_existing(
+    messages: Vec<Value>,
+    tools: Option<Value>,
+    model: &str,
+    cancel: &mut watch::Receiver<bool>,
+    response_timeout: Duration,
+    max_tokens: u32,
+) -> Result<(Value, String), String> {
+    openrouter_completion_with_timeout_existing(messages, tools, model, cancel, response_timeout, max_tokens).await
+}
+
+async fn openrouter_completion_with_timeout(
+    messages: Vec<Value>,
+    tools: Option<Value>,
+    model: &str,
+    cancel: &mut watch::Receiver<bool>,
+    response_timeout: Duration,
+    max_tokens: u32,
+) -> Result<(Value, String), String> {
+    use crate::ai_provider::AiProvider;
+    let reply = crate::ai_provider::OpenRouterProvider { response_timeout, max_tokens }
+        .complete(crate::ai_provider::CompletionRequest { messages, tools, model: model.to_string() }, cancel)
+        .await
+        .map_err(|error| error.message)?;
+    Ok((reply.response, reply.model))
+}
+
+async fn openrouter_completion_stream(
+    messages: Vec<Value>,
+    tools: Option<Value>,
+    model: &str,
+    cancel: &mut watch::Receiver<bool>,
+    response_timeout: Duration,
+    max_tokens: u32,
+    deltas: &tokio::sync::mpsc::UnboundedSender<String>,
+    emitted_text: &mut bool,
+) -> Result<(Value, String), String> {
+    use crate::ai_provider::AiProvider;
+    let reply = crate::ai_provider::OpenRouterProvider { response_timeout, max_tokens }
+        .stream(crate::ai_provider::CompletionRequest { messages, tools, model: model.to_string() }, cancel, deltas, emitted_text)
+        .await
+        .map_err(|error| error.message)?;
+    Ok((reply.response, reply.model))
 }
 
 fn is_direct_provider(mode: ProviderMode) -> bool {
@@ -960,7 +1264,7 @@ fn grok_request_body(messages: Vec<Value>, tools: Option<Value>) -> Value {
     compatible_request_body("grok", GROK_MODEL, messages, tools)
 }
 
-async fn openrouter_completion_with_timeout(
+pub(crate) async fn openrouter_completion_with_timeout_existing(
     messages: Vec<Value>,
     tools: Option<Value>,
     model: &str,
@@ -1014,7 +1318,7 @@ async fn openrouter_completion_with_timeout(
         .unwrap_or_else(|| "OpenRouter request failed.".into()))
 }
 
-async fn openrouter_completion_stream(
+pub(crate) async fn openrouter_completion_stream_existing(
     messages: Vec<Value>,
     tools: Option<Value>,
     model: &str,
