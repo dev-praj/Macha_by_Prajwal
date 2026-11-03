@@ -1,4 +1,5 @@
 import java.util.zip.ZipFile
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -10,6 +11,12 @@ plugins {
 // from a file in this repository. Without all of them the release build is made unsigned (it cannot be installed) rather than
 // signed with a debug key.
 fun signingValue(name: String): String? = (System.getenv(name) ?: providers.gradleProperty(name).orNull)?.takeIf { it.isNotBlank() }
+val localBuildProperties = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.isFile }?.inputStream()?.use(::load)
+}
+fun publicBuildValue(name: String): String = (System.getenv(name) ?: localBuildProperties.getProperty(name))
+    .orEmpty().trim().removeSurrounding("\"").removeSurrounding("'")
+fun buildConfigString(value: String): String = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\""
 val releaseKeystore = signingValue("MACHA_KEYSTORE_FILE")
 val releaseStorePassword = signingValue("MACHA_KEYSTORE_PASSWORD")
 val releaseKeyAlias = signingValue("MACHA_KEY_ALIAS")
@@ -22,10 +29,13 @@ android {
         applicationId = "com.macha.android"
         minSdk = 30
         targetSdk = 35
-        versionCode = 3
-        versionName = "0.3.0"
-        // The app's languages (English and the translations in i18n/translations); the libraries' other languages are left out of the app.
-        resourceConfigurations += listOf("en", "fr", "es", "pt-rBR", "b+zh+Hans", "hi", "bn", "ru", "in", "ar")
+        versionCode = 19
+        versionName = "0.3.16"
+        buildConfigField("boolean", "ENABLE_SELF_HOSTED_CLOUD", "false")
+        buildConfigField("String", "SUPABASE_URL", buildConfigString(publicBuildValue("SUPABASE_URL")))
+        buildConfigField("String", "SUPABASE_ANON_KEY", buildConfigString(publicBuildValue("SUPABASE_ANON_KEY")))
+        // Keep the shipped app in English, independent of the phone's language.
+        resourceConfigurations += listOf("en")
     }
     signingConfigs {
         val keystore = releaseKeystore
@@ -50,7 +60,7 @@ android {
             signingConfig = signingConfigs.findByName("release") // null: unsigned
         }
     }
-    buildFeatures { compose = true }
+    buildFeatures { compose = true; buildConfig = true }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -76,6 +86,7 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:$cameraX")
     implementation("androidx.camera:camera-view:$cameraX")
     implementation("com.google.zxing:core:3.5.3")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.85.2")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303") // android.jar stubs org.json in JVM tests
 }

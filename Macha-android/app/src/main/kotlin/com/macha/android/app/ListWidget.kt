@@ -14,7 +14,7 @@ import com.macha.android.core.WidgetSpoken
  * The List widget: the headline with a badge, then one row per agent of at least 48dp (a bar in its own colour, Macha's
  * face, its name, a state word and a dot in the state's tone). With no agent it is a centred empty state: Macha asleep and
  * one clear line. Drawn by [WidgetHub] when something changes (updatePeriodMillis = 0). A tap on a row opens that agent; a
- * tap anywhere else opens the app. It only opens things: a request waits for you in the app, behind the fingerprint.
+ * tap anywhere else opens the app. It only opens things: a request waits for you in the app for an explicit button tap.
  */
 class ListWidget : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) =

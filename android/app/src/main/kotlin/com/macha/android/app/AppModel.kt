@@ -1,6 +1,9 @@
 package com.macha.android.app
 
 import android.content.Context
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.PowerManager
@@ -54,6 +57,11 @@ import com.macha.android.link.LanDiagnostics
 import com.macha.android.link.LinkHealth
 import com.macha.android.link.LostReason
 import com.macha.android.link.PairingPayload
+import com.macha.android.link.RemoteAccount
+import com.macha.android.link.RemoteDevice
+import com.macha.android.link.RemoteSessionExpiredException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.macha.android.link.ReconnectPolicy
 import com.macha.android.link.Wake
 import com.macha.android.link.SessionInfo
@@ -95,6 +103,262 @@ class AppModel(private val context: Context) : LinkListener {
     /** Questions Claude Code asks that this phone may answer (only with the `answers` capability); kept in memory, never written. */
     var questions by mutableStateOf<List<QuestionRequest>>(emptyList()); private set
     var message by mutableStateOf<String?>(null)
+    var googleEmail by mutableStateOf(store.loadGoogleSession()?.email)
+    private val remoteAccount = RemoteAccount(store)
+    val remoteConfigured: Boolean get() = remoteAccount.configured
+    var remoteEmail by mutableStateOf(store.loadRemoteSession()?.email); private set
+    var remoteSignInGate by mutableStateOf(remoteEmail == null && !store.remoteSignInSkipped()); private set
+    val remoteUseAccountLink: Boolean get() = store.remoteUseAccountLink()
+    val remoteConnectionActive: Boolean get() = currentPairing?.accountRemote == true && linkState == LinkState.CONNECTED
+    val remoteConnectionReady: Boolean get() = remoteDeviceStatus == "approved" && remoteDevices.any { it.type == "laptop" && it.status == "approved" }
+    val hasNearbyPairing: Boolean get() = store.loadPairing() != null
+    var remoteDeviceStatus by mutableStateOf(store.loadRemoteDevice()?.status); private set
+    val remoteDeviceId: String? get() = store.loadRemoteDevice()?.id
+    var remoteDevices by mutableStateOf<List<RemoteDevice>>(emptyList()); private set
+    var remoteBusy by mutableStateOf(false); private set
+    var remoteMessage by mutableStateOf<String?>(null); private set
+    private val remotePollScheduled = java.util.concurrent.atomic.AtomicBoolean(false)
+    private val remoteConnectPending = java.util.concurrent.atomic.AtomicBoolean(false)
+
+    suspend fun signInRemote(activity: Activity) {
+        remoteBusy = true
+        remoteMessage = null
+        try {
+            remoteAccount.beginSignIn(activity)
+            remoteMessage = "Google sign-in opened in your browser. Return to Macha to finish."
+        } catch (e: Exception) {
+            remoteBusy = false
+            remoteMessage = e.message ?: "Google sign-in could not start. Try again."
+        }
+    }
+
+    suspend fun completeRemoteSignIn(uri: android.net.Uri) {
+        remoteBusy = true
+        remoteMessage = "Finishing Google sign-in…"
+        try {
+            val registered = remoteAccount.completeSignIn(uri)
+            remoteEmail = store.loadRemoteSession()?.email
+            remoteDeviceStatus = registered.status
+            refreshRemoteDevices()
+            store.setRemoteSignInSkipped(false)
+            remoteSignInGate = false
+            if (store.loadPairing() == null || store.remoteUseAccountLink()) refreshRemoteDevicesInBackground()
+            remoteMessage = if (registered.status == "approved") "This device is approved for Remote mode." else "Waiting for approval from one of your approved devices."
+        } catch (e: Exception) {
+            // The PKCE exchange may already have succeeded. Do not leave the user
+            // trapped on the sign-in gate just because device registration failed.
+            store.loadRemoteSession()?.let { session ->
+                remoteEmail = session.email
+                store.setRemoteSignInSkipped(false)
+                remoteSignInGate = false
+            }
+            remoteMessage = e.message ?: "Google sign-in failed. Try again."
+        } finally { remoteBusy = false }
+    }
+
+    fun skipRemoteSignIn() {
+        store.clearPendingRemoteSignIn()
+        remoteBusy = false
+        store.setRemoteSignInSkipped(true)
+        remoteSignInGate = false
+    }
+
+    fun isRemoteSignInPending(): Boolean = store.hasPendingRemoteSignIn()
+
+    fun cancelRemoteSignIn() {
+        store.clearPendingRemoteSignIn()
+        remoteBusy = false
+        remoteMessage = "Google sign-in was cancelled. You can try again or skip for now."
+    }
+
+    suspend fun refreshRemoteDevices() {
+        if (store.loadRemoteSession() == null) { remoteDevices = emptyList(); return }
+        try {
+            remoteDevices = withContext(Dispatchers.IO) { remoteAccount.refreshDevices() }
+            remoteDeviceStatus = store.loadRemoteDevice()?.id?.let { id -> remoteDevices.firstOrNull { it.id == id }?.status }
+                ?: store.loadRemoteDevice()?.status
+            remoteMessage = null
+            syncApprovedRemotePeer()
+        } catch (e: Exception) {
+            if (e is RemoteSessionExpiredException) handleExpiredRemoteSession()
+            else remoteMessage = e.message ?: "Could not refresh Remote devices."
+        }
+    }
+
+    private fun refreshRemoteDevicesInBackground() {
+        Thread({
+            val result = runCatching { remoteAccount.refreshDevices() }
+            main.post {
+                result.onSuccess { devices ->
+                    remoteDevices = devices
+                    remoteDeviceStatus = store.loadRemoteDevice()?.id?.let { id -> devices.firstOrNull { it.id == id }?.status }
+                        ?: store.loadRemoteDevice()?.status
+                    remoteMessage = null
+                    syncApprovedRemotePeer()
+                }.onFailure { error ->
+                    if (error is RemoteSessionExpiredException) handleExpiredRemoteSession()
+                    else remoteMessage = error.message ?: "Could not refresh Remote devices."
+                }
+                scheduleRemoteDeviceRefresh()
+            }
+        }, "macha-remote-device-refresh").apply { isDaemon = true; start() }
+    }
+
+    private fun scheduleRemoteDeviceRefresh() {
+        if (remoteEmail == null || !remotePollScheduled.compareAndSet(false, true)) return
+        main.postDelayed({
+            remotePollScheduled.set(false)
+            if (remoteEmail != null) refreshRemoteDevicesInBackground()
+        }, 15_000)
+    }
+
+    /** Return to local-only mode on an invalid refresh token, keeping the device key for safe re-registration. */
+    private fun handleExpiredRemoteSession() {
+        if (currentPairing?.accountRemote == true) stopLink()
+        store.setRemoteUseAccountLink(false)
+        store.clearRemoteSession()
+        store.setRemoteSignInSkipped(true)
+        remoteSignInGate = false
+        remoteEmail = null
+        remoteDeviceStatus = null
+        remoteDevices = emptyList()
+        remoteMessage = "Your Google sign-in expired. Sign in again in Settings to reconnect your devices."
+        store.loadPairing()?.let(::connect)
+    }
+
+    private fun syncApprovedRemotePeer() {
+        // Keep QR on its own route unless the user explicitly selects Remote in Settings.
+        if ((store.loadPairing() != null && !store.remoteUseAccountLink()) || mode == Mode.DEMO) return
+        val own = store.loadRemoteDevice()
+        val peer = remoteDevices.firstOrNull { it.type == "laptop" && it.status == "approved" }
+        if (own?.status != "approved" || peer == null) {
+            if (currentPairing?.accountRemote == true) stopLink()
+            return
+        }
+        val activePeer = currentPairing?.cloud?.laptopDeviceId
+        if (currentPairing?.accountRemote == true && activePeer == peer.id && link != null) return
+        if (currentPairing?.accountRemote == true) stopLink()
+        if (!remoteConnectPending.compareAndSet(false, true)) return
+        Thread({
+            val result = runCatching { remoteAccount.accountPairing(peer) }
+            main.post {
+                remoteConnectPending.set(false)
+                if (remoteEmail == null || (store.loadPairing() != null && !store.remoteUseAccountLink()) || remoteDeviceStatus != "approved" ||
+                    remoteDevices.none { it.id == peer.id && it.status == "approved" }) return@post
+                result.onSuccess { pairing ->
+                    remoteMessage = "Connecting to ${peer.name} through Macha Remote…"
+                    connect(pairing)
+                }.onFailure { error ->
+                    if (error is RemoteSessionExpiredException) handleExpiredRemoteSession()
+                    else remoteMessage = error.message ?: "Could not connect this device to Macha Remote."
+                }
+            }
+        }, "macha-remote-connect").apply { isDaemon = true; start() }
+    }
+
+    fun remoteConfirmationCode(peer: RemoteDevice): String? {
+        val privateKey = store.loadRemoteIdentity() ?: return null
+        val own = runCatching { com.macha.android.link.CloudCrypto.identityFromPrivate(privateKey).publicEncoded() }.getOrNull() ?: return null
+        val material = listOf(own, peer.publicKey).sorted().joinToString("\n", prefix = "macha-remote-device-confirm-v1\n")
+        val digest = java.security.MessageDigest.getInstance("SHA-256").digest(material.toByteArray(Charsets.UTF_8))
+        val value = ((digest[0].toLong() and 0xff) shl 24) or ((digest[1].toLong() and 0xff) shl 16) or
+            ((digest[2].toLong() and 0xff) shl 8) or (digest[3].toLong() and 0xff)
+        val code = value % 100_000_000L
+        return "%04d-%04d".format(code / 10_000, code % 10_000)
+    }
+
+    suspend fun connectRemoteAccount() {
+        if (remoteEmail == null) { remoteMessage = "Sign in with Google before connecting through Macha Remote."; return }
+        remoteBusy = true
+        store.setRemoteUseAccountLink(true)
+        try {
+            if (currentPairing?.accountRemote != true) stopLink()
+            refreshRemoteDevices()
+            if (remoteEmail != null) {
+                if (remoteConnectionReady) {
+                    remoteMessage = "Starting your Macha Remote connection…"
+                    syncApprovedRemotePeer()
+                } else {
+                    remoteMessage = "Approve this phone and an approved laptop in My devices before connecting."
+                }
+            }
+        } finally { remoteBusy = false }
+    }
+
+    fun useNearbyPairing() {
+        store.setRemoteUseAccountLink(false)
+        if (currentPairing?.accountRemote == true) {
+            stopLink()
+            store.loadPairing()?.let(::connect)
+        }
+        remoteMessage = if (hasNearbyPairing) "Using the saved Nearby QR pairing." else "Macha Remote disconnected."
+    }
+
+    suspend fun approveRemoteDevice(deviceId: String) {
+        val ownId = store.loadRemoteDevice()?.id ?: run { remoteMessage = "This device is not registered."; return }
+        remoteBusy = true
+        try {
+            withContext(Dispatchers.IO) { remoteAccount.approve(deviceId, ownId) }
+            refreshRemoteDevices()
+            remoteMessage = "Device approved."
+        } catch (e: Exception) { remoteMessage = e.message ?: "Could not approve this device." }
+        finally { remoteBusy = false }
+    }
+
+    suspend fun denyRemoteDevice(deviceId: String) {
+        remoteBusy = true
+        try {
+            withContext(Dispatchers.IO) { remoteAccount.revoke(deviceId) }
+            refreshRemoteDevices()
+            remoteMessage = "Device denied."
+        } catch (e: Exception) { remoteMessage = e.message ?: "Could not deny this device." }
+        finally { remoteBusy = false }
+    }
+
+    suspend fun revokeCurrentRemoteDevice() {
+        val ownId = store.loadRemoteDevice()?.id ?: run { remoteMessage = "This device is not registered."; return }
+        remoteBusy = true
+        try {
+            withContext(Dispatchers.IO) { remoteAccount.revoke(ownId) }
+            refreshRemoteDevices()
+            remoteMessage = "This device was revoked. Sign out, then sign in again to re-enroll it."
+        } catch (e: Exception) { remoteMessage = e.message ?: "Could not revoke this device." }
+        finally { remoteBusy = false }
+    }
+
+    suspend fun signOutRemote() {
+        remoteBusy = true
+        remotePollScheduled.set(false)
+        try {
+            if (currentPairing?.accountRemote == true) stopLink()
+            withContext(Dispatchers.IO) { remoteAccount.signOut() }
+        }
+        finally {
+            store.setRemoteUseAccountLink(false)
+            remoteEmail = null
+            remoteDeviceStatus = null
+            remoteDevices = emptyList()
+            store.setRemoteSignInSkipped(true)
+            remoteSignInGate = false
+            remoteBusy = false
+            remoteMessage = "Signed out of Remote mode."
+            store.loadPairing()?.let(::connect)
+        }
+    }
+
+    suspend fun deleteRemoteAccount() {
+        remoteBusy = true
+        try {
+            if (currentPairing?.accountRemote == true) stopLink()
+            withContext(Dispatchers.IO) { remoteAccount.deleteAccount() }
+            remoteEmail = null
+            remoteDeviceStatus = null
+            remoteDevices = emptyList()
+            remoteMessage = "Remote account and its Macha device data were deleted."
+            store.loadPairing()?.let(::connect)
+        } catch (e: Exception) { remoteMessage = e.message ?: "Could not delete the Remote account." }
+        finally { remoteBusy = false }
+    }
 
     // ── Finding the computer again when its address changed (docs/ANDROID_LINK.md, "Finding the computer") ──
     /** What the search for the computer is doing, for the status line and the hint. */
@@ -105,7 +369,11 @@ class AppModel(private val context: Context) : LinkListener {
     /** Which way the link reaches the computer now (null until connected), and why the relay failed, if it did. */
     var route by mutableStateOf<com.macha.android.link.Route?>(null); private set
     var relayIssue by mutableStateOf(com.macha.android.link.RelayIssue.NONE); private set
-    private val transport = com.macha.android.link.TransportPolicy({ currentPairing?.relay != null && settings.useRelay })
+    private val transport = com.macha.android.link.TransportPolicy({
+        (currentPairing?.relay != null && settings.useRelay) ||
+            (com.macha.android.BuildConfig.ENABLE_SELF_HOSTED_CLOUD && currentPairing?.cloud?.linkId != null)
+    })
+    private val cloudExecutor = java.util.concurrent.Executors.newSingleThreadExecutor { r -> Thread(r, "macha-cloud-pair").apply { isDaemon = true } }
     @Volatile private var fallback: com.macha.android.link.FallbackConnector? = null
     @Volatile private var relayConnector: com.macha.android.link.RelayConnector? = null
 
@@ -113,7 +381,7 @@ class AppModel(private val context: Context) : LinkListener {
     val hasRelay: Boolean get() = currentPairing?.relay != null
     val relayHost: String? get() = currentPairing?.relay?.relayUrl()?.host
 
-    private val netWatch = NetworkWatch(context, { up -> main.post { onNetworkChanged(up) } }, { main.post { onWake(Wake.NEW_NETWORK) } })
+    private val netWatch = NetworkWatch(context, { main.post { onNetworkChanged() } }, { main.post { onWake(Wake.NEW_NETWORK) } })
     private val finder = AddressFinder(
         source = NsdDiscovery(context), probe = PinnedProbe,
         pairing = { currentPairing }, allowed = { mayDiscover() },
@@ -123,8 +391,8 @@ class AppModel(private val context: Context) : LinkListener {
         runner = { task -> probeExecutor.execute { task() } },
     )
 
-    private fun mayDiscover() = DiscoveryPolicy.mayDiscover(
-        paired = currentPairing != null, demo = mode == Mode.DEMO, wifiUp = netWatch.wifiUp, linkConnected = linkState == LinkState.CONNECTED,
+    private fun mayDiscover() = (!com.macha.android.BuildConfig.ENABLE_SELF_HOSTED_CLOUD || currentPairing?.cloud?.linkId == null) && DiscoveryPolicy.mayDiscover(
+        paired = currentPairing != null, demo = mode == Mode.DEMO, networkAvailable = netWatch.hasLocalNetwork(), linkConnected = linkState == LinkState.CONNECTED,
     )
 
     private val prefs = context.getSharedPreferences("macha_ui", Context.MODE_PRIVATE)
@@ -404,13 +672,15 @@ class AppModel(private val context: Context) : LinkListener {
     fun agentName(pillId: String): String =
         sessions.firstOrNull { it.pillId == pillId }?.agent?.takeIf { it.isNotBlank() } ?: Pills.byId(pillId)?.name ?: com.macha.android.core.Texts.t("agent_an_title", "An agent")
 
-    val isPaired get() = store.loadPairing() != null
+    val isPaired get() = store.loadPairing() != null || currentPairing?.accountRemote == true
 
     /** Called at launch and by the service: reconnects to the stored desktop, if any. */
     fun resume() {
         if (mode == Mode.DEMO || link != null) return
-        val p = store.loadPairing() ?: return
-        connect(p)
+        val p = store.loadPairing()
+        if (store.remoteUseAccountLink() && remoteEmail != null) refreshRemoteDevicesInBackground()
+        else if (p != null) connect(p)
+        else if (remoteEmail != null) refreshRemoteDevicesInBackground()
     }
 
     /**
@@ -439,8 +709,96 @@ class AppModel(private val context: Context) : LinkListener {
         val p = PairingPayload.parse(text)
         if (p == null) { message = context.getString(R.string.msg_bad_link); return false }
         stopLink()
+        // The QR is the LAN pairing credential. Always pair locally before optional cloud OAuth,
+        // so a Google/Supabase configuration problem cannot block Wi-Fi connection.
         store.savePairing(p)
         connect(p)
+        val cloud = p.cloud?.takeIf { com.macha.android.BuildConfig.ENABLE_SELF_HOSTED_CLOUD && it.linkId == null }
+        if (cloud != null) {
+            val savedAccount = store.loadGoogleSession()
+            if (savedAccount == null) {
+                beginGoogleSignIn(text, cloud)
+                return true
+            }
+            claimCloudPairing(text, cloud, savedAccount)
+        }
+        return true
+    }
+
+    private fun claimCloudPairing(pairingLink: String, cloud: com.macha.android.link.SupabasePairing, account: GoogleSession) {
+        message = "Wi-Fi pairing is active. Connecting Supabase as ${account.email}…"
+        cloudExecutor.execute {
+            try {
+                val session = com.macha.android.link.SupabaseCloud.refreshGoogleSession(cloud, account.refreshToken)
+                if (session.userId != account.userId) throw java.io.IOException("The saved Google account changed. Sign in again with the same account as the laptop.")
+                store.saveGoogleSession(session.refresh, session.userId, session.email)
+                val cloudPairing = com.macha.android.link.SupabaseCloud.claim(cloud, session)
+                val scanned = PairingPayload.parse(pairingLink) ?: throw java.io.IOException("The scanned QR pairing data is invalid.")
+                val claimed = scanned.copy(cloud = cloudPairing)
+                store.savePairing(claimed)
+                main.post {
+                    googleEmail = session.email
+                    currentPairing = claimed
+                    message = "Wi-Fi pairing is active. Supabase cloud pairing is ready."
+                    restartLink(claimed)
+                }
+            } catch (e: Exception) {
+                val detail = e.message ?: "check the Supabase project setup"
+                if (detail.contains("same Google account", ignoreCase = true)
+                    || detail.contains("refresh token", ignoreCase = true)
+                    || detail.contains("saved Google account changed", ignoreCase = true)) {
+                    store.clearGoogleSession()
+                    main.post { googleEmail = null; beginGoogleSignIn(pairingLink, cloud) }
+                } else {
+                    main.post { message = "Wi-Fi pairing is active, but Supabase pairing failed: $detail" }
+                }
+            }
+        }
+    }
+
+    private fun beginGoogleSignIn(pairingLink: String, cloud: com.macha.android.link.SupabasePairing) {
+        try {
+            val verifier = com.macha.android.link.SupabaseCloud.newPkceVerifier()
+            store.savePendingGoogleSignIn(verifier, pairingLink)
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(com.macha.android.link.SupabaseCloud.googleAuthorizeUrl(cloud, verifier)))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            message = "Sign in with the same Google account as your laptop. Return here after sign-in to finish pairing."
+        } catch (e: Exception) {
+            message = "Could not start Google sign-in: ${e.message ?: "check the Supabase Google provider setup"}"
+        }
+    }
+
+    /** Completes the Supabase PKCE callback. The pairing request and verifier are Keystore-encrypted. */
+    fun handleGoogleAuthCallback(uri: Uri): Boolean {
+        if (uri.scheme != "macha" || uri.host != "auth" || uri.path != "/callback") return false
+        val pending = store.takePendingGoogleSignIn()
+        val code = uri.getQueryParameter("code")
+        if (pending == null || code.isNullOrBlank()) {
+            if (pending != null) store.savePendingGoogleSignIn(pending.verifier, pending.pairingLink)
+            message = uri.getQueryParameter("error_description") ?: "Google sign-in did not return an authorization code. Scan the laptop QR again to retry."
+            return true
+        }
+        val pairing = PairingPayload.parse(pending.pairingLink)
+        val cloud = pairing?.cloud
+        if (pairing == null || cloud == null) {
+            message = "The saved pairing request is no longer valid. Scan the laptop QR again."
+            return true
+        }
+        message = "Finishing Google sign-in…"
+        cloudExecutor.execute {
+            try {
+                val session = com.macha.android.link.SupabaseCloud.exchangeGoogleCode(cloud, code, pending.verifier)
+                store.saveGoogleSession(session.refresh, session.userId, session.email)
+                main.post {
+                    googleEmail = session.email
+                    message = "Wi-Fi pairing is active. Signed in as ${session.email}; completing Supabase pairing…"
+                    claimCloudPairing(pending.pairingLink, cloud, store.loadGoogleSession() ?: GoogleSession(session.refresh, session.userId, session.email))
+                }
+            } catch (e: Exception) {
+                main.post { message = "Google sign-in failed: ${e.message ?: "check the provider and redirect URL settings"}" }
+            }
+        }
         return true
     }
 
@@ -468,11 +826,32 @@ class AppModel(private val context: Context) : LinkListener {
     private fun newLink(p: PairingPayload): LinkClient {
         val lan = PinnedTls.connector(p)
         val relay = p.relay
+        val cloud = p.cloud?.takeIf { (p.accountRemote || com.macha.android.BuildConfig.ENABLE_SELF_HOSTED_CLOUD) && it.linkId != null }
         fallback?.stop()
-        val connector: Connector = if (relay != null && settings.useRelay) {
-            val rc = com.macha.android.link.RelayConnector(relay)
-            relayConnector = rc
-            com.macha.android.link.FallbackConnector(lan, rc, transport, onRoute = { r -> main.post { route = r } }).also { fallback = it }
+        if (p.accountRemote && cloud != null) {
+            relayConnector = null
+            fallback = null
+            route = com.macha.android.link.Route.REMOTE
+            val connector = com.macha.android.link.SupabaseCloudConnector(cloud, sessionProvider = { remoteAccount.refreshCloudSession() }) { refresh ->
+                store.loadRemoteSession()?.let { account -> store.saveRemoteSession(refresh, account.userId, account.email) }
+                val updated = p.copy(cloud = cloud.copy(refreshToken = refresh))
+                currentPairing = updated
+            }
+            return LinkClient(p, Build.MODEL ?: "Android", this, connector = connector)
+        }
+        val remote: Connector? = if (relay != null && settings.useRelay) {
+            com.macha.android.link.RelayConnector(relay)
+        } else if (cloud != null) {
+            com.macha.android.link.SupabaseCloudConnector(cloud) { refresh ->
+                val updated = p.copy(cloud = cloud.copy(refreshToken = refresh))
+                store.savePairing(updated)
+                store.loadGoogleSession()?.let { account -> store.saveGoogleSession(refresh, account.userId, account.email) }
+                currentPairing = updated
+            }
+        } else null
+        val connector: Connector = if (remote != null) {
+            relayConnector = remote as? com.macha.android.link.RelayConnector
+            com.macha.android.link.FallbackConnector(lan, remote, transport, onRoute = { r -> main.post { route = r } }).also { fallback = it }
         } else {
             relayConnector = null
             fallback = null
@@ -511,7 +890,7 @@ class AppModel(private val context: Context) : LinkListener {
     /** The screen turned on, a network appeared, or the alarm fired: look at the link now (rules in [ReconnectPolicy]). */
     private fun onWake(event: Wake) {
         val relay = currentPairing?.relay != null && settings.useRelay
-        when (ReconnectPolicy.decide(event, mode == Mode.PAIRED, linkState == LinkState.CONNECTED, netWatch.wifiUp, relay)) {
+        when (ReconnectPolicy.decide(event, mode == Mode.PAIRED, linkState == LinkState.CONNECTED, netWatch.hasLocalNetwork(), relay)) {
             ReconnectPolicy.Action.RETRY_NOW -> link?.retryNow()
             ReconnectPolicy.Action.CHECK_NOW -> link?.checkNow()
             ReconnectPolicy.Action.NONE -> {}
@@ -551,7 +930,7 @@ class AppModel(private val context: Context) : LinkListener {
         diagResults = emptyList()
         probeExecutor.execute {
             val env = LanDiagnostics(
-                p, wifiUp = { netWatch.isWifiUp() }, onCellular = { netWatch.isCellular() }, discover = { browse(4_000) },
+                p, localNetworkAvailable = { netWatch.hasLocalNetwork() }, onCellular = { netWatch.isCellular() }, discover = { browse(4_000) },
                 relayCheck = p.relay?.let { r -> { LanDiagnostics.relayReachable(r) } },
             )
             Diagnostics.run(env) { step, result -> main.post { diagResults = diagResults + (step to result) } }
@@ -574,15 +953,16 @@ class AppModel(private val context: Context) : LinkListener {
         val version = runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "?"
         val via = when {
             linkState != LinkState.CONNECTED -> "not connected"
+            route == com.macha.android.link.Route.REMOTE -> "Macha Remote"
             route == com.macha.android.link.Route.RELAY -> "the relay"
             else -> "the direct link"
         }
         return Diagnostics.report(version, Build.VERSION.RELEASE, "${Build.MANUFACTURER} ${Build.MODEL}", diagResults, p?.let { Diagnostics.maskHost(it.host) } ?: "none", via)
     }
 
-    private fun onNetworkChanged(wifiUp: Boolean) {
+    private fun onNetworkChanged() {
         if (mode != Mode.PAIRED) return
-        if (!wifiUp) { finder.stop(); return } // no Wi-Fi: nothing to scan
+        if (!netWatch.hasLocalNetwork()) { finder.stop(); return } // no route that can reach a local computer
         fallback?.networkChanged() // on the relay: is the computer on this network? Then move back to the direct link
         link?.retryNow() // do not wait out the backoff on a new network
         if (mayDiscover()) finder.networkChanged()
@@ -643,7 +1023,7 @@ class AppModel(private val context: Context) : LinkListener {
         notifier.cancelAllStatus()
     }
 
-    /** True if the decision was sent (or applied to the demo). Allow is gated by the biometric prompt in the UI. */
+    /** True if the decision was sent (or applied to the demo). Allow requires an explicit UI button tap. */
     fun decide(fingerprint: String, allow: Boolean): Boolean {
         val request = approvals.firstOrNull { it.fingerprint == fingerprint }
         if (allow && request != null && !com.macha.android.core.ApprovalSheetPlan.canAllowHere(request)) {

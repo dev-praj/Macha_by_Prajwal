@@ -285,10 +285,20 @@ class LinkClient(
                 }
             } catch (e: java.net.SocketTimeoutException) {
                 lost = LostReason.SILENT
-            } catch (_: IOException) {
+            } catch (e: IOException) {
                 lost = LostReason.NETWORK
+                if (!connectedOnce && attempt == 0 && connector is FallbackConnector) {
+                    listener.onError("connect", e.message ?: "could not connect to the laptop through the configured routes")
+                }
             } catch (_: InterruptedException) {
                 // stop() was called
+            } catch (e: Exception) {
+                // Keep the retry loop alive if a connector throws a platform or
+                // runtime exception instead of wrapping it as an IOException.
+                lost = LostReason.NETWORK
+                if (!connectedOnce && attempt == 0 && connector is FallbackConnector) {
+                    listener.onError("connect", e.message ?: "the configured connection failed (${e.javaClass.simpleName})")
+                }
             } finally {
                 out = null
                 answersOffered = false

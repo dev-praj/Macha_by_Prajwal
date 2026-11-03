@@ -17,17 +17,23 @@ const HUB_ICONS: Record<string, string> = {
   styles: ICONS.doc,
   "flow-settings": ICONS.gear,
   general: ICONS.gear,
-  "active-pills": ICONS.stack,
   agents: ICONS.bubble,
   chat: ICONS.bubble,
   voice: ICONS.speakerOn,
   integrations: ICONS.stack,
   phone: ICONS.bubble,
+  supabase: ICONS.stack,
   shortcuts: ICONS.gear,
   memory: ICONS.doc,
   workflows: ICONS.stack,
   automation: ICONS.gear,
   vision: ICONS.bubble,
+};
+
+const GROUP_DESCRIPTIONS: Record<string, string> = {
+  Flow: "Dictation and tools for your everyday work.",
+  Notch: "Personalize how Macha listens, responds, and connects.",
+  Macha: "Manage Macha's memory and automation.",
 };
 
 export function weeklyRecapSection(): HTMLElement {
@@ -102,6 +108,14 @@ export function mountSettingsHub(
     h("div", { class: "hub-brand" }, h("span", { class: "hub-brand-mark", text: "M" }), h("span", { text: "Macha" })),
   );
   const content = h("main", { class: "hub-panel", "aria-live": "polite" });
+  const pageHeader = h("header", { class: "hub-page-header" },
+    h("div", { class: "hub-page-kicker" }),
+    h("h1", {}),
+    h("p", {}),
+  );
+  const pageKicker = pageHeader.querySelector<HTMLElement>(".hub-page-kicker")!;
+  const pageTitle = pageHeader.querySelector<HTMLHeadingElement>("h1")!;
+  const pageDescription = pageHeader.querySelector<HTMLParagraphElement>("p")!;
   const buttons = new Map<string, HTMLButtonElement>();
   let current = "";
 
@@ -115,6 +129,11 @@ export function mountSettingsHub(
       else button.removeAttribute("aria-current");
     }
     clear(content);
+    const group = HUB_GROUPS.find((candidate) => candidate.items.some((item) => item.id === id));
+    pageKicker.textContent = group?.title ?? "Macha";
+    pageTitle.textContent = title;
+    pageDescription.textContent = GROUP_DESCRIPTIONS[group?.title ?? ""] ?? "Manage your Macha settings.";
+    content.append(pageHeader);
     const panel = panels[id];
     if (panel?.sections) {
       content.append(...panel.sections);
@@ -143,5 +162,7 @@ export function mountSettingsHub(
   sidebar.append(h("div", { class: "spacer" }), h("div", { class: "hub-version", text: `Version ${version}` }));
   clear(root);
   root.append(sidebar, content);
+  window.addEventListener("macha-cloud-open-phone", () => open("phone", "Android phone"));
+  window.addEventListener("macha-open-connection", () => open("connection", "Connection"));
   open("dictation", "Dictation");
 }

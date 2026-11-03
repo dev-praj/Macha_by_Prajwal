@@ -27,8 +27,8 @@ import com.macha.android.macha.BotState
 
 /**
  * Notifications: one quiet ongoing notification for the link, and a loud one per approval.
- * Deny acts straight from the notification. Allow always opens the app for the biometric
- * check first, and the command is hidden on the lock screen.
+ * Deny acts straight from the notification. Allow opens the app and requires the
+ * user to tap its explicit approval button; request details stay hidden on the lock screen.
  */
 class Notifications(private val context: Context) {
     private val nm = context.getSystemService(NotificationManager::class.java)
@@ -240,7 +240,7 @@ class Notifications(private val context: Context) {
 
     private fun statusId(pillId: String) = pillId.hashCode() and 0x3fffffff
 
-    /** Opens the app on the biometric prompt for this request (the same as tapping Allow in the notification). */
+    /** Opens the app on the explicit approval button for this request. */
     fun openAllow(fp: String) {
         Log.d("MachaLaunch", "open the app on Allow (tap on the pill)")
         runCatching { open(fp, true, idFor(fp) + 1).send() }

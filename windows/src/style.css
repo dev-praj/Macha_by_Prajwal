@@ -529,6 +529,11 @@ body {
   width: 322px;
 }
 
+.overview.spotify-focused > .left {
+  flex: 0 0 470px;
+  width: 470px;
+}
+
 .overview > .right {
   flex: 1 1 auto;
 }
@@ -1884,6 +1889,115 @@ input[type="range"]::-webkit-slider-thumb {
   min-height: 0;
   max-height: 100%;
   overflow: hidden;
+}
+
+.spotify-card .spotify-artwork {
+  width: 54px;
+  height: 54px;
+  flex-basis: 54px;
+  border-radius: 9px;
+}
+
+.spotify-card .spotify-now-playing {
+  gap: 12px;
+}
+
+.spotify-card .spotify-track {
+  gap: 3px;
+}
+
+.spotify-card .spotify-track-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.spotify-card .spotify-track b {
+  font-size: 14px;
+}
+
+.spotify-card .spotify-track span {
+  font-size: 12px;
+}
+
+.spotify-card .spotify-open {
+  display: grid;
+  flex: 0 0 24px;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: #aeb4bc;
+  cursor: pointer;
+}
+
+.spotify-card .spotify-open:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #f5f6f8;
+}
+
+.spotify-card .spotify-timeline {
+  gap: 8px;
+  padding-top: 8px;
+  font-size: 10px;
+}
+
+.spotify-playback-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.spotify-playback-row .spotify-controls {
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding-top: 0;
+}
+
+.spotify-playback-row .spotify-controls button {
+  width: 22px;
+  height: 30px;
+  border: 0;
+  background: transparent;
+  color: #c5c9ce;
+}
+
+.spotify-playback-row .spotify-controls button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.spotify-playback-row .spotify-controls .spotify-toggle {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: #f5f6f8;
+  color: #17191b;
+  box-shadow: none;
+}
+
+.spotify-playback-row .spotify-controls .spotify-toggle:hover {
+  background: #fff;
+  box-shadow: none;
+}
+
+.spotify-playback-row .spotify-controls .spotify-flag.is-on {
+  color: var(--spotify-green);
+}
+
+.spotify-playback-row .spotify-volume-row {
+  flex: 0 1 104px;
+  gap: 7px;
+  padding-top: 0;
 }
 
 .spotify-card > .int-head,

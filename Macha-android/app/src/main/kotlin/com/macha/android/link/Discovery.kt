@@ -104,9 +104,9 @@ object DiscoveryPolicy {
 
     fun delayBeforeRound(round: Int): Long = ROUND_DELAYS_MS[round.coerceIn(0, ROUND_DELAYS_MS.size - 1)]
 
-    /** Searching costs battery: only when there is a computer to find, on a Wi-Fi (or cable), and the link is not up. */
-    fun mayDiscover(paired: Boolean, demo: Boolean, wifiUp: Boolean, linkConnected: Boolean): Boolean =
-        paired && !demo && wifiUp && !linkConnected
+    /** Search only when paired, disconnected, and a local route may exist (including this phone's hotspot). */
+    fun mayDiscover(paired: Boolean, demo: Boolean, networkAvailable: Boolean, linkConnected: Boolean): Boolean =
+        paired && !demo && networkAvailable && !linkConnected
 }
 
 fun interface Cancelable { fun cancel() }

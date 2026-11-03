@@ -80,12 +80,13 @@ class ScanScreenTest {
         }
     }
 
-    @Test fun theNewLibrariesAreCameraXAndZxingCoreOnly_noPlayServicesNoMlKit() {
+    @Test fun browserOAuthKeepsThePairingLibrariesAndDoesNotShipGoogleSignInSdk() {
         val g = file("build.gradle.kts")
         assertTrue(g.contains("androidx.camera:camera-core") && g.contains("com.google.zxing:core:"))
-        for (bad in listOf("com.google.android.gms", "play-services", "mlkit", "firebase", "admob", "billingclient", "crashlytics", "camera-mlkit")) {
+        for (bad in listOf("androidx.credentials", "googleid", "credentials-play-services-auth", "com.google.android.gms:play-services-auth:", "mlkit", "firebase", "admob", "billingclient", "crashlytics", "camera-mlkit")) {
             assertFalse("build.gradle.kts must not mention $bad", g.contains(bad, ignoreCase = true))
         }
+        assertFalse("Remote OAuth uses the system browser and PKCE", src("link/RemoteAccount.kt").contains("signInWithIdToken"))
     }
 
     @Test fun theScanButtonIsTheMainActionOfThePairingScreenAndPastingStays() {

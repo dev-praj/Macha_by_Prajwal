@@ -117,7 +117,7 @@
     <string name="recent_all">See all</string>
     <string name="status_looking">Looking for your computer…</string>
     <string name="discovery_title">Can\'t find your computer</string>
-    <string name="discovery_body">Is the phone on the same Wi-Fi as the computer? Is the computer awake, with Macha running and the phone link on, and does Windows allow Macha on private networks? Some hotspots and guest networks block devices from finding each other (client isolation).</string>
+    <string name="discovery_body">Are the phone and computer on the same Wi-Fi, or is the computer connected to the phone\'s hotspot? Is the computer awake, with Macha running and the phone link on? In Windows, allow Macha through the firewall on private networks. Some guest hotspots use client isolation and block devices from finding each other.</string>
     <string name="discovery_pair_again">Pair again</string>
     <string name="discovery_enter_address">Enter address manually</string>
     <string name="address_title">Computer address</string>
@@ -127,7 +127,7 @@
     <string name="chat_off_not_paired_title">Not connected</string>
     <string name="chat_off_not_paired_body">Pair your computer first, then you can chat through it.</string>
     <string name="chat_off_offline_title">Not connected</string>
-    <string name="chat_off_offline_body">Your computer cannot be reached right now. Check that it is on, with Macha running, on the same Wi-Fi.</string>
+    <string name="chat_off_offline_body">Your computer cannot be reached right now. Check that it is on, Macha is running, and the computer is on the same Wi-Fi or connected to this phone\'s hotspot.</string>
     <string name="chat_off_title">Chat is off on your computer</string>
     <string name="chat_nomodel_title">Your computer has no model allowed for the phone yet</string>
     <string name="chat_off_hint">On your computer open Macha &gt; Settings &gt; Android phone, turn on \"Let the phone chat with my AI providers\" and tick a model.</string>

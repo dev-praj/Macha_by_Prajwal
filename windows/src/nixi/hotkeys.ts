@@ -157,12 +157,29 @@ export function registerNixiHotkeyHandlers(
             (entry) => entry.application.toLowerCase() === targetApplication.toLowerCase(),
           )
           : undefined;
-        await Bridge.nixiDictateInsert(
-          transcript,
-          State.settings.dictationReplacements,
-          appStyle?.style ?? "standard",
-        );
+        statusBar.setStatus("Speech transcribed", "Inserting the recognized text…");
+        try {
+          await Bridge.nixiDictateInsert(
+            transcript,
+            State.settings.dictationReplacements,
+            appStyle?.style ?? "standard",
+            State.settings.dictationSnippets,
+          );
+        } catch (error) {
+          const reason = error instanceof Error ? error.message : String(error);
+          statusBar.setStatus("Speech transcribed, but text could not be inserted", reason);
+          return;
+        }
         if (session !== recordingGeneration) return;
+        try {
+          await Bridge.nixiRecordDictationStats(
+            transcript,
+            targetApplication,
+            result.durationMs / 1000,
+          );
+        } catch (error) {
+          console.error("[nixi] could not record dictation statistics", error);
+        }
         const detail = appStyle
           ? `${appStyle.style === "verbatim" ? "Verbatim" : "Standard"} style for ${targetApplication}.`
           : dictationApplicationError

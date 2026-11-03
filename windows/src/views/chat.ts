@@ -15,6 +15,7 @@ import { Sound } from "../core/sound";
 import { State, type ChatMessage } from "../core/state";
 import { sanitizeAssistantText } from "../core/text";
 import * as TTS from "../core/tts";
+import { transcribeAudio } from "../nixi/stt";
 import {
   canStartHoldToTalk,
   isPartialVisionModeActivation,
@@ -30,8 +31,6 @@ import type { ViewHost } from "./views";
 
 let nextId = 1;
 
-const STT_ENDPOINT = "http://127.0.0.1:5005/transcribe";
-const STT_TIMEOUT_MS = 10_000;
 const VOICE_SILENCE_MS = 450;
 const VOICE_VAD_POLL_MS = 50;
 const VOICE_NOISE_CALIBRATION_MS = 300;
@@ -1117,48 +1116,12 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       reportVisionOnboardingResult(false, "No speech was detected. Try again and speak after the voice prompt opens.");
       return;
     }
-    const form = new FormData();
-    form.append("audio", audio, "recording.webm");
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), STT_TIMEOUT_MS);
     try {
-      const response = await fetch(STT_ENDPOINT, {
-        method: "POST",
-        body: form,
-        signal: controller.signal,
-      });
-      if (!response.ok) {
-        if (response.status >= 500) throw new Error("Voice server not running");
-        const body: unknown = await response.json().catch(() => null);
-        const message = typeof body === "object" && body !== null && "error" in body
-          && typeof body.error === "string"
-          ? body.error
-          : `Voice transcription failed (HTTP ${response.status}).`;
-        throw new Error(message);
-      }
-      const body: unknown = await response.json();
-      const transcript = typeof body === "object" && body !== null && "text" in body
-        && typeof body.text === "string"
-        ? body.text.trim()
-        : "";
-      const confidence = typeof body === "object" && body !== null && "confidence" in body
-        && typeof body.confidence === "number"
-        ? body.confidence
-        : null;
-      if (!transcript || confidence === null) {
+      const transcript = await transcribeAudio(audio);
+      if (!transcript) {
         await releaseVoiceSession();
         setVoiceState("idle", "No speech detected. Please try again.");
         reportVisionOnboardingResult(false, "No speech was detected. Try again and speak after the voice prompt opens.");
-        return;
-      }
-      if (confidence < -8) {
-        await releaseVoiceSession();
-        setVoiceState(
-          "idle",
-          "I could not understand that clearly. Please try again.",
-          true,
-        );
-        reportVisionOnboardingResult(false, "Macha could not understand the question. Try speaking clearly and a little closer to the microphone.");
         return;
       }
       if (selectedRegionCaptureFailed) {
@@ -1180,18 +1143,14 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         await releaseVoiceSession();
       }
     } catch (error) {
-      const message = error instanceof DOMException && error.name === "AbortError"
-        ? "Voice transcription timed out."
-        : error instanceof TypeError
-          ? "Voice server not running"
-          : error instanceof Error
-            ? error.message
-            : "Voice transcription failed.";
+      const message = error instanceof TypeError
+        ? "Voice transcription service is unavailable. Check voice setup and try again."
+        : error instanceof Error
+          ? error.message
+          : "Voice transcription failed.";
       await releaseVoiceSession();
       setVoiceState("idle", message, true);
       reportVisionOnboardingResult(false, message);
-    } finally {
-      window.clearTimeout(timeout);
     }
   }
 

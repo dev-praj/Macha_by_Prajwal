@@ -159,13 +159,18 @@ export class Island {
         void Bridge.log(`decide ${d} req=${req?.requestId ?? "none"}`);
         if (!req) return;
         Sound.play(d === "deny" ? "blip" : "approve");
-        void Bridge.approvalDecision(req.requestId, d);
+        void Bridge.approvalDecision(req.requestId, d).catch((error: unknown) => {
+          console.error("[macha] could not send approval decision", error);
+          void Bridge.log(`approval decision failed: ${String(error).replace(/^Error:\s*/, "")}`);
+        });
         State.pendingApproval = null;
         State.isPinned = false;
         this.fsm.pinned = false;
-        State.updateTask("integration_claude", "working");
-        State.setPillBadge("integration_claude", null);
-        this.setView(State.defaultView());
+        const agentId = req.agentId ?? "integration_claude";
+        State.updateTask(agentId, "working");
+        State.setPillBadge(agentId, null);
+        State.view = State.defaultView();
+        this.collapse();
       },
       toggleSound: () => {
         State.settings.soundEnabled = !State.settings.soundEnabled;
@@ -354,6 +359,9 @@ export class Island {
 
   /** Alert from the hook server: open on this view. Pinned alerts never auto-close. */
   alert(view: IslandViewName) {
+    // Place the always-on-top panel on the active display and bypass the normal
+    // full-screen auto-hide suppression for actionable incoming alerts.
+    void Bridge.surfaceNotification();
     this.fsm.pinned = State.isPinned;
     this.fsm.forceHome();
     this.expand(view);

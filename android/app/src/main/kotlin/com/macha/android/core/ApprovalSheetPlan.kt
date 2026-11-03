@@ -15,8 +15,9 @@ object ApprovalSheetPlan {
     const val COMMAND_BOX_MAX_DP = 220
 
     /**
-     * Allow from the phone is offered only when the whole command is on the phone. When the computer cut it (a flag it sends with the
-     * request), the phone could show only the start of what would run, so the request is answered on the computer. Deny is always offered.
+     * Allow from the phone is offered only when the whole command is on the phone. The desktop sizes the command to fit a phone link
+     * message; if it still has to cut it, the phone could show only the start of what would run, so the request is answered on the
+     * computer. Deny is always offered.
      */
     fun canAllowHere(r: ApprovalRequest): Boolean = !r.truncated
 

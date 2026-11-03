@@ -7,7 +7,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** The languages of the app: the picker, Android's own per-app language list, the resources and the build all list the same ones. */
+/** Android ships English only, independently of device locale and old saved per-app language choices. */
 class LanguagesTest {
     private fun read(path: String) = File(path).readText()
 
@@ -20,22 +20,21 @@ class LanguagesTest {
         assertEquals(listOf("fr", "es", "pt-BR", "zh-Hans", "hi", "bn", "ru", "id", "ar"), table.map { it.first })
     }
 
-    @Test fun thePickerOffersExactlyTheLanguagesThatAreTranslated() {
-        assertEquals(translations.sorted(), Languages.ALL.map { it.tag }.sorted())
-        for (l in Languages.ALL) assertEquals(l.tag, table.first { it.first == l.tag }.third, l.name)
+    @Test fun theAppDoesNotOfferLanguageChoices() {
+        assertTrue(Languages.ALL.isEmpty())
+        assertEquals("en", Languages.match("fr"))
     }
 
     @Test fun androidsOwnLanguageListMatches() {
         val tags = Regex("""android:name="([^"]+)"""").findAll(read("src/main/res/xml/locales_config.xml")).map { it.groupValues[1] }.toList()
-        assertEquals(listOf("en") + table.map { it.first }.filter { it in translations }, tags)
+        assertEquals(listOf("en"), tags)
         assertTrue(read("src/main/AndroidManifest.xml").contains("""android:localeConfig="@xml/locales_config""""))
     }
 
-    @Test fun theBuildKeepsEnglishAndEachTranslation() {
+    @Test fun theBuildKeepsOnlyEnglish() {
         val configured = Regex("""resourceConfigurations\s*\+=\s*listOf\(([^)]*)\)""").find(read("build.gradle.kts"))!!.groupValues[1]
             .split(",").map { it.trim().trim('"') }
-        val expected = listOf("en") + table.filter { it.first in translations }.map { it.second }
-        assertEquals(expected.sorted(), configured.sorted())
+        assertEquals(listOf("en"), configured)
     }
 
     @Test fun everyTranslationHasItsFolderAndNothingElseIsThere() {
@@ -54,12 +53,12 @@ class LanguagesTest {
         assertEquals(declared, english)
     }
 
-    @Test fun theChoiceMapsToALanguageTheAppHas() {
-        assertEquals("fr", Languages.match("fr"))
-        assertEquals("fr", Languages.match("fr-CA"))
-        assertEquals("pt-BR", Languages.match("pt-PT"))
-        assertEquals("pt-BR", Languages.match("PT-br"))
-        assertEquals(Languages.SYSTEM, Languages.match("de"))
+    @Test fun anyStoredOrSystemLanguageResolvesToEnglish() {
+        assertEquals("en", Languages.match("fr"))
+        assertEquals("en", Languages.match("fr-CA"))
+        assertEquals("en", Languages.match("pt-PT"))
+        assertEquals("en", Languages.match("PT-br"))
+        assertEquals("en", Languages.match("de"))
         assertEquals(Languages.SYSTEM, Languages.match(""))
         assertEquals(Languages.SYSTEM, Languages.match(null))
     }

@@ -1,7 +1,7 @@
 {
   "name": "macha-windows",
   "private": true,
-  "version": "0.1.2",
+  "version": "0.1.15",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,7 @@
     "tauri": "node scripts/tauri.mjs",
     "predev": "cargo build --release -p macha-hook",
     "prebuild": "cargo build --release -p macha-hook",
-    "pack": "tauri build && node scripts/pack.mjs",
+    "pack": "node scripts/tauri.mjs build && node scripts/pack.mjs",
     "pack:msix": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pack-msix.ps1"
   },
   "devDependencies": {

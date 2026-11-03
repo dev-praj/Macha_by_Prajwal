@@ -28,19 +28,19 @@ class IslandPlanTest {
         assertFalse(IslandPlan.active(emptyList(), listOf(request.copy(truncated = true)), true, name)!!.canAllow)
     }
 
-    @Test fun workingShowsWhenAllowedAndNeverWhenNot() {
+    @Test fun ordinaryWorkDoesNotLeaveAnOverlayOverOtherTasks() {
         val list = listOf(s("a", BotState.WORKING, "Runs tests"))
-        assertEquals(IslandSpec.Kind.WORKING, IslandPlan.active(list, emptyList(), allowed = true, name)!!.kind)
+        assertNull("ordinary work stays in the app", IslandPlan.active(list, emptyList(), allowed = true, name))
         assertNull(IslandPlan.active(list, emptyList(), allowed = false, name))
     }
 
-    @Test fun thinkingAndSearchingCountAsWorking() {
+    @Test fun thinkingAndSearchingDoNotShowTheOverlay() {
         for (st in listOf(BotState.THINKING, BotState.SEARCHING)) {
-            assertEquals(IslandSpec.Kind.WORKING, IslandPlan.active(listOf(s("a", st)), emptyList(), true, name)!!.kind)
+            assertNull("$st is not an attention request", IslandPlan.active(listOf(s("a", st)), emptyList(), true, name))
         }
     }
 
-    @Test fun aRequestComesBeforeAQuestionBeforeWork() {
+    @Test fun aRequestComesBeforeAQuestionAndBothOverrideOrdinaryWork() {
         val all = listOf(s("a", BotState.WORKING), s("b", BotState.QUESTION))
         assertEquals(IslandSpec.Kind.QUESTION, IslandPlan.active(all, emptyList(), true, name)!!.kind)
         val withRequest = IslandPlan.active(all, listOf(request), true, name)!!
@@ -78,10 +78,9 @@ class IslandPlanTest {
         assertNotNull("outside quiet hours", IslandPlan.flash(BotState.WORKING, done, quiet, noon, true, name))
     }
 
-    @Test fun workingIsNotGatedByTheFinishedSwitchOrQuietHours() {
+    @Test fun ordinaryWorkStaysHiddenEvenWhenTheOverlayIsAllowed() {
         val list = listOf(s("a", BotState.WORKING))
-        // The user asked: working shows with the overlay; the notice switch and quiet hours govern finished/failed.
-        assertNotNull(IslandPlan.active(list, emptyList(), true, name))
+        assertNull(IslandPlan.active(list, emptyList(), true, name))
     }
 
     @Test fun theIslandNeverShowsWhileMachaIsOpen() {
@@ -99,7 +98,7 @@ class IslandPlanTest {
         assertEquals(0, box.centerOffsetX)
         assertEquals("content starts under the cut-out", 66, box.topInset)
         assertTrue(box.workingH > box.topInset)
-        assertTrue(box.cardH > box.workingH && box.approvalH > box.cardH)
+        assertTrue(box.cardH >= box.workingH && box.approvalH == box.cardH)
         assertTrue(box.workingW <= 720 && box.approvalW <= 720)
     }
 
@@ -130,9 +129,16 @@ class IslandPlanTest {
         assertEquals(box.cardW to box.cardH, IslandGeometry.sizeFor(box, IslandSpec.Kind.QUESTION))
     }
 
+    @Test fun attentionCardUsesAboutOneFifthOfTheDisplayHeight() {
+        val box = IslandGeometry.place(720, 2f, PxRect(325, 0, 395, 66), 70, screenH = 1600)
+        assertEquals(320, box.cardH)
+        assertEquals(320, box.approvalH)
+    }
+
     @Test fun theIslandSaysWhatTheAgentDoesNotTheRawToolName() {
-        val w = IslandPlan.active(listOf(s("a", BotState.WORKING, "ask_question")), emptyList(), true, name)!!
-        assertEquals("Asking a question", w.text)
+        assertNull("a working status is not a user-facing alert", IslandPlan.active(listOf(s("a", BotState.WORKING, "ask_question")), emptyList(), true, name))
+        val question = IslandPlan.active(listOf(s("a", BotState.QUESTION, "ask_question")), emptyList(), true, name)!!
+        assertEquals("Asking a question", question.text)
         val f = IslandPlan.flash(BotState.WORKING, s("a", BotState.FINISHED, "Bash"), settings, noon, true, name)!!
         assertEquals("Running a command", f.text)
     }

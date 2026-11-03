@@ -172,6 +172,7 @@ function buildOverview(actions: ViewActions): ViewHost {
     },
     sync() {
       const task = State.focusTask;
+      el.classList.toggle("spotify-focused", task?.id === "integration_spotify");
       if (task?.id !== lastFocus) {
         lastFocus = task?.id ?? null;
         selectedDiff = null;
@@ -357,7 +358,9 @@ function buildApproval(actions: ViewActions): ViewHost {
     el,
     sync() {
       clear(who);
-      who.append(agentWho(State.focusTask, "needs permission"));
+      const pendingAgent = State.pendingApproval?.agentId;
+      const task = pendingAgent ? State.tasks.find((entry) => entry.id === pendingAgent) ?? State.focusTask : State.focusTask;
+      who.append(agentWho(task, "needs permission"));
       // The whole point of approving here rather than in the terminal: this line
       // is the command, the file path or the URL being authorised, not just the
       // name of the tool asking.
@@ -387,11 +390,11 @@ function buildQuestion(): ViewHost {
     el,
     sync() {
       clear(who);
-      who.append(agentWho(State.focusTask, "Claude Code is asking a question"));
+      who.append(agentWho(State.focusTask, "sent a message"));
       const task = State.focusTask;
       title.textContent = task?.steps.at(-1) ?? "Claude needs an answer.";
       clear(row);
-      row.append(h("div", { class: "sub", text: "Answer in your terminal — Macha can't reply for you yet." }));
+      row.append(h("div", { class: "sub", text: "Check your terminal for details." }));
     },
   };
 }

@@ -28,6 +28,7 @@ export interface ApprovalInfo {
   sessionId: string;
   tool: string;
   command: string;
+  agentId?: string;
 }
 
 export interface ChatMessage {
@@ -153,6 +154,11 @@ export interface DictationReplacement {
   replacement: string;
 }
 
+export interface DictationSnippet {
+  trigger: string;
+  text: string;
+}
+
 export interface DictationAppStyle {
   application: string;
   style: "standard" | "verbatim";
@@ -192,6 +198,7 @@ export interface Settings {
   wakeWordThreshold: number;
   dictationVocabulary: string[];
   dictationReplacements: DictationReplacement[];
+  dictationSnippets: DictationSnippet[];
   dictationAppStyles: DictationAppStyle[];
   phoneLink?: boolean;
   phoneDetails?: boolean;
@@ -227,6 +234,7 @@ export const DEFAULT_SETTINGS: Settings = {
   wakeWordThreshold: 0.012,
   dictationVocabulary: [],
   dictationReplacements: [],
+  dictationSnippets: [],
   dictationAppStyles: [],
   spokenReplies: false,
 };

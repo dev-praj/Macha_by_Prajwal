@@ -6,6 +6,9 @@ mod agent_text;
 mod agents;
 mod claude;
 mod config_file;
+mod cloud;
+mod remote_mode;
+mod dictation_stats;
 mod files;
 mod gesture_mouse;
 mod hooks;
@@ -16,9 +19,12 @@ mod log;
 mod memory;
 mod messages;
 mod notetaker;
+mod parakeet;
 mod pipe;
 mod platform;
 mod phone_link;
+mod provider_auth;
+mod provider_oauth;
 mod recap;
 mod secrets;
 mod settings;
@@ -32,6 +38,7 @@ mod nixi_hotkeys;
 mod nixi_commands;
 pub mod nixi_search;
 pub mod nixi_system;
+mod plan_usage;
 
 use std::process::Command;
 use std::sync::atomic::Ordering;
@@ -109,6 +116,10 @@ fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) -> R
         settings.phone_services = current.phone_services.clone();
         settings.phone_relay = current.phone_relay;
         settings.phone_relay_url = current.phone_relay_url.clone();
+        settings.phone_cloud_url = current.phone_cloud_url.clone();
+        settings.phone_cloud_key = current.phone_cloud_key.clone();
+        settings.phone_cloud_enabled = current.phone_cloud_enabled;
+        settings.phone_cloud_wizard_skipped = current.phone_cloud_wizard_skipped;
         *current = settings;
         (screen_changed, autostart_changed)
     };
@@ -125,7 +136,8 @@ fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) -> R
     }
     if screen_changed {
         let collapsed = shared.gate.collapsed.load(Ordering::Relaxed);
-        island::apply_geometry(&app, &settings.screen, collapsed);
+        let pref = island::active_screen_preference(&shared);
+        island::apply_geometry(&app, &pref, collapsed);
     }
     // Keep the other window in step (island ⇄ settings window).
     let _ = app.emit("settings-changed", settings);
@@ -136,9 +148,12 @@ fn save_settings(app: AppHandle, shared: State<Shared>, settings: Settings) -> R
 /// global poll running so the fully off-screen window can still be revealed.
 #[tauri::command]
 fn set_collapsed(app: AppHandle, shared: State<Shared>, collapsed: bool) {
-    let pref = shared.settings.lock().unwrap().screen.clone();
+    let pref = island::active_screen_preference(&shared);
     shared.gate.collapsed.store(collapsed, Ordering::Relaxed);
     island::apply_geometry(&app, &pref, collapsed);
+    if collapsed {
+        shared.gate.notification_surface.store(false, Ordering::Relaxed);
+    }
     if !collapsed {
         island::request_auto_reveal(&app, &shared.gate);
     }
@@ -147,6 +162,11 @@ fn set_collapsed(app: AppHandle, shared: State<Shared>, collapsed: bool) {
     shared
         .gate
         .set_active(!collapsed || shared.gate.auto_hide_enabled());
+}
+
+#[tauri::command]
+fn surface_notification(app: AppHandle, shared: State<Shared>) {
+    island::surface_notification(&app, &shared.gate);
 }
 
 /// The front end pushes the island shape; Rust decides click-through from it.
@@ -177,7 +197,7 @@ fn focus_window(app: AppHandle, focused: bool) {
 
 #[tauri::command]
 fn reposition(app: AppHandle, shared: State<Shared>) {
-    let pref = shared.settings.lock().unwrap().screen.clone();
+    let pref = island::active_screen_preference(&shared);
     let collapsed = shared.gate.collapsed.load(Ordering::Relaxed);
     island::apply_geometry(&app, &pref, collapsed);
 }
@@ -543,6 +563,47 @@ fn secret_clear(key: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn provider_auth_features() -> Result<Vec<provider_auth::ProviderModeFeature>, String> {
+    provider_auth::features()
+}
+
+#[tauri::command]
+fn provider_auth_feature_set(
+    provider: String,
+    mode: String,
+    enabled: bool,
+) -> Result<(), String> {
+    provider_auth::set_feature_enabled(&provider, &mode, enabled)
+}
+
+#[tauri::command]
+fn provider_auth_revoke(
+    provider: String,
+    mode: String,
+    account_id: Option<String>,
+) -> Result<(), String> {
+    let provider_type = provider_auth::Provider::from_id(&provider)
+        .ok_or_else(|| format!("Unknown AI provider {provider:?}."))?;
+    let mode_type = provider_auth::AuthMode::parse(&mode)
+        .ok_or_else(|| format!("Unknown authentication mode {mode:?}."))?;
+    let mut connection = provider_auth::ProviderConnection::new(provider_type, mode_type);
+    if let Some(account_id) = account_id {
+        connection = connection.with_account_id(account_id);
+    }
+    provider_auth::revoke(&connection)
+}
+
+#[tauri::command]
+fn provider_api_key_fallback_enabled() -> Result<bool, String> {
+    provider_auth::api_key_fallback_enabled()
+}
+
+#[tauri::command]
+fn provider_api_key_fallback_set(enabled: bool) -> Result<(), String> {
+    provider_auth::set_api_key_fallback_enabled(enabled)
+}
+
+#[tauri::command]
 fn openrouter_accounts() -> Result<Vec<secrets::OpenRouterAccount>, String> {
     secrets::openrouter_accounts()
 }
@@ -550,6 +611,11 @@ fn openrouter_accounts() -> Result<Vec<secrets::OpenRouterAccount>, String> {
 #[tauri::command]
 fn openrouter_account_add(name: String, key: String) -> Result<secrets::OpenRouterAccount, String> {
     secrets::add_openrouter_account(&name, &key)
+}
+
+#[tauri::command]
+async fn openrouter_oauth_connect() -> Result<secrets::OpenRouterAccount, String> {
+    provider_oauth::connect_openrouter().await
 }
 
 #[tauri::command]
@@ -617,6 +683,43 @@ fn settings_page_url(app: &AppHandle) -> WebviewUrl {
     }
     let _ = app;
     WebviewUrl::App("settings.html".into())
+}
+
+fn sign_in_page_url(app: &AppHandle) -> WebviewUrl {
+    #[cfg(dev)]
+    if let Some(mut base) = app.config().build.dev_url.clone() {
+        base.set_path("/signin.html");
+        return WebviewUrl::External(base);
+    }
+    let _ = app;
+    WebviewUrl::App("signin.html".into())
+}
+
+pub fn create_sign_in_window(app: &AppHandle) -> Option<tauri::WebviewWindow> {
+    match WebviewWindowBuilder::new(app, "signin", sign_in_page_url(app))
+        .additional_browser_args(BROWSER_ARGS)
+        .title("Sign in — Macha")
+        .inner_size(480.0, 560.0)
+        .min_inner_size(420.0, 500.0)
+        .resizable(false)
+        .visible(false)
+        .center()
+        .build()
+    {
+        Ok(window) => {
+            let app = app.clone();
+            window.on_window_event(move |event| {
+                if let tauri::WindowEvent::CloseRequested { .. } = event {
+                    remote_mode::dismiss_sign_in_gate(&app);
+                }
+            });
+            Some(window)
+        }
+        Err(error) => {
+            log::line(format!("sign-in window failed: {error}"));
+            None
+        }
+    }
 }
 
 /// The settings window is created hidden at launch and only ever shown and
@@ -745,6 +848,7 @@ fn start_vision_onboarding_inline(app: AppHandle) -> Result<(), String> {
 pub fn run() {
     platform::prepare_environment();
     let loaded = settings::load();
+    let show_sign_in_gate = remote_mode::startup_sign_in_gate();
     let gate = Arc::new(PollGate::new(loaded.auto_hide));
 
     let builder = tauri::Builder::default()
@@ -753,7 +857,11 @@ pub fn run() {
     // Keep a running release instance from absorbing a development launch.
     #[cfg(not(debug_assertions))]
     let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
-        let _ = app.emit_to(island::WINDOW_LABEL, "tray", "open".to_string());
+        if remote_mode::startup_sign_in_gate() {
+            remote_mode::open_sign_in_gate(app);
+        } else {
+            let _ = app.emit_to(island::WINDOW_LABEL, "tray", "open".to_string());
+        }
     }));
 
     builder
@@ -772,6 +880,7 @@ pub fn run() {
         .manage(Pending::default())
         .manage(Chat::default())
         .manage(recap::Store::load())
+        .manage(dictation_stats::Store::load())
         .manage(voice::SttProcess::default())
         .manage(voice::TtsProcess::default())
         .manage(gesture_mouse::GestureMouseProcess::default())
@@ -780,6 +889,7 @@ pub fn run() {
             save_settings,
             set_collapsed,
             set_island_rect,
+            surface_notification,
             focus_window,
             reposition,
             open_url,
@@ -791,6 +901,7 @@ pub fn run() {
             agent_hooks_list,
             agent_hooks_preview,
             agent_hooks_apply,
+            plan_usage::agent_plan_usage,
             phone_link::phone_link_status,
             phone_link::phone_link_set_enabled,
             phone_link::phone_link_pairing,
@@ -820,6 +931,17 @@ pub fn run() {
             phone_link::phone_chat_status,
             phone_link::phone_chat_set_enabled,
             phone_link::phone_chat_set_models,
+            remote_mode::remote_status,
+            remote_mode::remote_sign_in,
+            remote_mode::remote_skip_sign_in,
+            remote_mode::remote_finish_sign_in_gate,
+            remote_mode::remote_cancel_sign_in,
+            remote_mode::remote_devices,
+            remote_mode::remote_approve_device,
+            remote_mode::remote_deny_device,
+            remote_mode::remote_revoke_device,
+            remote_mode::remote_sign_out,
+            remote_mode::remote_delete_account,
             notetaker::notes_state,
             notetaker::notes_start,
             notetaker::notes_stop,
@@ -828,6 +950,10 @@ pub fn run() {
             notetaker::notes_delete,
             notetaker::notes_retry,
             notetaker::notes_markdown,
+            parakeet::speech_models_status,
+            parakeet::speech_models_download,
+            parakeet::speech_models_remove,
+            parakeet::parakeet_transcribe,
             approval_decision,
             approval_ack,
             approval_decline,
@@ -857,12 +983,20 @@ pub fn run() {
             recap::recap_snapshot,
             recap::recap_set_enabled,
             recap::recap_clear,
+            dictation_stats::nixi_dictation_stats_snapshot,
+            dictation_stats::nixi_dictation_stats_record,
             ingest_file,
             secret_present,
             secret_set,
             secret_clear,
+            provider_auth_features,
+            provider_auth_feature_set,
+            provider_auth_revoke,
+            provider_api_key_fallback_enabled,
+            provider_api_key_fallback_set,
             openrouter_accounts,
             openrouter_account_add,
+            openrouter_oauth_connect,
             openrouter_account_remove,
             openrouter_account_reveal,
             refresh_integration,
@@ -911,6 +1045,7 @@ pub fn run() {
             });
             // Before the island: see create_settings_window.
             create_settings_window(&handle);
+            let sign_in_window = if show_sign_in_gate { create_sign_in_window(&handle) } else { None };
             // Remove WebView2's child drop target once both webviews exist so
             // shell file drags can reach wry's target from their first hover.
             platform::unblock_webview_drops(&handle);
@@ -919,7 +1054,10 @@ pub fn run() {
                 platform::make_non_activating(&win);
                 island::prepare_launch_visibility(&gate);
                 island::apply_geometry(&handle, &loaded.screen, false);
-                let _ = win.show();
+                if !show_sign_in_gate { let _ = win.show(); }
+            }
+            if show_sign_in_gate {
+                if let Some(window) = sign_in_window { let _ = window.show(); let _ = window.set_focus(); }
             }
             gate.collapsed.store(false, Ordering::Relaxed);
             // Nothing drawn yet, so nothing takes the mouse until the page
@@ -935,6 +1073,8 @@ pub fn run() {
             hooks::ensure_hook_exe(&handle);
             pipe::start(handle.clone());
             phone_link::start_if_enabled(&handle);
+            phone_link::start_remote_supervisor(&handle);
+            plan_usage::start(handle.clone());
             integrations::start(handle.clone());
             messages::start(handle.clone());
             spotify::start(handle.clone());

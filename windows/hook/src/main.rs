@@ -1,17 +1,17 @@
-//! macha-hook — the relay Claude Code runs on every hook event.
+//! macha-hook — the relay coding agents run on hook events.
 //!
 //! Reads the hook JSON on stdin, adds a little terminal context, and hands it to
 //! Macha over the named pipe `\\.\pipe\macha-<sid>`.
 //!
-//! Hard rule: never block Claude Code.
+//! Hard rule: never block an agent unless the user is deciding a permission.
 //! * If the pipe does not exist — Macha is closed — we exit 0 immediately with
 //!   nothing on stdout, and the session carries on untouched.
 //! * Every step runs under a deadline enforced by the main thread, so a pipe that
 //!   accepts the connection and then stops reading cannot wedge the session
 //!   either: we abandon the worker and exit.
 //! * Only `PermissionRequest` waits for an answer, because approving from the
-//!   island is the whole point. No answer means empty stdout, and Claude Code
-//!   asks in the terminal exactly as if Macha were not installed.
+//!   island is the whole point. No answer leaves the agent's normal permission
+//!   flow in charge.
 //!
 //! Usage: `macha-hook <EventName>` (the name is also read from the JSON).
 
@@ -45,7 +45,7 @@ mod unix;
 use unix::connect;
 
 fn main() {
-    let Some((payload, event)) = read_event() else { std::process::exit(0) };
+    let Some((payload, event, copilot)) = read_event() else { std::process::exit(0) };
 
     let waits_for_answer = event == "PermissionRequest";
     let budget = if waits_for_answer { DECISION_BUDGET } else { FIRE_AND_FORGET_BUDGET };
@@ -60,20 +60,27 @@ fn main() {
     });
 
     if let Ok(Some(decision)) = rx.recv_timeout(budget) {
-        if let Some(json) = decision_json(&decision) {
+        if let Some(json) = decision_json(&decision, copilot) {
             let mut out = std::io::stdout();
             let _ = writeln!(out, "{json}");
             let _ = out.flush();
         }
     }
-    // Nothing printed: Claude Code asks in the terminal, as if we were not here.
+    // No decision printed: the agent's normal permission flow remains in charge.
     std::process::exit(0);
 }
 
 /// The documented PermissionRequest output. Anything we do not recognise prints
 /// nothing at all rather than guessing — silence is the safe answer.
 /// See https://code.claude.com/docs/en/hooks
-fn decision_json(decision: &str) -> Option<String> {
+fn decision_json(decision: &str, copilot: bool) -> Option<String> {
+    if copilot {
+        return match decision.trim() {
+            "allow" | "always" => Some(r#"{"permissionDecision":"allow"}"#.to_string()),
+            "deny" => Some(r#"{"permissionDecision":"deny"}"#.to_string()),
+            _ => None,
+        };
+    }
     let behavior = match decision.trim() {
         // "always" still answers a plain allow; remembering it is the island's
         // business, not Claude Code's.
@@ -87,7 +94,7 @@ fn decision_json(decision: &str) -> Option<String> {
 }
 
 /// Reads stdin and returns the payload to forward plus the event name.
-fn read_event() -> Option<(String, String)> {
+fn read_event() -> Option<(String, String, bool)> {
     let mut raw = Vec::new();
     if std::io::stdin().read_to_end(&mut raw).is_err() || raw.is_empty() {
         return None;
@@ -120,12 +127,18 @@ fn read_event() -> Option<(String, String)> {
     if !agent.is_empty() {
         map.insert("macha_agent".into(), serde_json::Value::String(agent));
     }
+    let copilot = map.get("macha_agent").and_then(|value| value.as_str()) == Some("copilot");
     let event = map
         .get("hook_event_name")
         .and_then(|v| v.as_str())
         .map(str::to_string)
         .filter(|s| !s.is_empty())
         .unwrap_or(arg_event);
+    let event = if copilot {
+        normalize_copilot_event(map, &event)
+    } else {
+        event
+    };
     map.insert("hook_event_name".into(), serde_json::Value::String(event.clone()));
 
     for field in DROPPED_FIELDS {
@@ -165,7 +178,42 @@ fn read_event() -> Option<(String, String)> {
 
     let mut line = payload.to_string();
     line.push('\n');
-    Some((line, event))
+    Some((line, event, copilot))
+}
+
+fn normalize_copilot_event(
+    map: &mut serde_json::Map<String, serde_json::Value>,
+    event: &str,
+) -> String {
+    for (target, sources) in [
+        ("session_id", &["sessionId"][..]),
+        ("tool_name", &["toolName"][..]),
+        ("tool_input", &["toolArgs", "toolInput"][..]),
+        ("prompt", &["userPrompt"][..]),
+        ("message", &["lastAssistantMessage", "assistantMessage"][..]),
+        ("cwd", &["workingDirectory"][..]),
+    ] {
+        if !map.contains_key(target) {
+            for source in sources {
+                if let Some(value) = map.remove(*source) {
+                    map.insert(target.into(), value);
+                    break;
+                }
+            }
+        }
+    }
+    match event {
+        "sessionStart" => "SessionStart",
+        "userPromptSubmitted" => "UserPromptSubmit",
+        "preToolUse" => "PreToolUse",
+        "permissionRequest" => "PermissionRequest",
+        "postToolUse" => "PostToolUse",
+        "agentStop" => "Stop",
+        "sessionEnd" => "SessionEnd",
+        "notification" => "Notification",
+        _ => event,
+    }
+    .to_string()
 }
 
 fn truncate_event(payload: &mut serde_json::Value) {
@@ -352,23 +400,43 @@ mod tests {
     #[test]
     fn decision_json_matches_the_documented_shape() {
         assert_eq!(
-            decision_json("allow").unwrap(),
+            decision_json("allow", false).unwrap(),
             r#"{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"allow"}}}"#
         );
         assert_eq!(
-            decision_json("deny").unwrap(),
+            decision_json("deny", false).unwrap(),
             r#"{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"deny","message":"Denied from Macha"}}}"#
         );
         // "always" is an island concept; Claude Code just gets an allow.
-        assert!(decision_json("always").unwrap().contains(r#""behavior":"allow""#));
+        assert!(decision_json("always", false).unwrap().contains(r#""behavior":"allow""#));
+    }
+
+    #[test]
+    fn copilot_permissions_use_the_copilot_decision_shape() {
+        assert_eq!(decision_json("allow", true).unwrap(), r#"{"permissionDecision":"allow"}"#);
+        assert_eq!(decision_json("deny", true).unwrap(), r#"{"permissionDecision":"deny"}"#);
+        assert!(decision_json("maybe", true).is_none());
+    }
+
+    #[test]
+    fn copilot_events_and_fields_are_normalized_for_the_island() {
+        let mut payload = serde_json::json!({
+            "sessionId": "session-123",
+            "toolName": "terminal",
+            "toolArgs": { "command": "cargo test" }
+        }).as_object().unwrap().clone();
+        assert_eq!(normalize_copilot_event(&mut payload, "permissionRequest"), "PermissionRequest");
+        assert_eq!(payload["session_id"], "session-123");
+        assert_eq!(payload["tool_name"], "terminal");
+        assert_eq!(payload["tool_input"]["command"], "cargo test");
     }
 
     #[test]
     fn anything_unrecognised_prints_nothing() {
-        assert!(decision_json("").is_none());
-        assert!(decision_json("maybe").is_none());
+        assert!(decision_json("", false).is_none());
+        assert!(decision_json("maybe", false).is_none());
         // The shape the app used to send must not be mistaken for a decision.
-        assert!(decision_json(r#"{"permissionDecision":"allow"}"#).is_none());
+        assert!(decision_json(r#"{"permissionDecision":"allow"}"#, false).is_none());
     }
 
     #[test]

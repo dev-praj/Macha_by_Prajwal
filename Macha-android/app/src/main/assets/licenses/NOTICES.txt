@@ -18,7 +18,31 @@ The pairing QR code is read with ZXing Core 3.5.3 ("Zebra Crossing", https://git
 
 The user interface, the camera preview and the language runtime come from AndroidX (Jetpack Compose, Material 3, Activity, Lifecycle, CameraX), Copyright The Android Open Source Project, and the Kotlin standard library, Copyright JetBrains s.r.o. and Kotlin Programming Language contributors. They are licensed under the Apache License, Version 2.0, the full text of which is below. They are used unmodified.
 
+5. Bouncy Castle
+
+The cloud pairing uses the Bouncy Castle Provider 1.85.2 (org.bouncycastle:bcprov-jdk18on), Copyright (c) 2000-2026 The Legion of the Bouncy Castle Inc. It is used unmodified under the MIT License; the complete license notice is included below.
+
 No warranty: the software is provided "as is", as the licences below say.
+
+------------------------------
+Bouncy Castle MIT License
+------------------------------
+
+MIT License (https://opensource.org/licenses/MIT)
+
+Copyright (c) 2000-2026 The Legion of the Bouncy Castle Inc. (https://www.bouncycastle.org).
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+associated documentation files (the "Software"), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge, publish, distribute,
+sub license, and/or sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions: The above copyright notice and this
+permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ------------------------------
 MIT License

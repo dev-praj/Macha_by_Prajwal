@@ -17,8 +17,10 @@
 mod admission;
 mod chat;
 mod chat_backend;
+pub(crate) mod cloud_crypto;
+mod cloud_transport;
 mod discovery;
-mod hub;
+pub(crate) mod hub;
 #[cfg(test)]
 mod interop;
 mod pairing;
@@ -29,8 +31,10 @@ mod server;
 mod tests;
 
 use std::net::{Ipv4Addr, SocketAddr, TcpListener as StdListener};
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 
+use base64::Engine as _;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow};
 
@@ -132,6 +136,10 @@ pub struct PhoneLink {
     error: Mutex<Option<String>>,
     /// The connection to the user's relay (relay_client.rs): exists only while the link runs AND the relay switch is on.
     relay: Mutex<Option<relay_client::Handle>>,
+    /// The Supabase relay is also outbound-only and is stopped with the local phone link.
+    cloud_relay: Mutex<Option<cloud_transport::Handle>>,
+    /// Account tunnels are independent of the local QR listener and legacy relay.
+    remote_relays: Mutex<HashMap<String, cloud_transport::Handle>>,
 }
 
 impl PhoneLink {
@@ -145,7 +153,40 @@ impl PhoneLink {
             running: Mutex::new(None),
             error: Mutex::new(None),
             relay: Mutex::new(None),
+            cloud_relay: Mutex::new(None),
+            remote_relays: Mutex::new(HashMap::new()),
         }
+    }
+
+    async fn sync_remote(&self) {
+        let tunnels = match crate::remote_mode::active_remote_tunnels().await {
+            Ok(tunnels) => tunnels,
+            Err(error) => {
+                log::line(format!("phone link: Remote device sync could not refresh: {error}"));
+                return;
+            }
+        };
+        let wanted: HashSet<String> = tunnels.iter().map(|tunnel| tunnel.peer_device_id.clone()).collect();
+        let mut handles = self.remote_relays.lock().unwrap();
+        let stale: Vec<String> = handles.keys().filter(|id| !wanted.contains(*id)).cloned().collect();
+        for id in stale {
+            if let Some(handle) = handles.remove(&id) { handle.stop(); }
+        }
+        for tunnel in tunnels {
+            if handles.contains_key(&tunnel.peer_device_id) { continue; }
+            let token = base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(tunnel.shared_key);
+            let shared = server::Shared::with_features(
+                self.hub.clone(), token, pairing::computer_name(), Some(self.chat.clone()),
+                Arc::new(TauriFeatures { app: self.app.clone() }),
+            );
+            let peer = tunnel.peer_device_id.clone();
+            handles.insert(peer, cloud_transport::start_remote(shared, tunnel));
+            log::line("phone link: starting an approved Macha Remote device tunnel");
+        }
+    }
+
+    fn has_transport(&self) -> bool {
+        self.running.lock().unwrap().is_some() || !self.remote_relays.lock().unwrap().is_empty()
     }
 
     /// (Re)starts the relay connection from the settings and the keystore, or stops it. Never fails the link: a
@@ -176,6 +217,21 @@ impl PhoneLink {
         *self.relay.lock().unwrap() = Some(handle);
     }
 
+    fn sync_cloud(&self) {
+        if !cfg!(feature = "self-hosted-cloud") { return; }
+        if let Some(old) = self.cloud_relay.lock().unwrap().take() { old.stop(); }
+        let Some(server_shared) = self.running.lock().unwrap().as_ref().map(|r| r.shared.clone()) else { return };
+        let (enabled, url, key) = {
+            let s = self.app.state::<Shared>();
+            let s = s.settings.lock().unwrap();
+            (s.phone_cloud_enabled, s.phone_cloud_url.clone(), s.phone_cloud_key.clone())
+        };
+        if !enabled { return; }
+        let Some(pairing_id) = secrets::get_internal("phone-cloud-pairing-id") else { return };
+        let handle = cloud_transport::start(server_shared, url, key, pairing_id, self.store.clone());
+        *self.cloud_relay.lock().unwrap() = Some(handle);
+    }
+
     /// Starts listening. Fails without side effects if the keystore is missing:
     /// nothing is ever kept on disk instead.
     pub fn start(&self) -> Result<(), String> {
@@ -196,6 +252,7 @@ impl PhoneLink {
                 *self.error.lock().unwrap() = None;
                 drop(running);
                 self.sync_relay();
+                self.sync_cloud();
                 Ok(())
             }
             Err(e) => {
@@ -230,15 +287,22 @@ impl PhoneLink {
     }
 
     pub fn stop(&self) {
-        self.chat.shutdown();
+        if self.remote_relays.lock().unwrap().is_empty() { self.chat.shutdown(); }
         if let Some(relay) = self.relay.lock().unwrap().take() {
             relay.stop();
         }
+        if let Some(cloud) = self.cloud_relay.lock().unwrap().take() { cloud.stop(); }
         self.advertiser.stop();
         if let Some(r) = self.running.lock().unwrap().take() {
             r.handle.stop();
             log::line("phone link: stopped");
         }
+    }
+
+    fn shutdown(&self) {
+        self.stop();
+        for (_, handle) in std::mem::take(&mut *self.remote_relays.lock().unwrap()) { handle.stop(); }
+        self.chat.shutdown();
     }
 }
 
@@ -322,11 +386,39 @@ pub fn phone_link_set_enabled(
 /// The pairing link and its QR code. Only the settings window may ask: the token
 /// is the secret that lets a phone in.
 #[tauri::command]
-pub fn phone_link_pairing(window: WebviewWindow, link: State<PhoneLink>) -> Result<Pairing, String> {
+pub async fn phone_link_pairing(window: WebviewWindow, link: State<'_, PhoneLink>, shared: State<'_, Shared>) -> Result<Pairing, String> {
     only_settings(&window)?;
-    let running = link.running.lock().unwrap();
-    let r = running.as_ref().ok_or("the phone link is off")?;
-    pairing_of(&link, r)
+    let base = {
+        let running = link.running.lock().unwrap();
+        let r = running.as_ref().ok_or("the phone link is off")?;
+        pairing_of(&link, r)?
+    };
+    with_cloud_pairing(&link, &shared, base).await
+}
+
+async fn with_cloud_pairing(link: &PhoneLink, shared: &Shared, mut pairing: Pairing) -> Result<Pairing, String> {
+    if !cfg!(feature = "self-hosted-cloud") { return Ok(pairing); }
+    let (enabled, url, key) = {
+        let s = shared.settings.lock().unwrap();
+        (s.phone_cloud_enabled, s.phone_cloud_url.clone(), s.phone_cloud_key.clone())
+    };
+    if !enabled { return Ok(pairing); }
+    // The QR always remains a valid local Wi-Fi pairing code. Cloud OAuth/session
+    // failures must never make the LAN pairing feature disappear.
+    let cloud = match crate::cloud::start_phone_pairing(&url, &key).await {
+        Ok(cloud) => cloud,
+        Err(error) => {
+            log::line(format!("phone cloud pairing unavailable; keeping local QR pairing: {error}"));
+            return Ok(pairing);
+        }
+    };
+    pairing.link = pairing::pairing_link_with_cloud(
+        &pairing.link, &cloud.url, &cloud.anon_key, &cloud.pairing_id, &cloud.token, &cloud.laptop_pubkey,
+    );
+    pairing.qr_svg = pairing::qr_svg(&pairing.link).unwrap_or_default();
+    link.sync_cloud();
+    let _ = link.app.emit("phone-cloud-pairing-started", ());
+    Ok(pairing)
 }
 
 fn pairing_of(link: &PhoneLink, r: &Running) -> Result<Pairing, String> {
@@ -368,16 +460,17 @@ fn renew_pairing(hub: &Hub, token: &Mutex<String>, store: &dyn SecretStore) -> R
 /// A new pairing code: the phone that had the old one is disconnected and must
 /// pair again.
 #[tauri::command]
-pub fn phone_link_new_pairing(window: WebviewWindow, link: State<PhoneLink>) -> Result<Pairing, String> {
+pub async fn phone_link_new_pairing(window: WebviewWindow, link: State<'_, PhoneLink>, shared: State<'_, Shared>) -> Result<Pairing, String> {
     only_settings(&window)?;
-    let running = link.running.lock().unwrap();
-    let r = running.as_ref().ok_or("the phone link is off")?;
-    renew_pairing(&link.hub, &r.shared.token, &*link.store)?;
-    log::line("phone link: new pairing code, phones disconnected");
-    let result = pairing_of(&link, r);
-    drop(running);
+    let result = {
+        let running = link.running.lock().unwrap();
+        let r = running.as_ref().ok_or("the phone link is off")?;
+        renew_pairing(&link.hub, &r.shared.token, &*link.store)?;
+        log::line("phone link: new pairing code, phones disconnected");
+        pairing_of(&link, r)
+    };
     link.sync_relay();
-    result
+    with_cloud_pairing(&link, &shared, result?).await
 }
 
 // ── Away from home Wi-Fi: the relay (Settings → Android phone) ──
@@ -625,8 +718,19 @@ pub fn phone_usage_set_enabled(
     };
     link.hub.kick_all("closed", "usage setting changed");
     log::line(format!("phone link: plan usage on the phone {}", if enabled { "on" } else { "off" }));
+    if enabled {
+        crate::plan_usage::refresh_phone_usage(app.clone());
+    }
     let _ = app.emit("settings-changed", updated);
     Ok(UsageStatus { enabled })
+}
+
+/// Store the latest opted-in usage snapshot in the phone hub. The hub only
+/// sends it to authenticated phones that negotiated the usage capability.
+pub fn publish_usage(app: &AppHandle, usage: hub::UsageIn) {
+    if app.state::<Shared>().settings.lock().unwrap().phone_usage {
+        app.state::<PhoneLink>().hub.publish_usage(usage);
+    }
 }
 
 // ── Weekly recap on the phone: the switch (Settings → Android phone) ──
@@ -712,7 +816,7 @@ pub fn phone_services_set(
 #[tauri::command]
 pub fn phone_link_publish_services(window: WebviewWindow, link: State<PhoneLink>, services: Vec<hub::ServiceIn>) -> Result<(), String> {
     only_island(&window)?;
-    if link.running.lock().unwrap().is_none() {
+    if !link.has_transport() {
         return Ok(());
     }
     link.hub.publish_services(services);
@@ -723,7 +827,7 @@ pub fn phone_link_publish_services(window: WebviewWindow, link: State<PhoneLink>
 #[tauri::command]
 pub fn phone_link_publish_usage(window: WebviewWindow, link: State<PhoneLink>, usage: hub::UsageIn) -> Result<(), String> {
     only_island(&window)?;
-    if link.running.lock().unwrap().is_none() {
+    if !link.has_transport() {
         return Ok(());
     }
     link.hub.publish_usage(usage);
@@ -734,7 +838,7 @@ pub fn phone_link_publish_usage(window: WebviewWindow, link: State<PhoneLink>, u
 #[tauri::command]
 pub fn phone_link_publish_recap(window: WebviewWindow, link: State<PhoneLink>, recap: hub::RecapIn) -> Result<(), String> {
     only_island(&window)?;
-    if link.running.lock().unwrap().is_none() {
+    if !link.has_transport() {
         return Ok(());
     }
     link.hub.publish_recap(recap);
@@ -745,7 +849,7 @@ pub fn phone_link_publish_recap(window: WebviewWindow, link: State<PhoneLink>, r
 #[tauri::command]
 pub fn phone_link_send_diff(window: WebviewWindow, link: State<PhoneLink>, conn: u64, diff: hub::DiffIn) -> Result<(), String> {
     only_island(&window)?;
-    if link.running.lock().unwrap().is_none() {
+    if !link.has_transport() {
         return Ok(());
     }
     link.hub.send_diff(conn, diff);
@@ -857,7 +961,7 @@ pub fn phone_chat_set_models(
 #[tauri::command]
 pub fn phone_link_publish_question(window: WebviewWindow, link: State<PhoneLink>, question: Option<hub::QuestionIn>) -> Result<(), String> {
     only_island(&window)?;
-    if link.running.lock().unwrap().is_none() {
+    if !link.has_transport() {
         return Ok(());
     }
     link.hub.publish_question(question, server::now_ms());
@@ -868,7 +972,7 @@ pub fn phone_link_publish_question(window: WebviewWindow, link: State<PhoneLink>
 #[tauri::command]
 pub fn phone_link_publish_prefs(window: WebviewWindow, link: State<PhoneLink>, outfit: String) -> Result<(), String> {
     only_island(&window)?;
-    if link.running.lock().unwrap().is_none() {
+    if !link.has_transport() {
         return Ok(());
     }
     link.hub.publish_outfit(&outfit);
@@ -879,7 +983,7 @@ pub fn phone_link_publish_prefs(window: WebviewWindow, link: State<PhoneLink>, o
 #[tauri::command]
 pub fn phone_link_publish(window: WebviewWindow, link: State<PhoneLink>, sessions: Vec<SessionIn>, approval: Option<ApprovalIn>) -> Result<(), String> {
     only_island(&window)?;
-    if link.running.lock().unwrap().is_none() {
+    if !link.has_transport() {
         return Ok(());
     }
     link.hub.publish(sessions, approval, server::now_ms());
@@ -889,8 +993,20 @@ pub fn phone_link_publish(window: WebviewWindow, link: State<PhoneLink>, session
 /// The app is quitting: withdraw the announcement so phones forget this computer at once.
 pub fn stop_on_exit(app: &AppHandle) {
     if let Some(link) = app.try_state::<PhoneLink>() {
-        link.stop();
+        link.shutdown();
     }
+}
+
+/// Reconciles approved Google-account devices periodically, even when Nearby
+/// is off. The account tunnel is created only for an already-approved peer.
+pub fn start_remote_supervisor(app: &AppHandle) {
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        loop {
+            if let Some(link) = app.try_state::<PhoneLink>() { link.sync_remote().await; }
+            tokio::time::sleep(std::time::Duration::from_secs(15)).await;
+        }
+    });
 }
 
 /// Called once at launch: the link comes back if the user had turned it on.

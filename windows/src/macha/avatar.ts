@@ -1,6 +1,7 @@
 import {
   loadAvatarRuntime,
   type AvatarData,
+  type AvatarRuntimeModule,
   type RuntimeAvatar,
 } from "./avatars/avatar-runtime";
 import { avatarData as cubeeData } from "./avatars/cubee.avatar";
@@ -68,6 +69,7 @@ class MountedAvatar implements AvatarDisplay {
   private eyesLayer: SVGGElement | null = null;
   private currentAnimation: AvatarAnimation | null = null;
   private generation = 0;
+  private connectionObserver: MutationObserver | null = null;
   private state = selectedState;
   private lookX = 0;
   private lookY = 0;
@@ -105,6 +107,7 @@ class MountedAvatar implements AvatarDisplay {
 
   destroy() {
     this.generation += 1;
+    this.stopWaitingForConnection();
     this.runtimeAvatar?.destroy();
     this.runtimeAvatar = null;
     this.eyesLayer = null;
@@ -125,6 +128,7 @@ class MountedAvatar implements AvatarDisplay {
 
     this.currentChoice = choice;
     const generation = ++this.generation;
+    this.stopWaitingForConnection();
     this.runtimeAvatar?.destroy();
     this.runtimeAvatar = null;
     this.eyesLayer = null;
@@ -134,11 +138,40 @@ class MountedAvatar implements AvatarDisplay {
     if (choice === "macha") return;
 
     void runtimeFor(choice).then((runtime) => {
-      if (
-        generation !== this.generation ||
-        !this.host.isConnected ||
-        (this.forcedChoice ?? selectedAvatar) !== choice
-      ) return;
+      if (generation !== this.generation || (this.forcedChoice ?? selectedAvatar) !== choice) return;
+      if (this.host.isConnected) {
+        this.mountRuntime(runtime, choice, generation);
+        return;
+      }
+
+      this.connectionObserver = new MutationObserver(() => {
+        if (!this.host.isConnected) return;
+        this.stopWaitingForConnection();
+        this.mountRuntime(runtime, choice, generation);
+      });
+      this.connectionObserver.observe(document.documentElement, { childList: true, subtree: true });
+      if (this.host.isConnected) {
+        this.stopWaitingForConnection();
+        this.mountRuntime(runtime, choice, generation);
+      }
+    }).catch((error: unknown) => {
+      if (generation !== this.generation) return;
+      console.error(`[macha] could not load the ${DEFINITIONS[choice].label} avatar`, error);
+      this.host.dataset.avatarError = "true";
+    });
+  }
+
+  private mountRuntime(
+    runtime: AvatarRuntimeModule<AvatarAnimation>,
+    choice: CustomAvatar,
+    generation: number,
+  ) {
+    if (
+      generation !== this.generation ||
+      !this.host.isConnected ||
+      (this.forcedChoice ?? selectedAvatar) !== choice
+    ) return;
+    try {
       this.runtimeAvatar = runtime.createAvatar(this.host, {
         animation: animationForState(this.state),
         autoplay: true,
@@ -149,11 +182,15 @@ class MountedAvatar implements AvatarDisplay {
       this.eyesLayer = this.host.querySelector<SVGGElement>("svg g[clip-path]");
       this.applyLook();
       this.currentAnimation = animationForState(this.state);
-    }).catch((error: unknown) => {
-      if (generation !== this.generation) return;
+    } catch (error) {
       console.error(`[macha] could not load the ${DEFINITIONS[choice].label} avatar`, error);
       this.host.dataset.avatarError = "true";
-    });
+    }
+  }
+
+  private stopWaitingForConnection() {
+    this.connectionObserver?.disconnect();
+    this.connectionObserver = null;
   }
 }
 

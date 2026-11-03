@@ -50,11 +50,10 @@ class IslandLookTest {
         assertTrue(right.centerOffsetX + right.approvalW / 2 <= 360)
     }
 
-    @Test fun theFlaresFitBesideTheIslandOnANarrowPhone() {
-        // 360 dp wide (1080 px at 3.0): island plus a flare on each side stays inside the screen with its margin.
+    @Test fun theRoundedCardNearlyFillsTheScreenWidth() {
         val narrow = IslandGeometry.place(1080, 3.0f, PxRect(504, 0, 576, 90), statusBarH = 90)
-        val ear = (IslandGeometry.EAR_DP * 3.0f).toInt()
-        assertTrue(narrow.approvalW + 2 * ear <= 1080 - 2 * (IslandGeometry.MARGIN_DP * 3.0f).toInt())
-        assertEquals(14, IslandGeometry.EAR_DP) // the PC's flare
+        val margin = (IslandGeometry.MARGIN_DP * 3.0f).toInt()
+        assertTrue(narrow.approvalW <= 1080 - 2 * margin)
+        assertTrue("rounded card fills almost all of the usable width", narrow.approvalW >= 1080 - 2 * margin - 2)
     }
 }

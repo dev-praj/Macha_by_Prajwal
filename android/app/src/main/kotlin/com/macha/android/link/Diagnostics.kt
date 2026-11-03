@@ -90,7 +90,7 @@ object Diagnostics {
  */
 class LanDiagnostics(
     private val p: PairingPayload,
-    private val wifiUp: () -> Boolean,
+    private val localNetworkAvailable: () -> Boolean,
     private val onCellular: () -> Boolean,
     private val discover: () -> List<Found>,
     private val connector: Connector = PinnedTls.connector(p),
@@ -98,8 +98,9 @@ class LanDiagnostics(
     private val timeoutMs: Int = 3_000,
 ) : DiagEnv {
     override fun network(): DiagResult = when {
-        wifiUp() -> DiagResult.Ok("Wi-Fi is connected")
-        p.relay != null && onCellular() -> DiagResult.Ok("Mobile data (the relay can be used; the direct link needs the home Wi-Fi)")
+        localNetworkAvailable() && onCellular() -> DiagResult.Ok("Mobile data is available; a computer on this phone's hotspot can connect directly")
+        localNetworkAvailable() -> DiagResult.Ok("Wi-Fi or Ethernet is connected")
+        p.relay != null && onCellular() -> DiagResult.Ok("Mobile data is available for the relay")
         else -> DiagResult.Problem("The phone is not on a Wi-Fi network", "Join the same Wi-Fi as your computer, or turn on Away from home Wi-Fi to use the relay.")
     }
 
@@ -112,7 +113,7 @@ class LanDiagnostics(
         } catch (_: SocketTimeoutException) {
             DiagResult.Problem(
                 "No answer from ${Diagnostics.maskHost(p.host)}",
-                "Is the computer on and Macha running with the Phone link switched on? Same Wi-Fi? A guest network or client isolation blocks it.",
+                "Is the computer on and Macha running with the Phone link switched on? Use the same Wi-Fi or connect the computer to this phone's hotspot. A guest network or client isolation may block devices from seeing each other.",
             )
         } catch (_: IOException) {
             DiagResult.Problem("Cannot reach ${Diagnostics.maskHost(p.host)}", "The computer may have a new address: see the next line, or type the address in Home.")

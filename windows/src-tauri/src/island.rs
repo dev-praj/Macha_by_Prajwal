@@ -104,6 +104,8 @@ pub struct PollGate {
     active: Mutex<bool>,
     cv: Condvar,
     pub collapsed: AtomicBool,
+    /// Keep incoming message and approval alerts on the pointer's display.
+    pub notification_surface: AtomicBool,
     voice_active: AtomicBool,
     wake_conversation_active: AtomicBool,
     pub rect: Mutex<IslandRect>,
@@ -118,6 +120,7 @@ impl PollGate {
             active: Mutex::new(false),
             cv: Condvar::new(),
             collapsed: AtomicBool::new(true),
+            notification_surface: AtomicBool::new(false),
             voice_active: AtomicBool::new(false),
             wake_conversation_active: AtomicBool::new(false),
             rect: Mutex::new(IslandRect::default()),
@@ -181,6 +184,14 @@ pub fn prepare_launch_visibility(gate: &PollGate) {
 
 pub fn window(app: &AppHandle) -> Option<WebviewWindow> {
     app.get_webview_window(WINDOW_LABEL)
+}
+
+pub fn active_screen_preference(shared: &crate::Shared) -> String {
+    if shared.gate.notification_surface.load(Ordering::Relaxed) {
+        "cursor".into()
+    } else {
+        shared.settings.lock().unwrap().screen.clone()
+    }
 }
 
 fn monitor_contains(m: &Monitor, x: f64, y: f64) -> bool {
@@ -300,9 +311,32 @@ pub fn set_auto_hide_enabled(app: &AppHandle, gate: &PollGate, enabled: bool) {
     gate.set_active(!gate.collapsed.load(Ordering::Relaxed) || gate.auto_hide_enabled());
     let pref = app
         .try_state::<crate::Shared>()
-        .map(|shared| shared.settings.lock().unwrap().screen.clone())
+        .map(|shared| {
+            if shared.gate.notification_surface.load(Ordering::Relaxed) {
+                "cursor".to_string()
+            } else {
+                shared.settings.lock().unwrap().screen.clone()
+            }
+        })
         .unwrap_or_else(|| "primary".into());
     apply_geometry(app, &pref, gate.collapsed.load(Ordering::Relaxed));
+    refresh_click_through(app, gate);
+}
+
+/// Reveals an incoming alert on the display where the pointer currently is.
+pub fn surface_notification(app: &AppHandle, gate: &PollGate) {
+    gate.notification_surface.store(true, Ordering::Relaxed);
+    gate.collapsed.store(false, Ordering::Relaxed);
+    if gate.auto_hide_enabled() {
+        let mut controller = gate.auto_hide.lock().unwrap();
+        controller.phase = AutoHidePhase::Visible;
+        controller.animation_started = None;
+        controller.hide_deadline = None;
+        controller.hovering = false;
+        controller.reveal_requested = false;
+    }
+    apply_geometry(app, "cursor", false);
+    gate.set_active(true);
     refresh_click_through(app, gate);
 }
 
@@ -324,7 +358,13 @@ pub fn request_auto_reveal(app: &AppHandle, gate: &PollGate) {
     if controller.phase == AutoHidePhase::Visible {
         controller.hide_deadline = Some(Instant::now() + Duration::from_millis(AUTO_HIDE_DELAY_MS));
     }
-    if !platform::fullscreen_app_active(current_display_bounds(app))
+    if gate.notification_surface.load(Ordering::Relaxed) {
+        controller.phase = AutoHidePhase::Visible;
+        controller.animation_started = None;
+        controller.hide_deadline = None;
+        controller.hovering = false;
+        controller.reveal_requested = false;
+    } else if !platform::fullscreen_app_active(current_display_bounds(app))
         && matches!(
             controller.phase,
             AutoHidePhase::Hidden | AutoHidePhase::Hiding
@@ -364,7 +404,13 @@ pub fn set_wake_conversation_active(app: &AppHandle, gate: &PollGate, active: bo
 fn current_display_bounds(app: &AppHandle) -> (i32, i32, u32, u32) {
     let pref = app
         .try_state::<crate::Shared>()
-        .map(|shared| shared.settings.lock().unwrap().screen.clone())
+        .map(|shared| {
+            if shared.gate.notification_surface.load(Ordering::Relaxed) {
+                "cursor".to_string()
+            } else {
+                shared.settings.lock().unwrap().screen.clone()
+            }
+        })
         .unwrap_or_else(|| "primary".into());
     target_monitor(app, &pref)
         .map(|monitor| {
@@ -396,7 +442,13 @@ fn advance_auto_hide(
     }
     let pref = app
         .try_state::<crate::Shared>()
-        .map(|shared| shared.settings.lock().unwrap().screen.clone())
+        .map(|shared| {
+            if shared.gate.notification_surface.load(Ordering::Relaxed) {
+                "cursor".to_string()
+            } else {
+                shared.settings.lock().unwrap().screen.clone()
+            }
+        })
         .unwrap_or_else(|| "primary".into());
     let Some(monitor) = target_monitor(app, &pref) else {
         return false;
@@ -435,13 +487,19 @@ fn advance_auto_hide(
     ));
 
     let mut controller = gate.auto_hide.lock().unwrap();
-    if fullscreen {
+    if fullscreen && gate.collapsed.load(Ordering::Relaxed) {
         if !matches!(
             controller.phase,
             AutoHidePhase::Hidden | AutoHidePhase::Hiding
         ) {
             begin_transition(&mut controller, AutoHidePhase::Hiding, position.y);
         }
+    } else if gate.notification_surface.load(Ordering::Relaxed) {
+        controller.phase = AutoHidePhase::Visible;
+        controller.animation_started = None;
+        controller.hide_deadline = None;
+        controller.hovering = false;
+        controller.reveal_requested = false;
     } else {
         if controller.reveal_requested {
             controller.reveal_requested = false;
@@ -541,7 +599,13 @@ fn advance_auto_hide(
 fn current_screen_key(app: &AppHandle) -> Option<(i32, i32, u32, u32, u64)> {
     let pref = app
         .try_state::<crate::Shared>()
-        .map(|s| s.settings.lock().unwrap().screen.clone())
+        .map(|s| {
+            if s.gate.notification_surface.load(Ordering::Relaxed) {
+                "cursor".to_string()
+            } else {
+                s.settings.lock().unwrap().screen.clone()
+            }
+        })
         .unwrap_or_else(|| "primary".into());
     let m = target_monitor(app, &pref)?;
     let p = m.position();

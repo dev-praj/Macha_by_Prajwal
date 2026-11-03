@@ -16,7 +16,7 @@ class DiscoverySourceTest {
     @Test fun itUsesTheFrameworkAndNoNewLibrary() {
         assertTrue(nsd.contains("NsdManager") && nsd.contains("Discovery.SERVICE_TYPE"))
         val gradle = File("build.gradle.kts").readText().lowercase()
-        for (bad in listOf("jmdns", "zeroconf", "play-services", "mlkit", "androidx.nsd")) assertFalse("build.gradle.kts mentions $bad", gradle.contains(bad))
+        for (bad in listOf("jmdns", "zeroconf", "mlkit", "androidx.nsd")) assertFalse("build.gradle.kts mentions $bad", gradle.contains(bad))
         assertEquals("_macha._tcp", Regex("""SERVICE_TYPE\s*=\s*"([^"]+)"""").find(discovery)!!.groupValues[1])
     }
 
@@ -45,7 +45,7 @@ class DiscoverySourceTest {
     @Test fun nothingScansWithoutAPairingOrWithoutWifiAndTheSearchEndsWithTheLink() {
         val stopLink = model.substringAfter("private fun stopLink()").substringBefore("}\n")
         assertTrue(stopLink.contains("finder.stop()") && stopLink.contains("netWatch.stop()"))
-        assertTrue(model.contains("if (!wifiUp) { finder.stop(); return }"))
+        assertTrue(model.contains("if (!netWatch.hasLocalNetwork()) { finder.stop(); return }"))
         assertTrue(model.contains("if (state == LinkState.CONNECTED) finder.connected()"))
         assertTrue(model.contains("DiscoveryPolicy.mayDiscover("))
     }

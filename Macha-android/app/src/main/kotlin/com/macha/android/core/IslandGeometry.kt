@@ -30,17 +30,15 @@ data class IslandBox(
  */
 object IslandGeometry {
     const val MARGIN_DP = 12
-    /** The concave flare on each side where the island meets the top edge of the screen (the PC's `#island::before/after`). */
-    const val EAR_DP = 14
-    const val MAX_W_DP = 340
+    const val MAX_W_DP = 680
     const val WORKING_W_DP = 240 // narrow: it should look like it grows out of the camera hole
     const val MIN_NOTCH_DP = 44
     const val HOLE_PAD_DP = 10
 
-    fun place(screenW: Int, density: Float, cutoutTop: PxRect?, statusBarH: Int): IslandBox {
+    fun place(screenW: Int, density: Float, cutoutTop: PxRect?, statusBarH: Int, screenH: Int = screenW * 2): IslandBox {
         fun dp(v: Int) = (v * density).toInt()
-        // The flares sit outside the island's width, so they come off the room it may use.
-        val maxW = min(screenW - 2 * dp(MARGIN_DP) - 2 * dp(EAR_DP), dp(MAX_W_DP))
+        // The rounded alert sits inside a small, even margin and uses nearly the full phone width.
+        val maxW = min(screenW - 2 * dp(MARGIN_DP), dp(MAX_W_DP))
         val cut = cutoutTop?.takeIf { it.width > 0 && it.bottom > 0 }
         val top = max(cut?.bottom ?: statusBarH, 0)
         // Keep the island on screen even when the cut-out is off-centre.
@@ -49,11 +47,14 @@ object IslandGeometry {
         val offset = rawOffset.coerceIn(-room, room)
         // Hidden, the island is just a little wider than the camera hole, so it appears to grow out of it.
         val notch = min(max((cut?.width ?: 0) + dp(HOLE_PAD_DP), dp(MIN_NOTCH_DP)), maxW)
+        // Attention cards use about one fifth of the physical screen height; ensure enough room
+        // for compact approval controls on unusually short displays.
+        val messageH = max(screenH / 5, top + dp(120))
         return IslandBox(
             centerOffsetX = offset, topInset = top, notchWidth = notch,
             workingW = min(dp(WORKING_W_DP), maxW), workingH = top + dp(52),
-            cardW = maxW, cardH = top + dp(96),
-            approvalW = maxW, approvalH = top + dp(168),
+            cardW = maxW, cardH = messageH,
+            approvalW = maxW, approvalH = messageH,
             cornerSmall = dp(14), cornerLarge = dp(22),
         )
     }

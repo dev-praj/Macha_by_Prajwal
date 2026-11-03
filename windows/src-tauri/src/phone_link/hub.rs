@@ -26,7 +26,13 @@ use tokio::sync::mpsc;
 pub const APPROVAL_TTL_MS: u64 = 115_000;
 
 const MAX_SESSIONS: usize = 16;
-const MAX_COMMAND_CHARS: usize = 500;
+// Keep approval commands comfortably inside the phone-link's 64 KiB UTF-8 JSON
+// line limit, even when every character needs JSON escaping. This gives the phone
+// enough of the command to show and review most real approval requests.
+// Keep the complete command readable on the phone while fitting its 64 KiB line limit even when
+// serde_json expands control characters to six-byte escapes. Commands beyond this are explicitly
+// marked truncated, so the phone never offers Allow for a command it cannot show in full.
+const MAX_COMMAND_CHARS: usize = 10_500;
 const MAX_TEXT_CHARS: usize = 200;
 /// Details (cap `details`): at most this many steps per session, each cut at MAX_TEXT_CHARS.
 pub const MAX_STEPS: usize = 20;
@@ -1430,7 +1436,7 @@ mod tests {
 
     #[test]
     fn a_command_longer_than_the_phone_shows_is_flagged_and_cannot_be_allowed_from_the_phone() {
-        for len in [MAX_COMMAND_CHARS + 1, 10_000] {
+        for len in [MAX_COMMAND_CHARS + 1, 12_000] {
             let (hub, rec) = hub();
             let (tx, mut rx) = mpsc::channel(16);
             hub.subscribe(tx, 0, false);
@@ -1467,9 +1473,23 @@ mod tests {
     }
 
     #[test]
+    fn the_largest_phone_approval_fits_the_phone_line_limit_even_with_json_escapes() {
+        let (hub, _) = hub();
+        let (tx, mut rx) = mpsc::channel(16);
+        hub.subscribe(tx, 0, false);
+        drain(&mut rx);
+        hub.publish(vec![], Some(approval("r1", &"\0".repeat(MAX_COMMAND_CHARS))), 1_000);
+        let line = drain(&mut rx).into_iter().find(|l| l["type"] == "approval").unwrap();
+        let encoded = serde_json::to_vec(&line).unwrap();
+        assert!(encoded.len() <= 64 * 1024, "{} bytes", encoded.len());
+        assert_eq!(line["truncated"], false);
+        assert_eq!(line["command"].as_str().unwrap().chars().count(), MAX_COMMAND_CHARS);
+    }
+
+    #[test]
     fn a_phone_that_connects_later_is_also_told_the_command_is_cut() {
         let (hub, _rec) = hub();
-        hub.publish(vec![], Some(approval("r1", &"x".repeat(10_000))), 1_000);
+        hub.publish(vec![], Some(approval("r1", &"x".repeat(12_000))), 1_000);
         let (tx, mut rx) = mpsc::channel(16);
         hub.subscribe(tx, 1_001, false);
         let line = drain(&mut rx).into_iter().find(|l| l["type"] == "approval").expect("the pending request is offered");
@@ -1617,7 +1637,7 @@ mod tests {
         let lines = drain(&mut rx);
         assert_eq!(lines[0]["sessions"].as_array().unwrap().len(), MAX_SESSIONS);
         assert_eq!(lines[0]["sessions"][0]["state"], "idle");
-        assert_eq!(lines[1]["command"].as_str().unwrap().chars().count(), MAX_COMMAND_CHARS);
+        assert_eq!(lines[1]["command"].as_str().unwrap().chars().count(), 5_000);
     }
 
     #[test]

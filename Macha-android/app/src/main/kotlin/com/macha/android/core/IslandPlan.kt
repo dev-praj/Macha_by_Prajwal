@@ -13,11 +13,9 @@ object IslandPlan {
     fun allowed(overlayOn: Boolean, permitted: Boolean, appInForeground: Boolean) =
         OverlayPolicy.shouldShow(overlayOn, permitted, appInForeground)
 
-    private val WORKING = setOf(BotState.WORKING, BotState.THINKING, BotState.SEARCHING)
-
     /**
-     * What is going on right now: a permission request (its text is the kind of action, never the command), a question, or an agent at work. Null when
-     * the island may not show or nothing needs it. [approvals] come first; [name] gives the agent's name.
+     * Items that need attention: approvals and questions. Ordinary work stays in the app and must
+     * not leave a persistent overlay over other tasks. [approvals] come first; [name] gives the agent's name.
      */
     fun active(
         sessions: List<SessionInfo>,
@@ -31,8 +29,6 @@ object IslandPlan {
         }
         val question = sessions.firstOrNull { it.state == BotState.QUESTION }
         if (question != null) return spec(IslandSpec.Kind.QUESTION, question, name)
-        val working = sessions.firstOrNull { it.state in WORKING }
-        if (working != null) return spec(IslandSpec.Kind.WORKING, working, name)
         return null
     }
 

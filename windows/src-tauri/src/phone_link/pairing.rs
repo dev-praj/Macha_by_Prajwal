@@ -118,6 +118,20 @@ pub fn pairing_link_with_relay(host: &str, port: u16, fingerprint: &str, token: 
     )
 }
 
+/// Appends the user's Supabase pairing ticket without removing any local or
+/// existing relay fields, so old QR parsing remains backward compatible.
+pub fn pairing_link_with_cloud(link: &str, cloud_url: &str, anon_key: &str, pairing_id: &str, token: &str, laptop_pubkey: &str) -> String {
+    format!(
+        "{}&cloudUrl={}&cloudKey={}&cloudPairingId={}&cloudToken={}&cloudLaptopPubKey={}",
+        link,
+        percent_encode(cloud_url),
+        percent_encode(anon_key),
+        percent_encode(pairing_id),
+        percent_encode(token),
+        percent_encode(laptop_pubkey),
+    )
+}
+
 fn percent_encode(s: &str) -> String {
     let mut out = String::new();
     for b in s.bytes() {

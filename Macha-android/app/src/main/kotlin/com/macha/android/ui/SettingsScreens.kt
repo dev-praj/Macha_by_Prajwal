@@ -2,12 +2,12 @@ package com.macha.android.ui
 
 import com.macha.android.core.AgentMute
 import com.macha.android.core.TeamChoice
+import android.app.Activity
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.runtime.saveable.rememberSaveable
 import android.content.Intent
 import com.macha.android.core.HistoryExport
-import com.macha.android.core.Languages
-import com.macha.android.app.AppLanguage
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +38,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -75,6 +77,7 @@ import com.macha.android.sound.SoundVolume
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import kotlinx.coroutines.launch
 
 /**
  * The screen's title on one line; a long title is cut with "…". Sub-pages pass [onBack] and get a Back
@@ -162,45 +165,6 @@ private fun <T> ChoiceRow(title: String, options: List<Pair<T, String>>, selecte
     }
 }
 
-/** The language of the app: the row shows the one in force; a tap opens the list (the phone's own first, then each language by its own name). */
-@Composable
-private fun LanguageRow() {
-    val context = LocalContext.current
-    val t = tokens()
-    var open by remember { mutableStateOf(false) }
-    val current = AppLanguage.current(context)
-    val system = stringResource(R.string.language_system)
-    val currentName = Languages.ALL.firstOrNull { it.tag == current }?.name ?: system
-    ListRow(
-        stringResource(R.string.settings_language), hint = currentName, onClick = { open = true },
-        trailing = { MachaIcon(IconKind.CHEVRON, tint = t.textDim.c(), size = 20.dp) },
-    )
-    if (open) {
-        AlertDialog(
-            onDismissRequest = { open = false },
-            confirmButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.action_cancel)) } },
-            title = { Text(stringResource(R.string.settings_language)) },
-            text = {
-                Column(Modifier.verticalScroll(rememberScrollState())) {
-                    Text(stringResource(R.string.language_picker_hint), Modifier.padding(bottom = 8.dp), style = TypeScale.SECONDARY.style(t.textDim.c()))
-                    val options = listOf(Languages.SYSTEM to system) + Languages.ALL.map { it.tag to it.name }
-                    for ((tag, label) in options) {
-                        Row(
-                            Modifier.fillMaxWidth().heightIn(min = Spacing.MIN_TOUCH.dp)
-                                .selectable(selected = tag == current, role = Role.RadioButton) { open = false; AppLanguage.set(context, tag) }
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            Text(label, Modifier.weight(1f), style = TypeScale.BODY.style(t.text.c()))
-                            if (tag == current) MachaIcon(IconKind.CHECK, tint = t.online.c(), size = 22.dp)
-                        }
-                    }
-                }
-            },
-        )
-    }
-}
-
 /** Room under a list so its last row can scroll above the floating bar (64 + 16 gap + 16 margin). */
 val BarClearance = 96.dp
 
@@ -226,6 +190,9 @@ fun SettingsScreen(model: AppModel, onHistory: () -> Unit, onGallery: () -> Unit
                     StateDot(linkDotColor(model))
                     Text(linkStatusText(model), Modifier.weight(1f), style = TypeScale.BODY.style(t.text.c()), maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
+                model.googleEmail?.let { email ->
+                    Text("Cloud Google account: $email", Modifier.padding(start = Spacing.INSIDE.dp, end = Spacing.INSIDE.dp, bottom = Spacing.INSIDE.dp), style = TypeScale.SECONDARY.style(t.textDim.c()), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
                 when (model.mode) {
                     Mode.PAIRED -> {
                         RowDivider()
@@ -245,6 +212,9 @@ fun SettingsScreen(model: AppModel, onHistory: () -> Unit, onGallery: () -> Unit
             }
         }
 
+        item { SectionHeading("Connection") }
+        item { RemoteConnectionSettings(model) }
+
         if (RelayStatus.sectionVisible(model.mode == Mode.PAIRED, model.hasRelay)) {
             item { SectionHeading(stringResource(R.string.settings_section_away)) }
             item { RelayCard(model) }
@@ -255,8 +225,6 @@ fun SettingsScreen(model: AppModel, onHistory: () -> Unit, onGallery: () -> Unit
         item { SectionHeading(stringResource(R.string.settings_section_display)) }
         item {
             Panel {
-                LanguageRow()
-                RowDivider()
                 ChoiceRow(
                     stringResource(R.string.settings_theme),
                     listOf(
@@ -385,6 +353,137 @@ fun SettingsScreen(model: AppModel, onHistory: () -> Unit, onGallery: () -> Unit
             }
         }
         item { Spacer(Modifier.height(Gutter)) }
+    }
+}
+
+@Composable
+private fun RemoteConnectionSettings(model: AppModel) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var confirmDelete by rememberSaveable { mutableStateOf(false) }
+    var confirmRevokeThisDevice by rememberSaveable { mutableStateOf(false) }
+    var approvalToConfirm by remember { mutableStateOf<Pair<String, String>?>(null) }
+    LaunchedEffect(model.remoteEmail) {
+        if (model.remoteEmail != null) model.refreshRemoteDevices()
+    }
+    Panel {
+        Column(Modifier.fillMaxWidth().padding(Spacing.INSIDE.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Nearby pairing", style = TypeScale.BODY.style(tokens().text.c()).copy(fontWeight = FontWeight.SemiBold))
+            Text("Scan the laptop QR code to connect directly on your local network. This works without a Google account.", style = TypeScale.SECONDARY.style(tokens().textDim.c()))
+            RowDivider()
+            Text("Use from anywhere", style = TypeScale.BODY.style(tokens().text.c()).copy(fontWeight = FontWeight.SemiBold))
+            Text("Connect this phone and laptop with the same Google account.", style = TypeScale.SECONDARY.style(tokens().textDim.c()))
+            Text("Google account", style = TypeScale.BODY.style(tokens().text.c()).copy(fontWeight = FontWeight.SemiBold))
+            Text(model.remoteEmail?.let { "Signed in as $it" } ?: "Not signed in", style = TypeScale.SECONDARY.style(tokens().textDim.c()))
+            if (!model.remoteConfigured) {
+                Text("Remote sync is not available in this build.", style = TypeScale.SECONDARY.style(tokens().textDim.c()))
+            } else if (model.remoteEmail == null) {
+                if (model.remoteBusy) {
+                    PillButton("Cancel sign-in", { model.cancelRemoteSignIn() }, Modifier.fillMaxWidth())
+                } else {
+                    PillButton(
+                        "Sign in with Google",
+                        {
+                            val activity = context as? Activity
+                            if (activity != null) scope.launch { model.signInRemote(activity) }
+                        },
+                        Modifier.fillMaxWidth(), PillKind.PRIMARY,
+                    )
+                }
+            } else {
+                Text("Google account: ${model.remoteEmail}", style = TypeScale.SECONDARY.style(tokens().textDim.c()))
+                Text("This device: ${model.remoteDeviceStatus ?: "not registered"}", style = TypeScale.SECONDARY.style(tokens().textDim.c()))
+                model.remoteMessage?.let { Text(it, style = TypeScale.SECONDARY.style(tokens().textDim.c())) }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    PillButton("Refresh devices", { scope.launch { model.refreshRemoteDevices() } }, Modifier.weight(1f), enabled = !model.remoteBusy)
+                    PillButton("Sign out", { scope.launch { model.signOutRemote() } }, Modifier.weight(1f), enabled = !model.remoteBusy)
+                }
+                if (model.remoteDeviceStatus == "approved") {
+                    PillButton("Revoke this device", { confirmRevokeThisDevice = true }, Modifier.fillMaxWidth(), PillKind.DANGER, enabled = !model.remoteBusy)
+                } else if (model.remoteDeviceStatus == "revoked") {
+                    Text("This device was revoked. Sign out, then sign in again to re-enroll it. If another device is approved, confirm this device there.", style = TypeScale.SECONDARY.style(tokens().textDim.c()))
+                } else if (model.remoteDeviceStatus == "pending") {
+                    Text("This device is pending approval. Confirm it from an already approved device.", style = TypeScale.SECONDARY.style(tokens().textDim.c()))
+                }
+                Text("My devices", style = TypeScale.LABEL.style(tokens().textDim.c()).copy(fontWeight = FontWeight.SemiBold))
+                if (model.remoteDevices.isEmpty()) {
+                    Text("No registered devices were returned yet.", style = TypeScale.SECONDARY.style(tokens().textDim.c()))
+                }
+                if (model.remoteDeviceStatus != "approved" && model.remoteDevices.none { it.id != model.remoteDeviceId && it.status == "approved" }) {
+                    Text("No approved device is available to confirm this phone. Run the Remote device recovery migration in your Supabase project, then tap Refresh devices. A device is only approved automatically when no other approved device remains.", style = TypeScale.SECONDARY.style(tokens().textDim.c()))
+                }
+                model.remoteDevices.forEach { device ->
+                    Column(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("${device.name} · ${device.type} · ${device.status}", style = TypeScale.BODY.style(tokens().text.c()))
+                        if (device.status == "pending") {
+                            val code = model.remoteConfirmationCode(device)
+                            if (code != null) Text("Compare this code on both devices: $code", style = TypeScale.SECONDARY.style(tokens().textDim.c()))
+                            if (model.remoteDeviceStatus == "approved") {
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    PillButton("Confirm code and approve", { if (code != null) approvalToConfirm = device.id to code }, Modifier.weight(1f), PillKind.PRIMARY, enabled = !model.remoteBusy && code != null)
+                                    PillButton("Deny", { scope.launch { model.denyRemoteDevice(device.id) } }, Modifier.weight(1f), PillKind.DANGER, enabled = !model.remoteBusy)
+                                }
+                            } else {
+                                Text("Waiting for approval from an approved device.", style = TypeScale.SECONDARY.style(tokens().textDim.c()))
+                            }
+                        } else if (device.status == "approved" && device.id != model.remoteDeviceId) {
+                            PillButton("Revoke device", { scope.launch { model.denyRemoteDevice(device.id) } }, Modifier.fillMaxWidth(), PillKind.DANGER, enabled = !model.remoteBusy)
+                        }
+                        RowDivider()
+                    }
+                }
+                if (model.remoteConnectionActive) {
+                    Text("Macha Remote is connected. Sessions, approval requests, and chat can now sync through this laptop.", style = TypeScale.SECONDARY.style(tokens().textDim.c()))
+                    PillButton(
+                        if (model.hasNearbyPairing) "Switch to Nearby QR pairing" else "Disconnect Macha Remote",
+                        { model.useNearbyPairing() }, Modifier.fillMaxWidth(), enabled = !model.remoteBusy,
+                    )
+                } else if (model.remoteConnectionReady) {
+                    Text("Both devices are approved. Connect this phone to the laptop to start syncing sessions, approvals, and chat.", style = TypeScale.SECONDARY.style(tokens().textDim.c()))
+                    PillButton(
+                        if (model.remoteUseAccountLink) "Reconnect with Macha Remote" else "Connect using Macha Remote",
+                        { scope.launch { model.connectRemoteAccount() } }, Modifier.fillMaxWidth(), PillKind.PRIMARY, enabled = !model.remoteBusy,
+                    )
+                } else if (model.remoteDeviceStatus == "approved") {
+                    Text("Approve an approved laptop and this phone in My devices before connecting.", style = TypeScale.SECONDARY.style(tokens().textDim.c()))
+                }
+                PillButton("Delete my account and data", { confirmDelete = true }, Modifier.fillMaxWidth(), PillKind.DANGER, enabled = !model.remoteBusy)
+            }
+            model.remoteMessage?.takeIf { model.remoteEmail == null }?.let { Text(it, style = TypeScale.SECONDARY.style(tokens().textDim.c())) }
+        }
+    }
+    if (confirmDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text("Delete Remote account data?") },
+            text = { Text("This deletes your Macha Remote devices and queued messages and removes the Supabase account. This cannot be undone.") },
+            confirmButton = {
+                TextButton(onClick = { confirmDelete = false; scope.launch { model.deleteRemoteAccount() } }, enabled = !model.remoteBusy) { Text("Delete") }
+            },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Cancel") } },
+        )
+    }
+    if (confirmRevokeThisDevice) {
+        AlertDialog(
+            onDismissRequest = { confirmRevokeThisDevice = false },
+            title = { Text("Revoke this device?") },
+            text = { Text("This stops this device from using Macha Remote. To reconnect, sign out and sign in again; another approved device may need to confirm it." ) },
+            confirmButton = {
+                TextButton(onClick = { confirmRevokeThisDevice = false; scope.launch { model.revokeCurrentRemoteDevice() } }, enabled = !model.remoteBusy) { Text("Revoke device") }
+            },
+            dismissButton = { TextButton(onClick = { confirmRevokeThisDevice = false }) { Text("Cancel") } },
+        )
+    }
+    approvalToConfirm?.let { (deviceId, code) ->
+        AlertDialog(
+            onDismissRequest = { approvalToConfirm = null },
+            title = { Text("Confirm device code") },
+            text = { Text("Check that this code matches the one shown on the device you are approving, then approve it.\n\n$code") },
+            confirmButton = {
+                TextButton(onClick = { approvalToConfirm = null; scope.launch { model.approveRemoteDevice(deviceId) } }, enabled = !model.remoteBusy) { Text("Confirm and approve") }
+            },
+            dismissButton = { TextButton(onClick = { approvalToConfirm = null }) { Text("Cancel") } },
+        )
     }
 }
 

@@ -4,4 +4,5 @@ _prive/
 .env
 .env.*
 !.env.example
+supabase/keys-macha.env*
 .venv/

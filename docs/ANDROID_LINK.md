@@ -74,7 +74,7 @@ unknown value is shown as `idle`. `pillId` values come from the pill catalog
 - **Allow requires the user's biometric or screen lock on the phone.** Deny does not. With no
   screen lock set up, Allow is refused.
 - The command text is hidden on the lock screen.
-- **A command is sent in full up to 500 characters.** A longer one is cut to its first 500 and the approval carries
+- **A command is sent in full up to 10,500 characters.** A longer one is cut to its first 10,500 and the approval carries
   `"truncated": true` (additive: absent means false, and a phone that does not know the field ignores it). The fingerprint
   is computed over the text as sent. For a truncated approval the phone says "Command is longer than shown", offers
   **Deny only** (sheet, notification and island), and the request is answered on the computer. The computer enforces it too:

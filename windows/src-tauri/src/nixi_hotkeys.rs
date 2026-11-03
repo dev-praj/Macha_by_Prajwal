@@ -6,6 +6,8 @@ use tauri::{AppHandle, Emitter};
 
 static PTT_ACTIVE: AtomicBool = AtomicBool::new(false);
 static DICTATE_ACTIVE: AtomicBool = AtomicBool::new(false);
+static DICTATE_ALT_SUPPRESS_KEYUP: AtomicBool = AtomicBool::new(false);
+static DICTATE_TARGET_WINDOW: AtomicIsize = AtomicIsize::new(0);
 static VOICE_CHORD_ACTIVE: AtomicBool = AtomicBool::new(false);
 static LEFT_CTRL_DOWN: AtomicBool = AtomicBool::new(false);
 static LEFT_ALT_DOWN: AtomicBool = AtomicBool::new(false);
@@ -63,6 +65,16 @@ fn right_alt_still_held(rmenu_down: bool, menu_down: bool, lmenu_down: bool) -> 
     rmenu_down || (menu_down && !lmenu_down)
 }
 
+#[cfg(any(windows, test))]
+fn suppress_dictation_alt_event(is_down: bool, suppressing_until_keyup: bool) -> bool {
+    is_down || suppressing_until_keyup
+}
+
+#[cfg(any(windows, test))]
+fn should_check_dictation_stuck_key(dictate_active: bool, keyup_suppressed: bool) -> bool {
+    dictate_active && !keyup_suppressed
+}
+
 #[derive(Clone, Copy, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ScreenRegion {
@@ -97,15 +109,17 @@ use windows::Win32::UI::Input::KeyboardAndMouse::{
 #[cfg(windows)]
 use windows::Win32::UI::WindowsAndMessaging::{
     CallNextHookEx, CreateWindowExW, DefWindowProcW, DestroyWindow, DispatchMessageW,
-    GetForegroundWindow, GetMessageW, KillTimer, PostThreadMessageW, RegisterClassExW, SetTimer,
-    SetWindowsHookExW, TranslateMessage, UnhookWindowsHookEx, UnregisterClassW, CS_HREDRAW,
-    CS_VREDRAW, HCURSOR, HHOOK, HICON, KBDLLHOOKSTRUCT, MSLLHOOKSTRUCT, MSG, WH_KEYBOARD_LL,
-    WH_MOUSE_LL, WINDOW_EX_STYLE, WM_KEYDOWN, WM_KEYUP, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MOUSEMOVE,
-    WM_QUIT, WM_SYSKEYDOWN, WM_SYSKEYUP, WM_TIMER, WM_WTSSESSION_CHANGE, WNDCLASSEXW, WS_POPUP,
+    GetForegroundWindow, GetMessageW, IsWindow, KillTimer, PostThreadMessageW, RegisterClassExW,
+    SetForegroundWindow, SetTimer, SetWindowsHookExW, TranslateMessage, UnhookWindowsHookEx,
+    UnregisterClassW, CS_HREDRAW, CS_VREDRAW, HCURSOR, HHOOK, HICON, KBDLLHOOKSTRUCT,
+    MSLLHOOKSTRUCT, MSG, WH_KEYBOARD_LL, WH_MOUSE_LL, WINDOW_EX_STYLE, WM_KEYDOWN, WM_KEYUP,
+    WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MOUSEMOVE, WM_QUIT, WM_SYSKEYDOWN, WM_SYSKEYUP, WM_TIMER,
+    WM_WTSSESSION_CHANGE, WNDCLASSEXW, WS_POPUP,
 };
 
 #[cfg(windows)]
 unsafe extern "system" fn ll_keyboard_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+    let mut suppress_event = false;
     if code >= 0 {
         let kbd = *(lparam.0 as *const KBDLLHOOKSTRUCT);
         let msg = wparam.0 as u32;
@@ -124,10 +138,20 @@ unsafe extern "system" fn ll_keyboard_proc(code: i32, wparam: WPARAM, lparam: LP
             }
         } else if kbd.vkCode == VK_RMENU.0 as u32 {
             if is_down {
+                DICTATE_ALT_SUPPRESS_KEYUP.store(true, Ordering::SeqCst);
+                suppress_event = true;
                 if !DICTATE_ACTIVE.swap(true, Ordering::SeqCst) {
+                    // Capture once per hold. Repeated WM_SYSKEYDOWN events must not
+                    // replace the user's original text window if focus changes while
+                    // speech recognition or the status UI is starting.
+                    let target = GetForegroundWindow();
+                    DICTATE_TARGET_WINDOW.store(target.0 as isize, Ordering::SeqCst);
                     emit_dictation("nixi-dictate-start");
                 }
             } else if is_up {
+                let suppressing_until_keyup =
+                    DICTATE_ALT_SUPPRESS_KEYUP.swap(false, Ordering::SeqCst);
+                suppress_event = suppress_dictation_alt_event(false, suppressing_until_keyup);
                 if DICTATE_ACTIVE.swap(false, Ordering::SeqCst) {
                     emit_dictation("nixi-dictate-stop");
                 }
@@ -157,7 +181,76 @@ unsafe extern "system" fn ll_keyboard_proc(code: i32, wparam: WPARAM, lparam: LP
     } else {
         None
     };
-    CallNextHookEx(hhook, code, wparam, lparam)
+    if suppress_event {
+        LRESULT(1)
+    } else {
+        CallNextHookEx(hhook, code, wparam, lparam)
+    }
+}
+
+#[cfg(windows)]
+pub fn restore_dictation_target_window() -> Result<(), String> {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::System::Threading::{AttachThreadInput, GetCurrentThreadId};
+    use windows::Win32::UI::Input::KeyboardAndMouse::SetActiveWindow;
+    use windows::Win32::UI::WindowsAndMessaging::{
+        BringWindowToTop, GetWindowThreadProcessId, IsIconic, PeekMessageW, ShowWindowAsync,
+        MSG, PM_NOREMOVE, SW_RESTORE,
+    };
+
+    let target = DICTATE_TARGET_WINDOW.load(Ordering::SeqCst);
+    if target == 0 {
+        return Err(
+            "No destination app was captured when Right Alt dictation started. Try again from a text field."
+                .into(),
+        );
+    }
+    let target = HWND(target as *mut _);
+    if !unsafe { IsWindow(Some(target)) }.as_bool() {
+        DICTATE_TARGET_WINDOW.store(0, Ordering::SeqCst);
+        return Err("The app you started dictation in is no longer open.".into());
+    }
+
+    // Dictation finishes on a worker thread after transcription. Windows may reject
+    // SetForegroundWindow when the target and caller belong to different input
+    // threads. Temporarily joining their input queues lets us restore the original
+    // application and its existing caret before sending the paste keystrokes.
+    let target_thread = unsafe { GetWindowThreadProcessId(target, None) };
+    let caller_thread = unsafe { GetCurrentThreadId() };
+    // AttachThreadInput requires both threads to own a message queue. Tokio workers
+    // do not necessarily have one until a user32 message API creates it.
+    let mut message = MSG::default();
+    let _ = unsafe { PeekMessageW(&mut message, None, 0, 0, PM_NOREMOVE) };
+    let attached = target_thread != 0
+        && target_thread != caller_thread
+        && unsafe { AttachThreadInput(caller_thread, target_thread, true) }.as_bool();
+
+    if unsafe { IsIconic(target) }.as_bool() {
+        let _ = unsafe { ShowWindowAsync(target, SW_RESTORE) };
+    }
+    for _ in 0..5 {
+        if unsafe { GetForegroundWindow() } == target {
+            break;
+        }
+        let _ = unsafe { BringWindowToTop(target) };
+        let _ = unsafe { SetActiveWindow(target) };
+        let _ = unsafe { SetForegroundWindow(target) };
+        std::thread::sleep(std::time::Duration::from_millis(40));
+    }
+
+    if attached {
+        let _ = unsafe { AttachThreadInput(caller_thread, target_thread, false) };
+    }
+
+    if unsafe { GetForegroundWindow() } != target {
+        return Err("Windows could not return focus to the app where dictation started.".into());
+    }
+    // Consume the captured target only after focus restoration succeeded. This keeps
+    // the destination available if a transient Windows focus restriction is retried.
+    DICTATE_TARGET_WINDOW
+        .compare_exchange(target.0 as isize, 0, Ordering::SeqCst, Ordering::SeqCst)
+        .ok();
+    Ok(())
 }
 
 #[cfg(windows)]
@@ -264,7 +357,10 @@ fn stop_voice_chord() {
 
 #[cfg(test)]
 mod tests {
-    use super::{right_alt_still_held, screen_region_from_points, voice_chord_is_pressed};
+    use super::{
+        right_alt_still_held, screen_region_from_points, should_check_dictation_stuck_key,
+        suppress_dictation_alt_event, voice_chord_is_pressed,
+    };
 
     #[test]
     fn right_alt_hold_survives_layouts_that_report_generic_alt() {
@@ -272,6 +368,20 @@ mod tests {
         assert!(right_alt_still_held(false, true, false));
         assert!(!right_alt_still_held(false, true, true));
         assert!(!right_alt_still_held(false, false, false));
+    }
+
+    #[test]
+    fn dictation_alt_down_and_keyup_are_consumed_to_preserve_target_focus() {
+        assert!(suppress_dictation_alt_event(true, false));
+        assert!(suppress_dictation_alt_event(false, true));
+        assert!(!suppress_dictation_alt_event(false, false));
+    }
+
+    #[test]
+    fn stuck_key_poll_does_not_stop_a_swallowed_dictation_alt_press() {
+        assert!(!should_check_dictation_stuck_key(true, true));
+        assert!(should_check_dictation_stuck_key(true, false));
+        assert!(!should_check_dictation_stuck_key(false, false));
     }
 
     #[test]
@@ -342,7 +452,10 @@ fn check_stuck_keys() {
         }
     }
 
-    if DICTATE_ACTIVE.load(Ordering::SeqCst) {
+    if should_check_dictation_stuck_key(
+        DICTATE_ACTIVE.load(Ordering::SeqCst),
+        DICTATE_ALT_SUPPRESS_KEYUP.load(Ordering::SeqCst),
+    ) {
         let rmenu_down = unsafe { GetAsyncKeyState(VK_RMENU.0 as i32) } as u16 & 0x8000 != 0;
         let menu_down = unsafe { GetAsyncKeyState(VK_MENU.0 as i32) } as u16 & 0x8000 != 0;
         let lmenu_down = unsafe { GetAsyncKeyState(VK_LMENU.0 as i32) } as u16 & 0x8000 != 0;
@@ -373,6 +486,8 @@ fn check_stuck_keys() {
 pub fn force_clear_active_states() {
     LEFT_CTRL_DOWN.store(false, Ordering::SeqCst);
     LEFT_ALT_DOWN.store(false, Ordering::SeqCst);
+    DICTATE_ALT_SUPPRESS_KEYUP.store(false, Ordering::SeqCst);
+    DICTATE_TARGET_WINDOW.store(0, Ordering::SeqCst);
     OBJECT_DRAG_ACTIVE.store(false, Ordering::SeqCst);
     OBJECT_REGION_VALID.store(false, Ordering::SeqCst);
     stop_voice_chord();

@@ -38,6 +38,9 @@ class RelayGuardsTest {
         val store = main("app/SecureStore.kt")
         // The pairing, relay fields included, goes through one encrypted preference and nothing else is written for it.
         assertTrue(store.contains("PairingCodec.encode(p)"))
-        assertTrue(Regex("""putString\(""").findAll(store).count() == 1)
+        assertTrue(store.contains("prefs.edit().putString(PREF, Base64.encodeToString(c.iv + ct"))
+        // Account sessions and private keys use the same Keystore AES-GCM layer, in separate encrypted blobs.
+        assertTrue(store.contains("private fun saveSecret(name: String, value: String)"))
+        assertTrue(store.contains("prefs.edit().putString(name, Base64.encodeToString(c.iv + ct"))
     }
 }

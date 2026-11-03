@@ -1,3 +1,4 @@
+use reqwest::header::HeaderMap;
 use reqwest::{Client, StatusCode};
 use serde::Serialize;
 use serde_json::{json, Value};
@@ -6,6 +7,7 @@ use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 use tokio::sync::watch;
 
+use crate::provider_auth::{self, AuthMode, Provider, ProviderConnection};
 use crate::secrets;
 
 const OLLAMA_BASE: &str = "http://127.0.0.1:11434";
@@ -111,15 +113,32 @@ pub async fn phone_chat(
     cancel: &mut watch::Receiver<bool>,
 ) -> Result<String, String> {
     let (response, _) = match provider {
-        "anthropic" => claude_completion_for_model(messages, None, model, cancel).await?,
+        "anthropic" => {
+            claude_completion_for_model(messages, None, model, cancel).await?
+        }
         "google" => compatible_provider_completion(
-            "gemini", "gemini-api-key", GEMINI_OPENAI_BASE, model, messages, None, cancel,
+            Provider::Gemini,
+            GEMINI_OPENAI_BASE,
+            model,
+            messages,
+            None,
+            cancel,
         ).await?,
         "grok" => compatible_provider_completion(
-            "grok", "grok-api-key", GROK_BASE, model, messages, None, cancel,
+            Provider::Grok,
+            GROK_BASE,
+            model,
+            messages,
+            None,
+            cancel,
         ).await?,
         "openai" => compatible_provider_completion(
-            "openai", "openai-api-key", OPENAI_BASE, model, messages, None, cancel,
+            Provider::OpenAi,
+            OPENAI_BASE,
+            model,
+            messages,
+            None,
+            cancel,
         ).await?,
         "openrouter" => openrouter_completion(messages, None, model, cancel).await?,
         "ollama" => (
@@ -437,6 +456,8 @@ async fn ollama_completion(
     response_timeout: Option<Duration>,
     max_tokens: Option<u32>,
 ) -> Result<Value, ProviderError> {
+    let headers = provider_headers(Provider::Ollama, AuthMode::LocalCli)
+        .map_err(|error| ProviderError::local(error, true))?;
     let status = if wait_for_start {
         ensure_ollama().await
     } else {
@@ -468,7 +489,7 @@ async fn ollama_completion(
     send_json(
         &client,
         format!("{OLLAMA_BASE}/v1/chat/completions"),
-        "ollama",
+        &headers,
         "ollama",
         body,
         cancel,
@@ -487,6 +508,8 @@ async fn ollama_completion_stream(
     deltas: &tokio::sync::mpsc::UnboundedSender<String>,
     emitted_text: &mut bool,
 ) -> Result<Value, ProviderError> {
+    let headers = provider_headers(Provider::Ollama, AuthMode::LocalCli)
+        .map_err(|error| ProviderError::local(error, true))?;
     let status = if wait_for_start {
         ensure_ollama().await
     } else {
@@ -519,7 +542,7 @@ async fn ollama_completion_stream(
     send_json_stream(
         &client,
         format!("{OLLAMA_BASE}/v1/chat/completions"),
-        "ollama",
+        &headers,
         "ollama",
         body,
         cancel,
@@ -573,8 +596,7 @@ async fn direct_completion(
         }
         ProviderMode::OpenAiOnly => {
             let (response, model) = compatible_provider_completion(
-                "openai",
-                "openai-api-key",
+                Provider::OpenAi,
                 OPENAI_BASE,
                 OPENAI_MODEL,
                 messages,
@@ -586,8 +608,7 @@ async fn direct_completion(
         }
         ProviderMode::GeminiOnly => {
             let (response, model) = compatible_provider_completion(
-                "gemini",
-                "gemini-api-key",
+                Provider::Gemini,
                 GEMINI_OPENAI_BASE,
                 GEMINI_MODEL,
                 messages,
@@ -623,19 +644,18 @@ async fn direct_completion_stream(
         }
         return Ok(("claude".into(), response, model));
     }
-    let (provider_name, key_name, endpoint, model) = match mode {
-        ProviderMode::GrokOnly => ("grok", "grok-api-key", GROK_BASE, GROK_MODEL),
-        ProviderMode::OpenAiOnly => ("openai", "openai-api-key", OPENAI_BASE, OPENAI_MODEL),
+    let (provider, provider_name, endpoint, model) = match mode {
+        ProviderMode::GrokOnly => (Provider::Grok, "grok", GROK_BASE, GROK_MODEL),
+        ProviderMode::OpenAiOnly => (Provider::OpenAi, "openai", OPENAI_BASE, OPENAI_MODEL),
         ProviderMode::GeminiOnly => (
+            Provider::Gemini,
             "gemini",
-            "gemini-api-key",
             GEMINI_OPENAI_BASE,
             GEMINI_MODEL,
         ),
         _ => return Err("The selected provider mode is not a direct provider.".into()),
     };
-    let key = secrets::get(key_name)
-        .ok_or_else(|| format!("No {provider_name} API key is configured in the OS credential manager."))?;
+    let headers = provider_headers(provider, AuthMode::ApiKey)?;
     let client = client(Duration::from_secs(60))
         .map_err(|error| format!("{provider_name}: {error}"))?;
     let mut body = compatible_request_body(provider_name, model, messages, tools);
@@ -643,7 +663,7 @@ async fn direct_completion_stream(
     let response = send_json_stream(
         &client,
         format!("{endpoint}/chat/completions"),
-        &key,
+        &headers,
         provider_name,
         body,
         cancel,
@@ -662,8 +682,7 @@ async fn grok_completion(
     cancel: &mut watch::Receiver<bool>,
 ) -> Result<(Value, String), String> {
     compatible_provider_completion(
-        "grok",
-        "grok-api-key",
+        Provider::Grok,
         GROK_BASE,
         GROK_MODEL,
         messages,
@@ -674,24 +693,23 @@ async fn grok_completion(
 }
 
 async fn compatible_provider_completion(
-    provider: &str,
-    key_name: &str,
+    provider: Provider,
     endpoint: &str,
     model: &str,
     messages: Vec<Value>,
     tools: Option<Value>,
     cancel: &mut watch::Receiver<bool>,
 ) -> Result<(Value, String), String> {
-    let key = secrets::get(key_name)
-        .ok_or_else(|| format!("No {provider} API key is configured in the OS credential manager."))?;
+    let provider_name = provider.id();
+    let headers = provider_headers(provider, AuthMode::ApiKey)?;
     let client =
-        client(Duration::from_secs(60)).map_err(|error| format!("{provider}: {error}"))?;
-    let body = compatible_request_body(provider, model, messages, tools);
+        client(Duration::from_secs(60)).map_err(|error| format!("{provider_name}: {error}"))?;
+    let body = compatible_request_body(provider_name, model, messages, tools);
     let response = send_json(
         &client,
         format!("{endpoint}/chat/completions"),
-        &key,
-        provider,
+        &headers,
+        provider_name,
         body,
         cancel,
     )
@@ -699,6 +717,10 @@ async fn compatible_provider_completion(
     .map_err(|error| error.message)?;
     let actual_model = response_model(&response, model);
     Ok((response, actual_model))
+}
+
+fn provider_headers(provider: Provider, mode: AuthMode) -> Result<HeaderMap, String> {
+    provider_auth::auth_headers(&ProviderConnection::new(provider, mode))
 }
 
 fn compatible_request_body(
@@ -731,14 +753,13 @@ async fn claude_completion_for_model(
     model: &str,
     cancel: &mut watch::Receiver<bool>,
 ) -> Result<(Value, String), String> {
-    let key = secrets::get("anthropic-api-key")
-        .ok_or_else(|| "No Claude API key is configured in the OS credential manager.".to_string())?;
+    let headers = provider_headers(Provider::Anthropic, AuthMode::ApiKey)?;
     let client = client(Duration::from_secs(60)).map_err(|error| format!("Claude: {error}"))?;
     let body = claude_request_body_for_model(messages, tools, model)?;
     let response = send_json(
         &client,
         format!("{ANTHROPIC_BASE}/messages"),
-        &key,
+        &headers,
         "claude",
         body,
         cancel,
@@ -960,8 +981,11 @@ async fn openrouter_completion_with_timeout(
     let client = client(response_timeout).map_err(|error| format!("OpenRouter: {error}"))?;
     let mut errors = Vec::new();
     for account in accounts {
-        let key = secrets::openrouter_key_for_account(&account.id)
-            .map_err(|_| "OpenRouter could not read the configured credential.".to_string())?;
+        let mode = AuthMode::parse(&account.auth_mode)
+            .ok_or_else(|| "OpenRouter account has an unsupported authentication mode.".to_string())?;
+        let connection =
+            ProviderConnection::new(Provider::OpenRouter, mode).with_account_id(account.id.clone());
+        let headers = provider_auth::auth_headers(&connection)?;
         let body = request_body(
             &openrouter_model(model),
             messages.clone(),
@@ -969,7 +993,7 @@ async fn openrouter_completion_with_timeout(
             Some(max_tokens),
             false,
         );
-        match send_openrouter_with_retry(&client, &key, body, cancel).await {
+        match send_openrouter_with_retry(&client, &headers, body, cancel).await {
             Ok((response, used_model)) => {
                 *active.lock().unwrap() = Some(account.id);
                 return Ok((response, used_model));
@@ -1013,8 +1037,11 @@ async fn openrouter_completion_stream(
     let client = client(response_timeout).map_err(|error| format!("OpenRouter: {error}"))?;
     let mut errors = Vec::new();
     for account in accounts {
-        let key = secrets::openrouter_key_for_account(&account.id)
-            .map_err(|_| "OpenRouter could not read the configured credential.".to_string())?;
+        let mode = AuthMode::parse(&account.auth_mode)
+            .ok_or_else(|| "OpenRouter account has an unsupported authentication mode.".to_string())?;
+        let connection =
+            ProviderConnection::new(Provider::OpenRouter, mode).with_account_id(account.id.clone());
+        let headers = provider_auth::auth_headers(&connection)?;
         let mut body = request_body(
             &openrouter_model(model),
             messages.clone(),
@@ -1028,7 +1055,7 @@ async fn openrouter_completion_stream(
             match send_json_stream(
                 &client,
                 format!("{OPENROUTER_BASE}/chat/completions"),
-                &key,
+                &headers,
                 "openrouter",
                 body.clone(),
                 cancel,
@@ -1084,14 +1111,14 @@ async fn openrouter_completion_stream(
 
 async fn send_openrouter_with_retry(
     client: &Client,
-    key: &str,
+    headers: &HeaderMap,
     body: Value,
     cancel: &mut watch::Receiver<bool>,
 ) -> Result<(Value, String), String> {
     send_openrouter_with_retry_at(
         client,
         format!("{OPENROUTER_BASE}/chat/completions"),
-        key,
+        headers,
         body,
         cancel,
     )
@@ -1101,7 +1128,7 @@ async fn send_openrouter_with_retry(
 async fn send_openrouter_with_retry_at(
     client: &Client,
     endpoint: String,
-    key: &str,
+    headers: &HeaderMap,
     mut body: Value,
     cancel: &mut watch::Receiver<bool>,
 ) -> Result<(Value, String), String> {
@@ -1110,7 +1137,7 @@ async fn send_openrouter_with_retry_at(
         match send_json(
             client,
             endpoint.clone(),
-            key,
+            headers,
             "openrouter",
             body.clone(),
             cancel,
@@ -1169,7 +1196,7 @@ fn request_body(
 async fn send_json(
     client: &Client,
     endpoint: String,
-    credential: &str,
+    auth_headers: &HeaderMap,
     provider: &str,
     body: Value,
     cancel: &mut watch::Receiver<bool>,
@@ -1177,20 +1204,12 @@ async fn send_json(
     let mut request = client
         .post(endpoint)
         .header("content-type", "application/json")
-        .json(&body);
-    if provider == "ollama" {
-        request = request.bearer_auth("ollama");
-    } else if provider == "openrouter" {
+        .json(&body)
+        .headers(auth_headers.clone());
+    if provider == "openrouter" {
         request = request
-            .bearer_auth(credential)
             .header("HTTP-Referer", "https://github.com/dev-praj/Macha_by_Prajwal.git")
             .header("X-Title", "Macha");
-    } else if provider == "claude" {
-        request = request
-            .header("x-api-key", credential)
-            .header("anthropic-version", "2023-06-01");
-    } else {
-        request = request.bearer_auth(credential);
     }
     let response = tokio::select! {
         response = request.send() => response.map_err(classify_network_error)?,
@@ -1249,7 +1268,7 @@ async fn send_json(
 async fn send_json_stream(
     client: &Client,
     endpoint: String,
-    credential: &str,
+    auth_headers: &HeaderMap,
     provider: &str,
     body: Value,
     cancel: &mut watch::Receiver<bool>,
@@ -1259,20 +1278,12 @@ async fn send_json_stream(
     let mut request = client
         .post(endpoint)
         .header("content-type", "application/json")
-        .json(&body);
-    if provider == "ollama" {
-        request = request.bearer_auth("ollama");
-    } else if provider == "openrouter" {
+        .json(&body)
+        .headers(auth_headers.clone());
+    if provider == "openrouter" {
         request = request
-            .bearer_auth(credential)
             .header("HTTP-Referer", "https://github.com/dev-praj/Macha_by_Prajwal.git")
             .header("X-Title", "Macha");
-    } else if provider == "claude" {
-        request = request
-            .header("x-api-key", credential)
-            .header("anthropic-version", "2023-06-01");
-    } else {
-        request = request.bearer_auth(credential);
     }
     let mut response = tokio::select! {
         response = request.send() => response.map_err(classify_network_error)?,
@@ -1705,12 +1716,22 @@ mod tests {
         ollama_failure_allows_fallback, openrouter_model, reduced_max_tokens, request_body,
         send_json, send_openrouter_with_retry_at, ProviderMode,
     };
+    use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
     use reqwest::{Client, StatusCode};
     use serde_json::Value;
     use std::time::Duration;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
     use tokio::net::TcpListener;
     use tokio::sync::watch;
+
+    fn bearer_headers(token: &str) -> HeaderMap {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {token}")).unwrap(),
+        );
+        headers
+    }
 
     #[test]
     fn provider_modes_parse_unknown_values_as_auto() {
@@ -1881,10 +1902,11 @@ mod tests {
 
         let client = Client::builder().build().unwrap();
         let (sender, mut cancel) = watch::channel(false);
+        let headers = bearer_headers("test-key");
         let response = send_json(
             &client,
             endpoint,
-            "test-key",
+            &headers,
             "grok",
             grok_request_body(vec![], None),
             &mut cancel,
@@ -1928,10 +1950,16 @@ mod tests {
 
         let client = Client::builder().build().unwrap();
         let (sender, mut cancel) = watch::channel(false);
+        let mut headers = HeaderMap::new();
+        headers.insert("x-api-key", HeaderValue::from_static("test-key"));
+        headers.insert(
+            "anthropic-version",
+            HeaderValue::from_static("2023-06-01"),
+        );
         let response = send_json(
             &client,
             endpoint,
-            "test-key",
+            &headers,
             "claude",
             serde_json::json!({"model":"claude-sonnet-5-5","max_tokens":1024,"messages":[]}),
             &mut cancel,
@@ -2097,8 +2125,9 @@ mod tests {
         let client = Client::builder().build().unwrap();
         let body = request_body("openrouter/free", vec![], None, Some(1024), false);
         let (sender, mut cancel) = watch::channel(false);
+        let headers = bearer_headers("test-key");
         let result =
-            send_openrouter_with_retry_at(&client, endpoint, "test-key", body, &mut cancel).await;
+            send_openrouter_with_retry_at(&client, endpoint, &headers, body, &mut cancel).await;
         drop(sender);
         assert_eq!(result.unwrap_err(), "OpenRouter credits exhausted.");
 
@@ -2124,7 +2153,8 @@ mod tests {
             tokio::time::sleep(Duration::from_millis(50)).await;
             let _ = sender.send(true);
         });
-        let result = send_json(&client, endpoint, "ollama", "ollama", body, &mut cancel).await;
+        let headers = bearer_headers("ollama");
+        let result = send_json(&client, endpoint, &headers, "ollama", body, &mut cancel).await;
         cancel_task.await.unwrap();
         server.abort();
         assert_eq!(result.unwrap_err().message, "Request cancelled.");

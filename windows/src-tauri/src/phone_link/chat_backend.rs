@@ -14,7 +14,8 @@ use tokio::sync::mpsc::UnboundedSender;
 
 use super::chat::{BoxFuture, ChatBackend, ChatConfig, ChatFail, ModelOption};
 use crate::settings::Settings;
-use crate::{llm_client, log, secrets, Shared};
+use crate::provider_auth::{self, AuthMode, Provider, ProviderConnection};
+use crate::{llm_client, log, Shared};
 
 /// Most models the user can allow, and the longest model name taken.
 pub const MAX_ALLOWED: usize = 50;
@@ -68,9 +69,13 @@ impl ChatBackend for AppChat {
             if !settings.phone_chat || !clean_models(&settings.phone_chat_models).contains(&id) {
                 return Err(ChatFail::Internal);
             }
-            if let Some(key) = key_name(provider) {
-                if secrets::get(key).is_none() {
-                    return Err(ChatFail::NoKey);
+            if provider != "openrouter" && provider != "ollama" {
+                let provider_type = Provider::from_id(provider).ok_or(ChatFail::Internal)?;
+                if let Err(error) = provider_auth::validate(&ProviderConnection::new(
+                    provider_type,
+                    AuthMode::ApiKey,
+                )) {
+                    return Err(classify(false, &error));
                 }
             }
             let mut messages = vec![json!({ "role": "system", "content": SYSTEM_PROMPT })];
@@ -121,17 +126,6 @@ impl ChatBackend for AppChat {
 
 fn is_local(provider: &str) -> bool {
     provider == "ollama"
-}
-
-/// The credential store entry a provider's key lives in; None for the model servers.
-fn key_name(provider: &str) -> Option<&'static str> {
-    match provider {
-        "anthropic" => Some("anthropic-api-key"),
-        "google" => Some("gemini-api-key"),
-        "grok" => Some("grok-api-key"),
-        "openai" => Some("openai-api-key"),
-        _ => None,
-    }
 }
 
 pub fn provider_name(provider: &str) -> String {
@@ -270,11 +264,4 @@ mod tests {
         assert_eq!(classify(false, "something 14012 happened"), ChatFail::Provider);
     }
 
-    #[test]
-    fn keys_are_found_by_provider() {
-        assert_eq!(key_name("anthropic"), Some("anthropic-api-key"));
-        assert_eq!(key_name("openai"), Some("openai-api-key"));
-        assert_eq!(key_name("ollama"), None);
-        assert!(is_local("ollama") && !is_local("openai"));
-    }
 }

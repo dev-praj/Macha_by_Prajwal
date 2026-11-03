@@ -16,6 +16,12 @@ static ACCOUNT_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 pub struct OpenRouterAccount {
     pub id: String,
     pub name: String,
+    #[serde(default = "default_openrouter_auth_mode")]
+    pub auth_mode: String,
+}
+
+fn default_openrouter_auth_mode() -> String {
+    "api_key".into()
 }
 
 /// Every key Macha may store. Anything outside this list is refused.
@@ -44,6 +50,31 @@ pub const INTERNAL_KEYS: &[&str] = &[
     "phone-relay-room",
     "phone-relay-key",
     "phone-relay-access",
+    "phone-cloud-refresh-token",
+    "phone-cloud-google-user-id",
+    "phone-cloud-google-email",
+    "phone-cloud-private-key",
+    "phone-cloud-pairing-id",
+    "phone-cloud-link-id",
+    "phone-cloud-device-id",
+    "phone-cloud-peer-device-id",
+    "phone-cloud-link-key",
+    "phone-cloud-peer-public-key",
+    "phone-cloud-confirm-code",
+    "phone-cloud-send-seq",
+    "phone-cloud-receive-seq",
+    "remote-auth-refresh-token",
+    "remote-auth-user-id",
+    "remote-auth-email",
+    "remote-device-id",
+    "remote-device-private-key",
+    "remote-device-status",
+    "remote-cloud-counters",
+    "remote-supabase-url",
+    "remote-supabase-publishable-key",
+    "remote-signin-skipped",
+    "remote-signin-requested",
+    "remote-signin-choice-recorded",
 ];
 
 fn entry(key: &str) -> Option<Entry> {
@@ -117,6 +148,7 @@ fn load_openrouter_accounts() -> Result<Vec<OpenRouterAccount>, String> {
             OpenRouterAccount {
                 id: "legacy".into(),
                 name: "Existing OpenRouter key".into(),
+                auth_mode: default_openrouter_auth_mode(),
             },
         );
     }
@@ -135,6 +167,18 @@ pub fn openrouter_accounts() -> Result<Vec<OpenRouterAccount>, String> {
 }
 
 pub fn add_openrouter_account(name: &str, key: &str) -> Result<OpenRouterAccount, String> {
+    add_openrouter_account_with_mode(name, key, "api_key")
+}
+
+pub fn add_openrouter_oauth_account(key: &str) -> Result<OpenRouterAccount, String> {
+    add_openrouter_account_with_mode("OpenRouter account", key, "oauth")
+}
+
+fn add_openrouter_account_with_mode(
+    name: &str,
+    key: &str,
+    auth_mode: &str,
+) -> Result<OpenRouterAccount, String> {
     let name = name.trim();
     let key = key.trim();
     if name.is_empty() || name.chars().count() > 80 {
@@ -155,6 +199,7 @@ pub fn add_openrouter_account(name: &str, key: &str) -> Result<OpenRouterAccount
     let account = OpenRouterAccount {
         id: id.clone(),
         name: name.to_string(),
+        auth_mode: auth_mode.into(),
     };
     account_entry(&id)?
         .set_password(key)

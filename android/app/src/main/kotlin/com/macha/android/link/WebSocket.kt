@@ -261,6 +261,7 @@ class WsConnection(
     }
 
     fun sendBinary(data: ByteArray) = sendFrame(WsOpcode.BINARY, data)
+    fun sendText(text: String) = sendFrame(WsOpcode.TEXT, text.toByteArray(Charsets.UTF_8))
 
     /** Waits for the next binary or text message (pings are answered, pongs ignored). A close from the other side is returned once. */
     fun receive(): WsMessage {

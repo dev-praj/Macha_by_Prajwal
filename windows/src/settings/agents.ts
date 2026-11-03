@@ -23,7 +23,7 @@ function renderDiff(text: string): HTMLElement {
 const TEXT = {
   get title() { return t("Agents"); },
   get intro() {
-    return t("Show other coding agents in the island. Macha adds its entries to each agent's own config: you see the exact change and where the backup goes before anything is written, and uninstalling removes only what Macha added.");
+    return t("Show coding agents in the island. GitHub Copilot hooks work in both VS Code Copilot Chat and Copilot CLI. Macha previews each exact config change and backup before writing, and removes only its own entries when uninstalled.");
   },
   get none() { return t("Macha could not list the agents."); },
   get approvals() { return t("Sessions, and Allow / Deny from the island"); },

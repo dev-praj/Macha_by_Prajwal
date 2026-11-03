@@ -4,6 +4,8 @@
 
 # Macha for Windows
 
+Developer-owned Remote backend and Google sign-in setup is documented in [REMOTE_GOOGLE_SIGN_IN.md](../docs/REMOTE_GOOGLE_SIGN_IN.md).
+
 **Macha doesn't get a notch on a PC — so it lives at the top of your screen instead.**
 
 Approve Claude Code permissions, watch your session work, drop a file, chat with Claude, keep an eye on your services — without leaving what you're doing.
@@ -65,10 +67,14 @@ wants to keep. Review and remove those entries separately if desired.
 left. Existing Macha settings—including Nixi dictation, agents, chat, memory,
 workflows, automation, integrations, and Vision Mode—remain available as
 separate pages. The weekly recap is also available under **Flow → Statistics**.
-The upstream Notetaker, dictation statistics, standalone snippets manager,
-active-pill manager, agent plan-usage tracking, and Android phone-link service
-are not yet ported; their pages are identified as unavailable instead of
-showing nonfunctional controls.
+Dictation statistics show locally stored word, time-saved, speed, daily, and
+application aggregates; transcripts and audio are not retained for those
+statistics. Text snippets can be managed under **Flow → Snippets** and used
+as trigger phrases during Nixi dictation; their text stays in local settings.
+A dedicated active-pill manager is not yet ported; its page is identified as
+unavailable instead of showing nonfunctional controls. **Agents → Agent plan
+usage** fetches Claude and Codex plan limits on demand from their existing
+local sign-ins; access tokens are not saved or logged by Macha.
 
 Everything else happens on its own: a Claude Code permission request opens the
 island with **Deny / Allow**, a finished session shows what it did, and
@@ -77,6 +83,18 @@ your integrations sit in the coloured pills next to Macha.
 Choose **Macha**, **Cubee**, or **Onee** in **Settings → Avatar**. Your selection
 is saved on this device and appears throughout the island, agent pills, greeting,
 and file-drop animation.
+
+## Puter OpenAI text chat
+
+The separate `puter-chat.html` page is a basic text chat using Puter.js with the
+`openai/gpt-5.4-nano` model. It does not replace Macha's native chat, and it does
+not support Macha's file context or desktop-action workflows. Puter handles its
+own account authorization; an OpenAI API key is not used by this page.
+
+To try it locally, run `npm run dev` from this folder and open
+`http://127.0.0.1:1420/puter-chat.html` in a browser. The Puter.js script needs
+internet access. The production build also includes `dist/puter-chat.html` for
+deployment on a static web host.
 
 ## Claude Code
 
@@ -118,9 +136,10 @@ German, and Turkish. **System language** follows the Windows/WebView language
 when supported and otherwise uses English. Strings without a translation remain
 in English.
 
-Macha’s existing **Nixi dictation** already includes local Whisper transcription,
-custom vocabulary, spoken-word replacements, and per-application writing styles;
-these remain available alongside the new recap and language settings.
+Macha’s existing **Nixi dictation** includes local Parakeet transcription when
+the model is installed, falling back to the existing local Whisper service
+otherwise. Custom vocabulary, spoken-word replacements, and per-application
+writing styles remain available.
 
 ## LLM providers
 
@@ -143,6 +162,15 @@ names are saved in the app's configuration. Uploaded keys are masked in
 Settings and returned to the interface only after you explicitly click the
 reveal button. OpenRouter requests default to 1024 output tokens and have a
 single lower-token retry for credit errors.
+
+Provider authentication mode flags are stored locally in `provider-auth.json`
+in Macha's configuration directory; they can be changed without installing a
+new build. Existing API-key modes and local Ollama remain enabled by default.
+For example, `"providerModes":{"openai:api_key":false}` disables OpenAI
+API-key authentication.
+API-key fallback from an account connection is opt-in and remains disabled
+unless explicitly enabled. This file contains preferences only, never provider
+credentials.
 
 The default **Automatic** model uses OpenRouter's free-model router to choose a
 model for each fallback task. Settings also lists the models in the supplied
@@ -209,8 +237,11 @@ system-wide changes. Ambiguous app matches ask you to select the intended app,
 then continue automatically. Workflow definitions are stored locally in
 Macha's configuration folder.
 
-No telemetry. The only network requests Macha makes are to the services you
-configure yourself.
+No telemetry. Choosing **Download Parakeet** in **Settings → Dictation** fetches
+the pinned speech model files from Hugging Face once (about 670 MB); when Coucou
+has already installed the same model locally, Macha reuses it without copying
+or downloading it. Other network requests are to services you configure
+yourself.
 
 ## Messages and music controls
 
@@ -244,10 +275,14 @@ Evergreen Runtime must be installed on the machine.
 
 ## Voice control
 
-Voice input runs offline with the local `faster-whisper` model `base.en`;
-transcription is forced to English and sent only to the local service at `127.0.0.1:5005`, and voice
-chat uses Ollama-only mode so transcripts are not sent to OpenRouter. Macha can
-also speak replies locally using Web Speech when an installed voice is available,
+Right Alt dictation and Ctrl+Alt hold-to-talk use NVIDIA Parakeet locally when
+its model is installed, supporting 25 languages. Until then they continue to
+use the existing local `faster-whisper` `base.en` model, which is English-only.
+Both engines process recordings on this computer; dictation does not upload
+audio to a transcription service. The always-on **Hey Macha** listener and its
+pronunciation calibration continue to use the local Whisper service at
+`127.0.0.1:5005`. Voice chat uses Ollama-only mode so transcripts are not sent
+to OpenRouter. Macha can also speak replies locally using Web Speech when an installed voice is available,
 with Windows SAPI as the automatic fallback. Both engines select English voices
 only, preferring Microsoft Zira when installed and otherwise using another
 available English voice; install an English Windows speech voice if

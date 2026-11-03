@@ -157,7 +157,7 @@ export function phoneSection(initial: boolean, detailsEnabled: boolean, makeTogg
       h("div", { class: "row" }, pairing),
       pairingBox,
       clients,
-      h("div", { class: "hint", text: "Keep Macha and the phone on the same private Wi-Fi. If Windows Firewall asks, allow Macha on private networks only." }),
+      h("div", { class: "hint", text: "Keep Macha and the phone on the same local network; connecting the computer to the phone's hotspot works too. If Windows Firewall blocks the connection, set that network to Private and allow Macha through the firewall." }),
       h("div", { class: "hint", text: "The link is off by default. Its TLS certificate and pairing token stay in Windows Credential Manager; the Android app pins that certificate." }),
       h("div", { class: "row" },
         h("label", { text: "Share session details with the paired phone" }),
@@ -187,6 +187,7 @@ export function phoneSection(initial: boolean, detailsEnabled: boolean, makeTogg
     feedback,
     state,
     detail,
+    h("button", { type: "button", text: "Use from anywhere (sign in with Google)", onclick: () => window.dispatchEvent(new Event("macha-open-connection")) }),
     chatSettings,
   );
 

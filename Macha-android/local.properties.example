@@ -1,0 +1,4 @@
+# Copy to local.properties and set the developer-owned public client values.
+# Never use a service-role/secret key or database password here.
+SUPABASE_URL=https://your-developer-project-ref.supabase.co
+SUPABASE_ANON_KEY=your-developer-project-anon-or-publishable-key

@@ -46,6 +46,10 @@ function agentColor(name: string): string {
   return FALLBACK_COLORS[Math.abs(h) % FALLBACK_COLORS.length];
 }
 
+function agentName(id: string): string {
+  return id === "copilot" ? "GitHub Copilot" : id;
+}
+
 const PROJECT_ALIASES: Record<string, string> = {
   "notch-buddy": "Notch Buddy",
   notchbuddy: "Notch Buddy",
@@ -153,11 +157,12 @@ export function registerHookHandlers(island: Island) {
     if (State.pendingApproval?.requestId !== requestId) return;
     if (pendingTimeout != null) window.clearTimeout(pendingTimeout);
     pendingTimeout = null;
+    const agentId = State.pendingApproval.agentId ?? CLAUDE_ID;
     State.pendingApproval = null;
     State.isPinned = false;
     island.dropPin();
-    State.updateTask(CLAUDE_ID, "working");
-    State.setPillBadge(CLAUDE_ID, null);
+    State.updateTask(agentId, "working");
+    State.setPillBadge(agentId, null);
     if (State.view === "approval") island.setView(State.defaultView());
     State.notify();
     void publishPhoneState();
@@ -170,7 +175,7 @@ function publishPhoneState(): Promise<void> {
     .map((task) => {
       const session: PhoneLinkSession = {
         pillId: task.id,
-        agent: task.id === CLAUDE_ID ? "Claude Code" : task.id.replace(/^agent_/, ""),
+        agent: task.id === CLAUDE_ID ? "Claude Code" : agentName(task.id.replace(/^agent_/, "")),
         state: task.state,
         statusText: task.steps.at(-1) ?? task.name,
         stepIndex: task.stepIndex,
@@ -187,7 +192,7 @@ function publishPhoneState(): Promise<void> {
     approval = {
       requestId: pending.requestId,
       sessionId: pending.sessionId,
-      pillId: CLAUDE_ID,
+      pillId: pending.agentId ?? CLAUDE_ID,
       tool: pending.tool,
       command: pending.command,
     };
@@ -214,7 +219,6 @@ function handleHook(island: Island, payload: HookPayload) {
   const validAgent = validateAgent(payload.macha_agent);
   const agentId = validAgent ? `agent_${validAgent}` : CLAUDE_ID;
   const isExternalAgent = validAgent !== null;
-
   const focused = State.focusId === agentId;
 
   /** Alerts force the island open; work events only reveal the compact island. */
@@ -231,7 +235,7 @@ function handleHook(island: Island, payload: HookPayload) {
   /** Ensure the agent pill exists (no-op for Claude Code). */
   const ensurePill = () => {
     if (isExternalAgent) {
-      State.upsertExternalAgent(agentId, validAgent!, agentColor(validAgent!));
+      State.upsertExternalAgent(agentId, agentName(validAgent!), agentColor(validAgent!));
     } else {
       upsert(projectName, cwd);
     }
@@ -274,14 +278,29 @@ function handleHook(island: Island, payload: HookPayload) {
       break;
 
     case "Notification": {
-      const message = payload.message ?? "";
+      const message = payload.message?.trim() ?? "";
+      if (!message) break;
+
+      ensurePill();
       const lower = message.toLowerCase();
-      if (lower.includes("rate limit") || lower.includes("limite d")) {
+      const isRateLimit = lower.includes("rate limit") || lower.includes("limite d");
+      if (isRateLimit) {
         State.updateTask(agentId, "ratelimit");
         Sound.play("rate");
-      } else if (message.endsWith("?")) {
+      } else {
         State.updateTask(agentId, "question");
-        State.appendStep(agentId, message);
+        Sound.play("question");
+      }
+      State.appendStep(agentId, message.slice(0, 200));
+
+      // A pending approval owns the expanded view until it is answered. Otherwise
+      // bring every agent notification into view, even when it is not phrased as
+      // a question or arrives from an agent that was not focused already.
+      if (State.pendingApproval) {
+        island.reveal();
+      } else {
+        State.setFocus(agentId);
+        island.alert(isRateLimit ? "overview" : "question");
       }
       break;
     }
@@ -328,10 +347,9 @@ function handleHook(island: Island, payload: HookPayload) {
       break;
 
     case "PermissionRequest": {
-      // External agents do not get an approval card — showing one would look like
-      // a Claude Code request. Decline immediately so the agent re-asks in its
-      // terminal. Approval support for other agents will come with Codex support.
-      if (isExternalAgent) {
+      // These external agents have a decision-capable relay. Other agents leave
+      // permission handling to their own UI because Macha cannot answer them.
+      if (isExternalAgent && !["codex", "copilot", "muse"].includes(validAgent ?? "")) {
         if (payload.request_id) void Bridge.approvalDecline(payload.request_id);
         break;
       }
@@ -344,7 +362,8 @@ function handleHook(island: Island, payload: HookPayload) {
         if (requestId) void Bridge.approvalDecline(requestId);
         break;
       }
-      upsert(projectName, cwd);
+      if (isExternalAgent) ensurePill();
+      else upsert(projectName, cwd);
       if (pendingTimeout != null) window.clearTimeout(pendingTimeout);
       const tool = payload.tool_name ?? "Tool";
       const input = payload.tool_input ?? {};
@@ -353,32 +372,28 @@ function handleHook(island: Island, payload: HookPayload) {
         sessionId: payload.session_id ?? "",
         tool,
         command: approvalTarget(tool, input),
+        agentId,
       };
       // The relay's short ack window closes in 800 ms; everything below this
       // line is synchronous, so the card really is up by the time it lands.
       if (requestId) void Bridge.approvalAck(requestId);
-      State.updateTask(CLAUDE_ID, "approval");
+      State.updateTask(agentId, "approval");
       State.isPinned = true;
       Sound.play("approval");
-      if (focused) {
-        island.alert("approval");
-      } else {
-        // Another agent holds the view, so the card would yank it away. The badge
-        // is the signal instead — but it has to be on screen for that to mean
-        // anything, hence the reveal. We just told the relay a human can act.
-        State.setPillBadge(CLAUDE_ID, "approval");
-        island.reveal();
-      }
+      State.setFocus(agentId);
+      // Approval needs a visible decision card even when another agent held focus.
+      island.alert("approval");
       // Macha answers within 108 s or not at all; after that the terminal has
       // taken over and the card would be lying.
       pendingTimeout = window.setTimeout(() => {
         pendingTimeout = null;
         if (!State.pendingApproval) return;
+        const agentId = State.pendingApproval.agentId ?? CLAUDE_ID;
         State.pendingApproval = null;
         State.isPinned = false;
         island.dropPin();
-        State.updateTask(CLAUDE_ID, "working");
-        State.setPillBadge(CLAUDE_ID, null);
+        State.updateTask(agentId, "working");
+        State.setPillBadge(agentId, null);
         if (State.view === "approval") island.setView(State.defaultView());
         State.notify();
         void publishPhoneState();

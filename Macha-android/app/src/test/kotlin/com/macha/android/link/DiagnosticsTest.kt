@@ -20,7 +20,7 @@ class DiagnosticsTest {
     private fun env(
         p: PairingPayload, wifi: Boolean = true, cellular: Boolean = false, found: List<Found> = emptyList(),
         relay: (() -> DiagResult)? = null,
-    ) = LanDiagnostics(p, { wifi }, { cellular }, { found }, PinnedTls.connector(p), relay, timeoutMs = 1_500)
+    ) = LanDiagnostics(p, { wifi || cellular }, { cellular }, { found }, PinnedTls.connector(p), relay, timeoutMs = 1_500)
 
     private fun results(e: DiagEnv) = Diagnostics.run(e).toMap()
 
@@ -50,6 +50,15 @@ class DiagnosticsTest {
         val r = results(e)
         assertTrue(r[DiagStep.NETWORK] is DiagResult.Ok)
         assertEquals(DiagResult.Ok("The relay answers"), r[DiagStep.RELAY])
+    }
+
+    @Test fun mobileDataCanReachAComputerConnectedToThePhoneHotspotWithoutARelay() {
+        val d = FakeDesktop(tls = true).track()
+        val e = env(pairing(d), wifi = false, cellular = true)
+        assertEquals(
+            DiagResult.Ok("Mobile data is available; a computer on this phone's hotspot can connect directly"),
+            e.network(),
+        )
     }
 
     @Test fun aClosedPortIsAnAddressProblemAndStopsTheSecureSteps() {

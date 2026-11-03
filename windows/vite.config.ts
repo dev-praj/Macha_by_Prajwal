@@ -55,6 +55,8 @@ export default defineConfig({
       input: {
         island: resolve(__dirname, "index.html"),
         settings: resolve(__dirname, "settings.html"),
+        signin: resolve(__dirname, "signin.html"),
+        puterChat: resolve(__dirname, "puter-chat.html"),
       },
     },
   },

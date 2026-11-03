@@ -212,7 +212,7 @@ impl StatusCell {
 
 /// A running relay client; dropping it does not stop it, `stop` does.
 pub struct Handle {
-    task: JoinHandle<()>,
+    task: tauri::async_runtime::JoinHandle<()>,
     status: StatusCell,
 }
 
@@ -229,7 +229,7 @@ impl Handle {
 /// Starts the client. Must be called inside the async runtime.
 pub fn start(shared: Arc<Shared>, target: Target, creds: Credentials) -> Handle {
     let status = StatusCell::new(State::Connecting);
-    let task = tokio::spawn(supervise(shared, target, Arc::new(creds), status.clone()));
+    let task = tauri::async_runtime::spawn(supervise(shared, target, Arc::new(creds), status.clone()));
     Handle { task, status }
 }
 

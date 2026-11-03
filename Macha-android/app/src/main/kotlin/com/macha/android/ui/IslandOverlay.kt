@@ -10,13 +10,7 @@ import android.view.Gravity
 import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.compose.foundation.background
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.macha.android.core.IconKind
 import com.macha.android.core.MotionPolicy
 import com.macha.android.core.MotionSpec
@@ -221,7 +215,7 @@ class IslandOverlay(
         val cutout = insets.displayCutout?.boundingRectTop?.let { PxRect(it.left, it.top, it.right, it.bottom) }
         val statusBar = insets.getInsetsIgnoringVisibility(WindowInsets.Type.statusBars()).top
             .takeIf { it > 0 } ?: (24 * density).toInt()
-        return IslandGeometry.place(metrics.bounds.width(), density, cutout, statusBar)
+        return IslandGeometry.place(metrics.bounds.width(), density, cutout, statusBar, metrics.bounds.height())
     }
 
     private fun ensureView(): Boolean {
@@ -308,15 +302,11 @@ class IslandOverlay(
         // The content fades in as the island opens and out as it goes up.
         val open = ((height.value / targetH.toDouble()) - 0.35) / 0.55
         val corner = px(radius.value)
-        val ear = IslandGeometry.EAR_DP.dp
         CompositionLocalProvider(LocalTokens provides Tokens.DARK) {
-            // The island plus a concave flare on each side: its top is flush with the screen's edge and
-            // merges with the camera hole, instead of hanging as a bar below it.
-            Box(Modifier.width(px(width.value) + ear * 2).height(px(height.value))) {
-                Canvas(Modifier.matchParentSize()) { drawFlares(ear.toPx().coerceAtMost(size.height), ink) }
+            Box(Modifier.width(px(width.value)).height(px(height.value))) {
                 Box(
-                    Modifier.align(Alignment.TopCenter).width(px(width.value)).fillMaxHeight()
-                        .clip(RoundedCornerShape(bottomStart = corner, bottomEnd = corner)).background(ink),
+                    Modifier.fillMaxWidth().height(px(height.value))
+                        .clip(RoundedCornerShape(corner)).background(ink),
                 ) {
                     Box(
                         Modifier.fillMaxWidth().padding(top = topInset).alpha(open.coerceIn(0.0, 1.0).toFloat()),
@@ -337,24 +327,6 @@ class IslandOverlay(
                 }
             }
         }
-    }
-
-    /** The two flares: each is the square beside the island minus a quarter circle, so the black curves out to the screen's top edge. */
-    private fun DrawScope.drawFlares(e: Float, color: Color) {
-        if (e <= 0f) return
-        val w = size.width
-        val left = Path().apply {
-            moveTo(0f, 0f); lineTo(e, 0f); lineTo(e, e)
-            arcTo(Rect(Offset(0f, e), e), 0f, -90f, false)
-            close()
-        }
-        val right = Path().apply {
-            moveTo(w, 0f); lineTo(w - e, 0f); lineTo(w - e, e)
-            arcTo(Rect(Offset(w, e), e), 180f, 90f, false)
-            close()
-        }
-        drawPath(left, color)
-        drawPath(right, color)
     }
 
     @Composable
@@ -404,17 +376,17 @@ class IslandOverlay(
     private fun RequestCard(s: IslandSpec) {
         val engine = remember { MachaEngine(clock).apply { setState(BotState.APPROVAL, force = true) } }
         val fingerprint = s.fingerprint ?: return
-        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(Modifier.clickable { tap("the request header") { onOpen() } }, verticalAlignment = Alignment.CenterVertically) {
-                MachaView(engine, Modifier.size(40.dp))
-                Spacer(Modifier.width(10.dp))
+                MachaView(engine, Modifier.size(36.dp))
+                Spacer(Modifier.width(8.dp))
                 Column(Modifier.weight(1f)) {
                     Text(s.agent, style = TypeScale.SECONDARY.style(dim), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     // What kind of action, never the command: the exact text is in the app and in the lock prompt.
                     Text(stringResource(R.string.approval_wants, s.text), style = TypeScale.HEADLINE.style(Color.White), maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 PillButton(stringResource(R.string.action_deny), { tap("Deny") { onDeny(fingerprint) } }, Modifier.weight(1f), onDark = true)
                 if (s.canAllow) {
                     PillButton(
@@ -423,7 +395,7 @@ class IslandOverlay(
                     )
                 }
             }
-            Text(stringResource(if (s.canAllow) R.string.approval_hint else R.string.approval_on_computer), style = TypeScale.LABEL.style(dim), maxLines = 2)
+            Text(stringResource(if (s.canAllow) R.string.approval_hint else R.string.approval_on_computer), style = TypeScale.LABEL.style(dim), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 

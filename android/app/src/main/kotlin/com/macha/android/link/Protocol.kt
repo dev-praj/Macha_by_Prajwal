@@ -121,7 +121,7 @@ data class ApprovalRequest(
     val tool: String,
     val command: String,
     val createdAtMs: Long,
-    /** The computer cut the command to fit (it sends at most 500 characters): what is shown is not all of it. Additive; absent means false. */
+    /** The computer cut the command to fit (it sends at most 8,000 characters): what is shown is not all of it. Additive; absent means false. */
     val truncated: Boolean = false,
 )
 

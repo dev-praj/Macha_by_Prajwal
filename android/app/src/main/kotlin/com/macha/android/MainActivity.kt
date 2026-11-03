@@ -42,6 +42,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -57,6 +58,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.lazy.rememberLazyListState
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -134,6 +136,8 @@ import com.macha.android.ui.ScreenTitle
 import com.macha.android.ui.SectionTitle
 import com.macha.android.ui.linkDotColor
 import com.macha.android.ui.linkStatusText
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val model get() = (application as MachaApp).model
@@ -144,6 +148,7 @@ class MainActivity : ComponentActivity() {
     private var closedApproval by mutableStateOf<String?>(null)
     private var questionPill by mutableStateOf<String?>(null)
     private var confirming = false
+    private var remoteBrowserOpen = false
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(com.macha.android.app.AppLanguage.wrap(newBase))
     }
@@ -157,6 +162,7 @@ class MainActivity : ComponentActivity() {
         }
         model.resume()
         setContent {
+            val signInScope = rememberCoroutineScope()
             MachaTheme(model.settings.theme, model.settings.dynamicColour) {
                 // Dark icons on a light page; the camera screen is black in both themes, so its icons are light.
                 val lightPage = !tokens().isDark && screen != Screen.SCAN
@@ -166,6 +172,21 @@ class MainActivity : ComponentActivity() {
                     bars.isAppearanceLightNavigationBars = lightPage
                 }
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    if (model.remoteSignInGate) {
+                        RemoteSignInGate(
+                            busy = model.remoteBusy,
+                            configured = model.remoteConfigured,
+                            message = model.remoteMessage,
+                            onContinue = {
+                                signInScope.launch {
+                                    model.signInRemote(this@MainActivity)
+                                    remoteBrowserOpen = model.remoteBusy
+                                }
+                            },
+                            onCancel = { model.cancelRemoteSignIn(); remoteBrowserOpen = false },
+                            onSkip = { model.skipRemoteSignIn(); remoteBrowserOpen = false },
+                        )
+                    } else {
                     Box(Modifier.fillMaxSize().windowInsetsPadding(if (screen == Screen.HOME || screen == Screen.SCAN) WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom) else WindowInsets.safeDrawing)) {
                         val tabs = Nav.tabs()
                         val keyboardOpen = WindowInsets.ime.getBottom(LocalDensity.current) > 0
@@ -221,6 +242,7 @@ class MainActivity : ComponentActivity() {
                         // A scanned code or a link from the camera app: the user decides before anything is paired.
                         model.pairRequest?.let { PairConfirm(model, it) }
                     }
+                    }
                 }
             }
         }
@@ -229,6 +251,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
+        // Do not clear the PKCE verifier when Android returns from the external
+        // browser. OAuth commonly resumes this Activity through onStart before
+        // onNewIntent delivers the macha://remote-auth callback.
         model.inForeground = true
         model.refreshOverlayPermission() // maybe granted meanwhile, from this app's switch or Android's settings
         model.refreshBattery() // the battery setting may have been changed in Android's screen
@@ -264,8 +289,15 @@ class MainActivity : ComponentActivity() {
         Log.d("MachaLaunch", "MainActivity intent: action=${i.action} data=${i.data != null}")
         i.data?.let { uri ->
             if (uri.scheme == "macha") {
-                // Opened from the camera app or a browser: never paired without the user's OK.
-                if (!model.requestPairing(uri.toString())) model.message = getString(R.string.msg_bad_link)
+                if (uri.host == "remote-auth" && uri.path == "/callback") {
+                    remoteBrowserOpen = false
+                    lifecycleScope.launch { model.completeRemoteSignIn(uri) }
+                } else if (uri.host == "auth" && uri.path == "/callback") {
+                    model.handleGoogleAuthCallback(uri)
+                } else if (uri.host == "pair") {
+                    // Opened from the camera app or a browser: never paired without the user's OK.
+                    if (!model.requestPairing(uri.toString())) model.message = getString(R.string.msg_bad_link)
+                }
                 i.data = null // handled once: a rotation must not ask again
             }
         }
@@ -310,16 +342,40 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    /** Allow: only after the biometric / screen-lock check. */
+    /** Allow after the user taps the explicit approval button. */
     private fun approve(r: ApprovalRequest) {
-        if (confirming) return // a second tap must not open a second prompt
         if (!ApprovalSheetPlan.canAllowHere(r)) { model.message = getString(R.string.approval_on_computer); return }
-        confirming = true
-        BiometricGate.confirm(
-            this, getString(R.string.action_allow), "${r.tool}: ${r.command}", getString(R.string.msg_need_lock),
-            onSuccess = { confirming = false; model.decide(r.fingerprint, allow = true) },
-            onFail = { confirming = false; if (it.isNotBlank()) model.message = it },
-        )
+        model.decide(r.fingerprint, allow = true)
+    }
+}
+
+@Composable
+private fun RemoteSignInGate(
+    busy: Boolean,
+    configured: Boolean,
+    message: String?,
+    onContinue: () -> Unit,
+    onCancel: () -> Unit,
+    onSkip: () -> Unit,
+) {
+    Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing), contentAlignment = Alignment.Center) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Text("Macha", style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.primary)
+            Text("Sign in to sync your devices from anywhere", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+            Button(onClick = onContinue, enabled = !busy && configured, modifier = Modifier.fillMaxWidth()) {
+                if (busy) CircularProgressIndicator(Modifier.height(18.dp).width(18.dp), strokeWidth = 2.dp)
+                else Text("Continue with Google")
+            }
+            if (busy) TextButton(onClick = onCancel) { Text("Cancel") }
+            TextButton(onClick = onSkip) { Text("Skip for now") }
+            Text("You can sign in later from Settings.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (!configured) Text("Remote sync is not available in this build. Choose Skip for now to use nearby pairing.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+            message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        }
     }
 }
 

@@ -2,6 +2,7 @@ interface NixiRecordingSession {
   mode: "ptt" | "dictate";
   stopRequested: boolean;
   startPromise: Promise<boolean>;
+  startedAt: number | null;
   recorder: MediaRecorder | null;
   chunks: Blob[];
 }
@@ -19,6 +20,7 @@ export class NixiAudioRecorder {
       mode,
       stopRequested: false,
       startPromise: Promise.resolve(false),
+      startedAt: null,
       recorder: null,
       chunks: [],
     };
@@ -64,6 +66,7 @@ export class NixiAudioRecorder {
       } catch {
         recorder.start();
       }
+      session.startedAt = performance.now();
       return true;
     } catch (err) {
       console.error("[nixi] failed to start audio recording", err);
@@ -75,7 +78,7 @@ export class NixiAudioRecorder {
     }
   }
 
-  async stop(): Promise<{ blob: Blob; mode: "ptt" | "dictate" } | null> {
+  async stop(): Promise<{ blob: Blob; mode: "ptt" | "dictate"; durationMs: number } | null> {
     const session = this.activeSession;
     if (!session) return null;
     session.stopRequested = true;
@@ -86,6 +89,7 @@ export class NixiAudioRecorder {
       this.activeSession = null;
       return null;
     }
+    const durationMs = Math.max(0, performance.now() - (session.startedAt ?? performance.now()));
 
     return new Promise((resolve) => {
       recorder.addEventListener(
@@ -96,7 +100,7 @@ export class NixiAudioRecorder {
           });
           session.chunks = [];
           if (this.activeSession === session) this.activeSession = null;
-          resolve({ blob, mode: session.mode });
+          resolve({ blob, mode: session.mode, durationMs });
         },
         { once: true },
       );

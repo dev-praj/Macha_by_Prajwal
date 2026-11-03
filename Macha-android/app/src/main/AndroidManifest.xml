@@ -4,6 +4,7 @@
     <!-- Only the paired computer is contacted. No ads, no analytics, no billing. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <!-- Finding the computer again after a Wi-Fi change: a multicast lock held only while browsing the local network. -->
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -47,6 +48,20 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="macha" android:host="pair" />
+            </intent-filter>
+            <!-- Supabase Google OAuth PKCE returns here after the external browser sign-in. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="macha" android:host="auth" android:path="/callback" />
+            </intent-filter>
+            <!-- Separate callback for the per-user Remote OAuth flow; QR pairing keeps its own callback above. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="macha" android:host="remote-auth" android:path="/callback" />
             </intent-filter>
         </activity>
 

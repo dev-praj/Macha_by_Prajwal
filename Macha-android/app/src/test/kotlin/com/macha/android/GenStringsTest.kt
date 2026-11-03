@@ -51,7 +51,7 @@ class GenStringsTest {
         assertTrue(fr.contains("""<item quantity="many">%1${'$'}d d\'éléments</item>"""))
         val en = File(root, "app/src/main/res/values/strings.xml").readText()
         assertTrue(en.contains("""<item quantity="one">%1${'$'}d item</item>"""))
-        assertEquals(listOf("en", "fr"), Regex("""android:name="([^"]+)"""").findAll(File(root, "app/src/main/res/xml/locales_config.xml").readText()).map { it.groupValues[1] }.toList())
+        assertEquals(listOf("en"), Regex("""android:name="([^"]+)"""").findAll(File(root, "app/src/main/res/xml/locales_config.xml").readText()).map { it.groupValues[1] }.toList())
         // The list of strings to check is generated too: without it the check says so.
         assertTrue(run(root, "--check").output.contains("stale: i18n/REVIEW.md"))
         assertEquals(0, run(root, "--review").code)

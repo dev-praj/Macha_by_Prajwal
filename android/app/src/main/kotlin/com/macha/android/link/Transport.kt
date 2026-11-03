@@ -4,7 +4,7 @@ import java.io.IOException
 import java.net.Socket
 
 /** Which way the link reaches the computer. */
-enum class Route { LAN, RELAY }
+enum class Route { LAN, RELAY, REMOTE }
 
 /**
  * The rules for choosing between the direct link on the local network (fast, private to the network) and the relay
@@ -61,11 +61,13 @@ class FallbackConnector(
 
     override fun connect(timeoutMs: Int): Socket {
         var failure: IOException? = null
+        var remoteFailure: IOException? = null
         for (r in policy.order()) {
             try {
                 val s = when (r) {
                     Route.LAN -> lan.connect(policy.lanTimeoutMs(timeoutMs)).also { policy.lanWorked() }
                     Route.RELAY -> relay.connect(timeoutMs)
+                    Route.REMOTE -> throw IOException("Account Remote is a direct connector, not a fallback route")
                 }
                 route = r
                 onRoute(r)
@@ -76,10 +78,11 @@ class FallbackConnector(
                 return s
             } catch (e: IOException) {
                 if (r == Route.LAN) policy.lanFailed()
-                failure = failure ?: e
+                failure = e
+                if (r == Route.RELAY) remoteFailure = e
             }
         }
-        throw failure ?: IOException("no route")
+        throw remoteFailure ?: failure ?: IOException("no route")
     }
 
     /** While [relaySocket] is open, tries the LAN every so often; when it answers, drops the relay so the link reconnects direct. */

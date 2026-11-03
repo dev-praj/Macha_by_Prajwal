@@ -95,12 +95,12 @@ class DiscoveryPolicyTest {
         assertEquals(0L, DiscoveryPolicy.delayBeforeRound(-3))
     }
 
-    @Test fun nothingIsSearchedWhenConnectedOrWithoutWifiOrWithoutAComputerOrInTheDemo() {
-        assertTrue(DiscoveryPolicy.mayDiscover(paired = true, demo = false, wifiUp = true, linkConnected = false))
-        assertFalse(DiscoveryPolicy.mayDiscover(paired = true, demo = false, wifiUp = true, linkConnected = true))
-        assertFalse(DiscoveryPolicy.mayDiscover(paired = true, demo = false, wifiUp = false, linkConnected = false))
-        assertFalse(DiscoveryPolicy.mayDiscover(paired = false, demo = false, wifiUp = true, linkConnected = false))
-        assertFalse(DiscoveryPolicy.mayDiscover(paired = true, demo = true, wifiUp = true, linkConnected = false))
+    @Test fun searchNeedsAnAvailableNetworkAndAPairedDisconnectedComputer() {
+        assertTrue(DiscoveryPolicy.mayDiscover(paired = true, demo = false, networkAvailable = true, linkConnected = false))
+        assertFalse(DiscoveryPolicy.mayDiscover(paired = true, demo = false, networkAvailable = true, linkConnected = true))
+        assertFalse(DiscoveryPolicy.mayDiscover(paired = true, demo = false, networkAvailable = false, linkConnected = false))
+        assertFalse(DiscoveryPolicy.mayDiscover(paired = false, demo = false, networkAvailable = true, linkConnected = false))
+        assertFalse(DiscoveryPolicy.mayDiscover(paired = true, demo = true, networkAvailable = true, linkConnected = false))
     }
 }
 

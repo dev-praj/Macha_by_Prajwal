@@ -33,7 +33,7 @@ class ApprovalSheetPlanTest {
     @Test fun aCommandThatWasCutIsNeverAllowedFromThePhone() {
         assertTrue(ApprovalSheetPlan.canAllowHere(r("a")))
         assertFalse(ApprovalSheetPlan.canAllowHere(r("a").copy(truncated = true)))
-        // 10,000 characters, as the computer would send them: the first 500 and the flag.
+        // 10,000 characters exceeds the computer's 8,000-character phone-link cap.
         assertFalse(ApprovalSheetPlan.canAllowHere(ApprovalRequest("p", "a", "Bash", "x".repeat(500), 0L, truncated = true)))
     }
 

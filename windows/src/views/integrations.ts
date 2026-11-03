@@ -530,7 +530,7 @@ function spotifyCard(): HTMLElement {
   seek.addEventListener("change", () => {
     void spotifyAction("seek", Number(seek.value));
   });
-  const controls = h("div", { class: "spotify-controls" },
+  const controls = h("div", { class: "spotify-controls spotify-player-controls" },
     h("button", {
       class: `spotify-skip spotify-flag${data.shuffle ? " is-on" : ""}`,
       type: "button",
@@ -580,10 +580,24 @@ function spotifyCard(): HTMLElement {
   const nowPlaying = h("div", { class: "spotify-now-playing" },
     artwork,
     h("div", { class: "spotify-track" },
-      h("b", { text: track.name }),
-      h("span", { text: track.artists }),
-      track.album ? h("span", { text: track.album }) : null,
+      h("div", { class: "spotify-track-title" },
+        dot("#1DB954", 7),
+        h("b", { text: track.name }),
+      ),
+      h("span", {
+        text: [track.artists, track.album].filter(Boolean).join(" · "),
+        title: [track.artists, track.album].filter(Boolean).join(" · "),
+      }),
     ),
+    h("button", {
+      class: "spotify-open",
+      type: "button",
+      title: "Open Spotify",
+      "aria-label": "Open Spotify",
+      onclick: () => void Bridge.openSpotify().catch((openError: unknown) => {
+        console.error("[macha] could not open Spotify", openError);
+      }),
+    }, spotifyIcon("M7 17 17 7M8 7h9v9", 12)),
   );
   const timeline = h("div", { class: "spotify-timeline" },
     h("span", { text: formatPlaybackTime(data.progressMs) }),
@@ -607,19 +621,18 @@ function spotifyCard(): HTMLElement {
   }) as HTMLInputElement;
   volume.style.setProperty("--spotify-volume", `${data.volume}%`);
   const volumeRow = h("div", { class: "spotify-volume-row" },
-    h("span", { class: "spotify-volume-label", text: "Volume" }),
+    h("span", { class: "spotify-volume-label", "aria-hidden": "true" },
+      spotifyIcon("M3 9v6h4l5 4V5L7 9H3zm13.5-1.5a5 5 0 0 1 0 9m2.5-11a9 9 0 0 1 0 13", 14)),
     volume,
-    h("span", { class: "spotify-volume-value", text: `${data.volume}%` }),
   );
+  const playbackRow = h("div", { class: "spotify-playback-row" }, controls, volumeRow);
   return h(
     "div",
     { class: "int-card spotify-card" },
-    header("#1DB954", "Spotify", error ? "Status unavailable" : data.spotifyApp ? "Now playing" : "Windows media"),
     error ? h("div", { class: "int-status", text: error }) : null,
     nowPlaying,
     timeline,
-    controls,
-    volumeRow,
+    playbackRow,
   );
 }
 

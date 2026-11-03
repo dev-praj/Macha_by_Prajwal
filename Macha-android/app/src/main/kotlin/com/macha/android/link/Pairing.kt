@@ -21,6 +21,10 @@ data class PairingPayload(
     val desktopName: String,
     /** The relay fields of the link (all four or none); null for a link that only works on the local network. */
     val relay: RelayPairing? = null,
+    /** Optional Supabase pairing fields, all present together; local-only QR links remain unchanged. */
+    val cloud: SupabasePairing? = null,
+    /** Account-authenticated Remote route; never parsed from a QR code. */
+    val accountRemote: Boolean = false,
 ) {
     companion object {
         /** Returns null for anything that is not a well-formed v1 pairing link. */
@@ -43,7 +47,13 @@ data class PairingPayload(
                 RelayPairing.Companion.Parsed.Invalid -> return null
                 is RelayPairing.Companion.Parsed.Ok -> r.relay
             }
-            return PairingPayload(host, port, fp, token, q["name"].orEmpty().take(64), relay)
+            val cloudFields = listOf("cloudUrl", "cloudKey", "cloudPairingId", "cloudToken", "cloudLaptopPubKey").map { q[it] }
+            val cloud = if (cloudFields.all { it == null }) null else {
+                if (cloudFields.any { it == null }) return null
+                val (url, key, id, cloudToken, pubkey) = cloudFields
+                SupabasePairing(url!!, key!!, id!!, cloudToken!!, pubkey!!).takeIf { it.valid() } ?: return null
+            }
+            return PairingPayload(host, port, fp, token, q["name"].orEmpty().take(64), relay, cloud)
         }
     }
 }
@@ -70,11 +80,37 @@ class PinnedTrustManager(private val pinnedSha256Hex: String) : X509TrustManager
  * How a pairing is kept (encrypted by SecureStore): one field per line, the relay's four after the five LAN ones. An older
  * file with five lines reads as a LAN-only pairing, so an app update never loses a pairing.
  */
+data class SupabasePairing(
+    val url: String,
+    val anonKey: String,
+    val pairingId: String,
+    val token: String,
+    val laptopPubKey: String,
+    val linkId: String? = null,
+    val deviceId: String? = null,
+    val laptopDeviceId: String? = null,
+    val phonePrivateKey: String? = null,
+    val refreshToken: String? = null,
+    val sendSeq: Long = 0,
+    val receiveSeq: Long = 0,
+    val accountUserId: String? = null,
+) {
+    override fun toString() = "SupabasePairing(..)"
+    fun valid(): Boolean = url.matches(Regex("https://[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.supabase\\.co"))
+        && anonKey.isNotBlank() && anonKey.length <= 4096
+        && pairingId.matches(Regex("[0-9a-fA-F-]{36}"))
+        && token.matches(Regex("[A-Za-z0-9_-]{43}"))
+        && RelayCrypto.base64UrlDecode(laptopPubKey)?.size == 32
+}
+
 object PairingCodec {
     fun encode(p: PairingPayload): String {
         val base = listOf(p.host, p.port.toString(), p.certSha256, p.token, p.desktopName)
-        val r = p.relay ?: return base.joinToString("\n")
-        return (base + listOf(r.url, r.room, r.key, r.access)).joinToString("\n")
+        val r = p.relay
+        val fields = if (r == null) base else base + listOf(r.url, r.room, r.key, r.access)
+        val c = p.cloud ?: return fields.joinToString("\n")
+        return (fields + listOf("CLOUD1", c.url, c.anonKey, c.pairingId, c.token, c.laptopPubKey,
+            c.linkId.orEmpty(), c.deviceId.orEmpty(), c.laptopDeviceId.orEmpty(), c.phonePrivateKey.orEmpty(), c.refreshToken.orEmpty())).joinToString("\n")
     }
 
     /** Null when the text is not a pairing this build can use. */
@@ -82,7 +118,14 @@ object PairingCodec {
         val parts = text.split("\n")
         if (parts.size < 4) return null
         val port = parts[1].toIntOrNull() ?: return null
-        val relay = if (parts.size >= 9) RelayPairing(parts[5], parts[6], parts[7], parts[8]) else null
-        return PairingPayload(parts[0], port, parts[2], parts[3], parts.getOrElse(4) { "" }, relay)
+        val relay = if (parts.size >= 9 && parts[5] != "CLOUD1") RelayPairing(parts[5], parts[6], parts[7], parts[8]) else null
+        val cloudAt = parts.indexOf("CLOUD1")
+        val cloud = if (cloudAt >= 0) {
+            if (parts.size < cloudAt + 11) return null
+            SupabasePairing(parts[cloudAt + 1], parts[cloudAt + 2], parts[cloudAt + 3], parts[cloudAt + 4], parts[cloudAt + 5],
+                parts[cloudAt + 6].ifEmpty { null }, parts[cloudAt + 7].ifEmpty { null }, parts[cloudAt + 8].ifEmpty { null },
+                parts[cloudAt + 9].ifEmpty { null }, parts[cloudAt + 10].ifEmpty { null })
+        } else null
+        return PairingPayload(parts[0], port, parts[2], parts[3], parts.getOrElse(4) { "" }, relay, cloud)
     }
 }

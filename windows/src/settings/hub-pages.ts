@@ -15,12 +15,12 @@ export const HUB_GROUPS = [
     title: "Notch",
     items: [
       { id: "general", title: "General" },
-      { id: "active-pills", title: "Active pills" },
       { id: "agents", title: "Agents" },
       { id: "chat", title: "Chat" },
       { id: "voice", title: "OK Macha" },
       { id: "integrations", title: "Integrations" },
       { id: "phone", title: "Android phone" },
+      { id: "connection", title: "Connection" },
       { id: "shortcuts", title: "Shortcuts" },
     ],
   },

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b0c0e" />
+    <title>Puter OpenAI Chat — Macha</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, "Segoe UI", sans-serif;
+        background: #0b0c0e;
+        color: #f5f6f8;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      main {
+        width: min(100%, 760px);
+        min-height: min(720px, calc(100vh - 48px));
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #292b31;
+        border-radius: 20px;
+        background: #121317;
+        box-shadow: 0 24px 80px #0008;
+        overflow: hidden;
+      }
+
+      header { padding: 24px 24px 18px; border-bottom: 1px solid #292b31; }
+      h1 { margin: 0; font-size: 20px; }
+      .subtitle, #status { color: #a5a7b0; font-size: 13px; }
+      .subtitle { margin: 8px 0 0; }
+      #status { min-height: 18px; margin: 12px 0 0; }
+
+      #messages {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        padding: 24px;
+        overflow-y: auto;
+      }
+
+      .message {
+        max-width: 88%;
+        padding: 12px 15px;
+        border-radius: 16px;
+        font-size: 15px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      .message.user { align-self: flex-end; background: #315ee8; }
+      .message.assistant { align-self: flex-start; background: #23252c; }
+      .message.error { align-self: flex-start; color: #ffb4b4; background: #381e23; }
+
+      form {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        padding: 16px;
+        border-top: 1px solid #292b31;
+      }
+
+      textarea {
+        flex: 1;
+        min-height: 48px;
+        max-height: 180px;
+        resize: vertical;
+        padding: 13px 14px;
+        border: 1px solid #383a43;
+        border-radius: 12px;
+        background: #0b0c0e;
+        color: inherit;
+        font: inherit;
+      }
+
+      button {
+        min-height: 48px;
+        padding: 0 18px;
+        border: 0;
+        border-radius: 12px;
+        background: #5278ff;
+        color: white;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      button:disabled { opacity: .55; cursor: wait; }
+      @media (max-width: 520px) {
+        body { padding: 0; }
+        main { min-height: 100vh; border: 0; border-radius: 0; }
+        header { padding: 20px; }
+        #messages { padding: 18px; }
+        form { padding: 12px; }
+      }
+    </style>
+    <script src="https://js.puter.com/v2/"></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>OpenAI chat with Puter</h1>
+        <p class="subtitle">A separate text chat using openai/gpt-5.4-nano through Puter.js.</p>
+        <p id="status" role="status" aria-live="polite">Ready</p>
+      </header>
+      <section id="messages" aria-label="Conversation" aria-live="polite"></section>
+      <form id="chat-form">
+        <textarea id="prompt" aria-label="Message" placeholder="Ask anything…" required></textarea>
+        <button id="send" type="submit">Send</button>
+      </form>
+    </main>
+    <script type="module" src="/src/puter-chat.ts"></script>
+  </body>
+</html>

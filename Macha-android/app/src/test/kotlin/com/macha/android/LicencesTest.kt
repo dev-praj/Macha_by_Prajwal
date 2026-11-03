@@ -41,6 +41,7 @@ class LicencesTest {
         assertTrue(n.contains("written permission"))
         assertTrue(n.contains("PERMISSION.md"))
         assertTrue(n.contains("ZXing Core 3.5.3") && n.contains("Apache License, Version 2.0"))
+        assertTrue(n.contains("Bouncy Castle Provider 1.85.2") && n.contains("The Legion of the Bouncy Castle Inc."))
         assertTrue(n.contains("Android Open Source Project") && n.contains("JetBrains"))
     }
 
@@ -51,7 +52,7 @@ class LicencesTest {
 
     @Test fun everyLibraryInTheBuildIsCoveredByANotice() {
         val groups = Regex("""implementation\("([^":]+):""").findAll(File("build.gradle.kts").readText()).map { it.groupValues[1] }.toSet()
-        val covered = setOf("androidx.activity", "androidx.lifecycle", "androidx.compose.material3", "androidx.compose.ui", "androidx.camera", "com.google.zxing")
+        val covered = setOf("androidx.activity", "androidx.lifecycle", "androidx.compose.material3", "androidx.compose.ui", "androidx.camera", "com.google.zxing", "org.bouncycastle")
         assertEquals("a new dependency needs a line in NOTICES.txt and in this list", covered, groups)
     }
 

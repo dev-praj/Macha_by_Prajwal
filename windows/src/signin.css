@@ -1,0 +1,16 @@
+:root { color-scheme: dark; font-family: Inter, "Segoe UI", sans-serif; background: #101114; color: #f4f5f7; }
+* { box-sizing: border-box; }
+html, body, #root { width: 100%; min-height: 100%; margin: 0; }
+body { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: radial-gradient(ellipse at 50% 0%, #28324a 0%, #15171d 48%, #101114 100%); }
+.signin-card { width: min(100%, 410px); display: flex; flex-direction: column; align-items: center; padding: 38px 32px 30px; border: 1px solid #ffffff18; border-radius: 24px; background: #1b1d23eF; box-shadow: 0 24px 80px #0008; text-align: center; }
+.brand-mark { width: 54px; height: 54px; display: grid; place-items: center; border-radius: 18px; background: linear-gradient(145deg, #9bd0ff, #6d8dff); color: #101114; font-weight: 800; font-size: 31px; }
+.eyebrow { margin: 14px 0 5px; color: #aeb6c7; font-size: 11px; font-weight: 700; letter-spacing: .24em; }
+h1 { margin: 4px 0 10px; font-size: 23px; line-height: 1.28; font-weight: 700; }
+.description { margin: 0 0 24px; color: #aeb2bd; font-size: 14px; line-height: 1.55; }
+button { width: 100%; min-height: 46px; border: 0; border-radius: 13px; font: inherit; font-size: 14px; font-weight: 650; cursor: pointer; }
+button:disabled { opacity: .54; cursor: default; }
+.primary { color: #11151d; background: #a9c8ff; }
+.cancel { margin-top: 9px; color: #e6e8ef; background: #ffffff12; }
+.skip { margin-top: 12px; color: #d9deeb; background: transparent; }
+.later { margin: 0; color: #9199aa; font-size: 12px; }
+#message { min-height: 18px; margin: 14px 0 0; color: #bbc6db; font-size: 12px; line-height: 1.5; }

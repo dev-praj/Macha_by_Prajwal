@@ -25,8 +25,13 @@ import { h, clear } from "../views/dom";
 import { LANGUAGES, resolveLanguage, setLanguage, systemLanguages } from "../i18n/i18n";
 import { agentsSection } from "./agents";
 import { mountSettingsHub, weeklyRecapSection } from "./hub";
+import { dictationStatisticsSection } from "./statistics";
+import { agentPlanUsageSection } from "./plan-usage";
 import { phoneSection } from "./phone";
+import { connectionSection } from "./connection";
 import { notetakerSection } from "./notetaker";
+import { snippetsSection } from "./snippets";
+import { parakeetSection } from "./parakeet";
 
 let settings: Settings = { ...DEFAULT_SETTINGS };
 let version = "";
@@ -227,6 +232,7 @@ function apiSection(
   const accountsPanel = h("div", { class: "openrouter-accounts", style: "display:none" });
   const toggleAccounts = h("button", { text: "View uploaded keys" });
   const addButton = h("button", { class: "primary", text: "+ Add account" });
+  const connectButton = h("button", { class: "primary", text: "Connect with OpenRouter" });
   const addForm = h("div", { class: "openrouter-add-form", style: "display:none" });
   const directProviderKeys = h("div", {
     style: "display:flex;flex-direction:column;gap:8px",
@@ -303,9 +309,16 @@ function apiSection(
           revealButton.disabled = false;
         }
       });
-      const removeButton = h("button", { class: "danger", text: "Remove" });
+      const isOAuth = account.authMode === "oauth";
+      const removeButton = h("button", {
+        class: "danger",
+        text: isOAuth ? "Disconnect" : "Remove",
+      });
       removeButton.addEventListener("click", async () => {
-        if (!confirm(`Remove the OpenRouter key for "${account.name}"?`)) return;
+        const prompt = isOAuth
+          ? "Disconnect this OpenRouter account? This removes the key from this device. Delete the key in OpenRouter to revoke it on your account."
+          : `Remove the OpenRouter key for "${account.name}"?`;
+        if (!confirm(prompt)) return;
         removeButton.disabled = true;
         clear(feedback);
         try {
@@ -313,15 +326,25 @@ function apiSection(
           accounts = accounts.filter((item) => item.id !== account.id);
           renderAccounts();
           updateState();
-          feedback.append(h("div", { class: "notice ok", text: "Account removed." }));
+          feedback.append(h("div", {
+            class: "notice ok",
+            text: isOAuth ? "OpenRouter account disconnected from this device." : "Account removed.",
+          }));
         } catch (err) {
           removeButton.disabled = false;
-          feedback.append(h("div", { class: "notice err", text: `Could not remove account: ${String(err)}` }));
+          feedback.append(h("div", {
+            class: "notice err",
+            text: `Could not ${isOAuth ? "disconnect" : "remove"} account: ${String(err)}`,
+          }));
         }
       });
       accountsPanel.append(
         h("div", { class: "openrouter-account" },
           h("div", { class: "openrouter-account-name", text: account.name }),
+          h("div", {
+            class: "hint",
+            text: account.authMode === "oauth" ? "Connected via account" : "Connected via API key",
+          }),
           h("div", { class: "row openrouter-account-key" }, keyField, revealButton, removeButton),
         ),
       );
@@ -371,6 +394,23 @@ function apiSection(
       feedback.append(h("div", { class: "notice err", text: `Could not save account: ${String(err)}` }));
     } finally {
       saveAccount.disabled = false;
+    }
+  });
+
+  connectButton.addEventListener("click", async () => {
+    connectButton.disabled = true;
+    clear(feedback);
+    try {
+      await Bridge.openRouterOAuthConnect();
+      accounts = await Bridge.openRouterAccounts();
+      renderAccounts();
+      if (accountsPanel.style.display !== "none") accountsPanel.style.display = "";
+      updateState();
+      feedback.append(h("div", { class: "notice ok", text: "OpenRouter account connected and saved securely in the OS credential manager." }));
+    } catch (err) {
+      feedback.append(h("div", { class: "notice err", text: `Could not connect OpenRouter account: ${String(err).replace(/^Error:\s*/, "")}` }));
+    } finally {
+      connectButton.disabled = false;
     }
   });
 
@@ -524,7 +564,11 @@ function apiSection(
     }),
     h("h3", { text: "OpenRouter fallback" }),
     state,
-    h("div", { class: "row" }, addButton, toggleAccounts),
+    h("p", {
+      class: "hint",
+      text: "OpenRouter sign-in creates a user-controlled API key. Model requests use your OpenRouter credits. Disconnect removes it from this device; delete the key in OpenRouter to revoke it on your account.",
+    }),
+    h("div", { class: "row" }, connectButton, addButton, toggleAccounts),
     addForm,
     accountsPanel,
     h("div", { class: "row" }, h("label", { text: "Model" }), model),
@@ -3432,6 +3476,7 @@ async function main() {
 
   const voiceSetup = voiceSetupSection(present, openRouterAccounts);
   const dictation = dictationSection();
+  const parakeet = parakeetSection();
   const claude = claudeSection(status);
   const externalAgents = agentsSection(agents, agentError);
   const avatar = avatarSection();
@@ -3443,6 +3488,13 @@ async function main() {
   const integrations = integrationsSection(present);
   const general = generalSection();
   const phone = phoneSection(settings.phoneLink ?? false, settings.phoneDetails ?? false, toggle);
+  const connection = connectionSection();
+  const snippets = snippetsSection(settings.dictationSnippets, async (dictationSnippets) => {
+    const updated = { ...settings, dictationSnippets };
+    await Bridge.saveSettingsStrict(updated);
+    settings = updated;
+    State.settings = { ...State.settings, ...updated };
+  });
   const featureNotice = (title: string, message: string) => h(
     "section",
     { class: "hub-unavailable" },
@@ -3451,14 +3503,11 @@ async function main() {
   );
 
   mountSettingsHub(root, {
-    dictation: { sections: [voiceSetup, dictation] },
+    dictation: { sections: [voiceSetup, dictation, parakeet] },
     notetaker: { sections: [notetakerSection()] },
     statistics: {
       sections: [
-        featureNotice(
-          "Dictation statistics",
-          "Macha's dictation totals and usage charts have not been ported. Macha's local weekly recap is shown below.",
-        ),
+        dictationStatisticsSection(),
         weeklyRecapSection(),
       ],
     },
@@ -3468,9 +3517,7 @@ async function main() {
         dictation,
       ],
     },
-    snippets: {
-      unavailable: "Macha's standalone text-snippet manager has not been ported to Macha yet.",
-    },
+    snippets: { sections: [snippets] },
     styles: {
       sections: [
         featureNotice("Styles", "Macha's existing Nixi dictation settings include per-application writing styles."),
@@ -3479,23 +3526,18 @@ async function main() {
     },
     "flow-settings": { sections: [general] },
     general: { sections: [avatar, general] },
-    "active-pills": {
-      sections: [featureNotice(
-        "Active pills",
-        "Macha uses its own island and integration controls rather than Macha's pill manager.",
-      )],
-    },
     agents: {
       sections: [
         claude,
         externalAgents,
-        featureNotice("Agent plan usage", "Codex and Claude plan-usage tracking has not been ported yet."),
+        agentPlanUsageSection(),
       ],
     },
     chat: { sections: [chat] },
     voice: { sections: [voiceSetup] },
     integrations: { sections: [integrations] },
     phone: { sections: [phone] },
+    connection: { sections: [connection] },
     shortcuts: { sections: [dictation] },
     memory: { sections: [memory] },
     workflows: { sections: [workflows] },

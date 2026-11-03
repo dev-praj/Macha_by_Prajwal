@@ -943,4 +943,16 @@ mod tests {
         Resampler::new(SAMPLE_RATE).process(&input, &mut output);
         assert_eq!(output, input);
     }
+
+    #[test]
+    fn parses_timestamped_local_transcription_segments() {
+        let response: SttResponse = serde_json::from_str(
+            r#"{"text":"hello there","segments":[{"start":1.25,"end":2.5,"text":"hello there"}]}"#,
+        )
+        .unwrap();
+        assert_eq!(response.segments.len(), 1);
+        assert_eq!(response.segments[0].start, 1.25);
+        assert_eq!(response.segments[0].end, 2.5);
+        assert_eq!(response.segments[0].text, "hello there");
+    }
 }

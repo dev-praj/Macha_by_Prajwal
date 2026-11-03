@@ -9,6 +9,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import type {
   ChatMessage,
   DictationReplacement,
+  DictationSnippet,
   Settings,
   SharedConversationContext,
 } from "./state";
@@ -39,6 +40,7 @@ export interface BootInfo {
 export interface OpenRouterAccount {
   id: string;
   name: string;
+  authMode: "api_key" | "oauth";
 }
 
 export interface MessageNotification {
@@ -65,6 +67,18 @@ export interface SpotifySnapshot {
   volume: number;
   spotifyApp: boolean;
   track: SpotifyTrack | null;
+}
+
+export type SpeechModelState =
+  | { state: "missing" }
+  | { state: "downloading"; fraction: number }
+  | { state: "ready" }
+  | { state: "failed"; error: string };
+
+export interface SpeechModelsStatus {
+  parakeet: SpeechModelState;
+  downloadMb: number;
+  sharedWithCoucou: boolean;
 }
 
 export interface NoteSpeaker {
@@ -97,6 +111,45 @@ export interface NotesState {
   working: string[];
 }
 
+export interface DictationTotals {
+  words: number;
+  seconds: number;
+  dictations: number;
+  wordsPerMinute: number;
+  minutesSaved: number;
+}
+
+export interface DictationStats {
+  week: DictationTotals;
+  month: DictationTotals;
+  all: DictationTotals;
+  daily: Array<[string, number]>;
+  apps: Record<string, number>;
+}
+
+export interface AgentPlanWindow {
+  pct: number;
+  resetsAtMs: number;
+}
+
+export interface AgentPlan {
+  fiveHour: AgentPlanWindow | null;
+  sevenDay: AgentPlanWindow | null;
+  resetCredits: number | null;
+  plan: string | null;
+  updatedAtMs: number;
+}
+
+export interface AgentProviderUsage {
+  usage: AgentPlan | null;
+  error: string | null;
+}
+
+export interface AgentPlanUsageReport {
+  claude: AgentProviderUsage;
+  codex: AgentProviderUsage;
+}
+
 export const Bridge = {
   boot: () => call<BootInfo>("boot"),
 
@@ -112,6 +165,7 @@ export const Bridge = {
    */
   setIslandRect: (x: number, y: number, width: number, height: number) =>
     call<void>("set_island_rect", { x, y, width, height }),
+  surfaceNotification: () => call<void>("surface_notification"),
 
   /** Give the window keyboard focus (chat field) and take it away again. */
   focusWindow: (focused: boolean) => call<void>("focus_window", { focused }),
@@ -175,6 +229,7 @@ export const Bridge = {
     callOrThrow<AgentHookPlan>("agent_hooks_preview", { agent, install }),
   agentHooksApply: (agent: string, install: boolean, fingerprint: string) =>
     callOrThrow<string>("agent_hooks_apply", { agent, install, fingerprint }),
+  agentPlanUsage: () => callOrThrow<AgentPlanUsageReport>("agent_plan_usage"),
 
   approvalDecision: (requestId: string, decision: "allow" | "deny") =>
     call<void>("approval_decision", { requestId, decision }),
@@ -258,6 +313,17 @@ export const Bridge = {
     callOrThrow<PhoneLinkStatus>("phone_link_set_enabled", { enabled }),
   phoneLinkPairing: () => callOrThrow<PhoneLinkPairing>("phone_link_pairing"),
   phoneLinkNewPairing: () => callOrThrow<PhoneLinkPairing>("phone_link_new_pairing"),
+  remoteStatus: () => callOrThrow<RemoteStatus>("remote_status"),
+  remoteSignIn: () => callOrThrow<RemoteStatus>("remote_sign_in"),
+  remoteSkipSignIn: () => callOrThrow<void>("remote_skip_sign_in"),
+  remoteFinishSignInGate: () => callOrThrow<void>("remote_finish_sign_in_gate"),
+  remoteCancelSignIn: () => callOrThrow<void>("remote_cancel_sign_in"),
+  remoteDevices: () => callOrThrow<RemoteDevice[]>("remote_devices"),
+  remoteApproveDevice: (deviceId: string) => callOrThrow<void>("remote_approve_device", { deviceId }),
+  remoteDenyDevice: (deviceId: string) => callOrThrow<void>("remote_deny_device", { deviceId }),
+  remoteRevokeDevice: (deviceId: string) => callOrThrow<void>("remote_revoke_device", { deviceId }),
+  remoteSignOut: () => callOrThrow<void>("remote_sign_out"),
+  remoteDeleteAccount: () => callOrThrow<void>("remote_delete_account"),
   phoneDetailsSetEnabled: (enabled: boolean) =>
     callOrThrow<{ enabled: boolean }>("phone_details_set_enabled", { enabled }),
   phoneChatStatus: () => callOrThrow<PhoneChatStatus>("phone_chat_status"),
@@ -297,6 +363,8 @@ export const Bridge = {
   openRouterAccounts: () => callOrThrow<OpenRouterAccount[]>("openrouter_accounts"),
   openRouterAccountAdd: (name: string, key: string) =>
     callOrThrow<OpenRouterAccount>("openrouter_account_add", { name, key }),
+  openRouterOAuthConnect: () =>
+    callOrThrow<OpenRouterAccount>("openrouter_oauth_connect"),
   openRouterAccountRemove: (id: string) =>
     callOrThrow<void>("openrouter_account_remove", { id }),
   openRouterAccountReveal: (id: string) =>
@@ -317,6 +385,11 @@ export const Bridge = {
   }),
   refreshSpotify: () => callOrThrow<SpotifySnapshot>("refresh_spotify"),
   openSpotify: () => callOrThrow<void>("open_spotify"),
+  speechModelsStatus: () => callOrThrow<SpeechModelsStatus>("speech_models_status"),
+  speechModelsDownload: () => callOrThrow<void>("speech_models_download"),
+  speechModelsRemove: () => callOrThrow<void>("speech_models_remove"),
+  parakeetTranscribe: (audioWavBase64: string, vocabulary: string[] = []) =>
+    callOrThrow<string>("parakeet_transcribe", { audioWavBase64, vocabulary }),
 
   // ── Vision Mode ─────────────────────────────────────────────────────────
   gestureMouseStart: () => callOrThrow<void>("gesture_mouse_start"),
@@ -340,7 +413,12 @@ export const Bridge = {
     text: string,
     replacements: DictationReplacement[],
     style: "standard" | "verbatim",
-  ) => callOrThrow<string>("nixi_dictate_insert", { text, replacements, style }),
+    snippets: DictationSnippet[],
+  ) => callOrThrow<string>("nixi_dictate_insert", { text, replacements, style, snippets }),
+  nixiDictationStats: () =>
+    callOrThrow<DictationStats>("nixi_dictation_stats_snapshot"),
+  nixiRecordDictationStats: (text: string, application: string | null, seconds: number) =>
+    callOrThrow<void>("nixi_dictation_stats_record", { text, application, seconds }),
   nixiSearchFiles: (query: string, limit?: number) =>
     callOrThrow<NixiFileMatch[]>("nixi_search_files", { query, limit }),
   nixiRevealFile: (path: string) =>
@@ -419,6 +497,24 @@ export interface PhoneLinkPairing {
   port: number;
   name: string;
   relay: string | null;
+}
+
+export interface RemoteStatus {
+  configured: boolean;
+  signedIn: boolean;
+  email: string | null;
+  deviceId: string | null;
+  deviceStatus: string | null;
+  skipped: boolean;
+}
+
+export interface RemoteDevice {
+  id: string;
+  type: "laptop" | "phone";
+  name: string;
+  pubkey: string;
+  status: "pending" | "approved" | "revoked";
+  last_seen: string | null;
 }
 
 export interface PhoneChatStatus {

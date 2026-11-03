@@ -56,6 +56,8 @@ pub struct Settings {
     #[serde(default)]
     pub dictation_replacements: Vec<DictationReplacement>,
     #[serde(default)]
+    pub dictation_snippets: Vec<DictationSnippet>,
+    #[serde(default)]
     pub dictation_app_styles: Vec<DictationAppStyle>,
     #[serde(default)]
     pub phone_link: bool,
@@ -79,6 +81,14 @@ pub struct Settings {
     pub phone_relay: bool,
     #[serde(default)]
     pub phone_relay_url: String,
+    #[serde(default)]
+    pub phone_cloud_url: String,
+    #[serde(default)]
+    pub phone_cloud_key: String,
+    #[serde(default)]
+    pub phone_cloud_enabled: bool,
+    #[serde(default)]
+    pub phone_cloud_wizard_skipped: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -93,6 +103,13 @@ pub struct DictationAppStyle {
 pub struct DictationReplacement {
     pub spoken: String,
     pub replacement: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DictationSnippet {
+    pub trigger: String,
+    pub text: String,
 }
 
 fn default_provider_mode() -> String {
@@ -177,6 +194,7 @@ impl Default for Settings {
             wake_word_threshold: default_wake_word_threshold(),
             dictation_vocabulary: Vec::new(),
             dictation_replacements: Vec::new(),
+            dictation_snippets: Vec::new(),
             dictation_app_styles: Vec::new(),
             phone_link: false,
             phone_chat: false,
@@ -189,6 +207,10 @@ impl Default for Settings {
             phone_services: Vec::new(),
             phone_relay: false,
             phone_relay_url: String::new(),
+            phone_cloud_url: String::new(),
+            phone_cloud_key: String::new(),
+            phone_cloud_enabled: false,
+            phone_cloud_wizard_skipped: false,
         }
     }
 }
@@ -289,6 +311,31 @@ fn validate_dictation_app_styles(styles: &[DictationAppStyle]) -> Result<(), &'s
     Ok(())
 }
 
+fn validate_dictation_snippets(snippets: &[DictationSnippet]) -> Result<(), &'static str> {
+    if snippets.len() > 100 {
+        return Err("At most 100 dictation snippets are allowed.");
+    }
+    let mut triggers = HashSet::new();
+    for entry in snippets {
+        let trigger = entry.trigger.trim();
+        if trigger.is_empty()
+            || trigger.len() > 100
+            || entry.text.trim().is_empty()
+            || entry.text.len() > 10_000
+            || entry.trigger.contains('\0')
+            || entry.text.contains('\0')
+        {
+            return Err(
+                "Dictation snippets require a trigger and text within their length limits.",
+            );
+        }
+        if !triggers.insert(trigger.to_lowercase()) {
+            return Err("Each dictation snippet must have a unique trigger phrase.");
+        }
+    }
+    Ok(())
+}
+
 pub fn save(settings: &Settings) -> std::io::Result<()> {
     if !matches!(settings.avatar.as_str(), "macha" | "cubee" | "onee") {
         return Err(std::io::Error::new(
@@ -325,6 +372,9 @@ pub fn save(settings: &Settings) -> std::io::Result<()> {
             "Dictation replacements must contain at most 100 entries; spoken phrases are required and limited to 100 characters.",
         ));
     }
+    if let Err(error) = validate_dictation_snippets(&settings.dictation_snippets) {
+        return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, error));
+    }
     if let Err(error) = validate_dictation_app_styles(&settings.dictation_app_styles) {
         return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, error));
     }
@@ -348,7 +398,8 @@ mod tests {
     use super::{
         default_auto_hide, default_avatar, default_model, default_speak_replies_mode,
         migrate_avatar, migrate_integrations, migrate_model, migrate_speech_settings,
-        validate_dictation_app_styles, DictationAppStyle, Settings,
+        validate_dictation_app_styles, validate_dictation_snippets, DictationAppStyle,
+        DictationSnippet, Settings,
     };
 
     #[test]
@@ -423,16 +474,46 @@ mod tests {
         let current = Settings::default();
         assert!(current.dictation_vocabulary.is_empty());
         assert!(current.dictation_replacements.is_empty());
+        assert!(current.dictation_snippets.is_empty());
 
         let mut older = serde_json::to_value(current).unwrap();
         let fields = older.as_object_mut().unwrap();
         fields.remove("dictationVocabulary");
         fields.remove("dictationReplacements");
+        fields.remove("dictationSnippets");
         fields.remove("dictationAppStyles");
         let migrated: Settings = serde_json::from_value(older).unwrap();
         assert!(migrated.dictation_vocabulary.is_empty());
         assert!(migrated.dictation_replacements.is_empty());
+        assert!(migrated.dictation_snippets.is_empty());
         assert!(migrated.dictation_app_styles.is_empty());
+    }
+
+    #[test]
+    fn snippets_validate_limits_and_case_insensitive_triggers() {
+        let valid = vec![DictationSnippet {
+            trigger: "my signature".into(),
+            text: "Kind regards,\nMacha user".into(),
+        }];
+        assert!(validate_dictation_snippets(&valid).is_ok());
+        assert!(validate_dictation_snippets(&[
+            valid[0].clone(),
+            DictationSnippet {
+                trigger: "MY SIGNATURE".into(),
+                text: "Different text".into(),
+            },
+        ])
+        .is_err());
+        assert!(validate_dictation_snippets(&[DictationSnippet {
+            trigger: " ".into(),
+            text: "Some text".into(),
+        }])
+        .is_err());
+        assert!(validate_dictation_snippets(&[DictationSnippet {
+            trigger: "trigger".into(),
+            text: "x".repeat(10_001),
+        }])
+        .is_err());
     }
 
     #[test]

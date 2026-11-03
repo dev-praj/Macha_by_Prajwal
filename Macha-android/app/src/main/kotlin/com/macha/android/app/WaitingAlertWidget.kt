@@ -12,7 +12,7 @@ import com.macha.android.core.WidgetSpoken
 /**
  * The Waiting Alert widget: calm when nothing waits for you; a bright orange "N waiting", an orange border and an anxious
  * Macha when something does. A tap opens the app and the sheet for the request rises by itself over whatever is on screen,
- * so there is no deep link here. It only opens things: a request waits for you in the app, behind the fingerprint.
+ * so there is no deep link here. It only opens things: a request waits for you in the app for an explicit button tap.
  */
 class WaitingAlertWidget : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) =

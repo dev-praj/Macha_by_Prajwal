@@ -9,10 +9,11 @@ describe("settings hub navigation", () => {
     assert.equal(new Set(ids).size, ids.length);
     for (const id of [
       "dictation", "notetaker", "statistics", "dictionary", "snippets", "styles", "flow-settings",
-      "general", "active-pills", "agents", "chat", "voice", "integrations", "phone", "shortcuts",
+      "general", "agents", "chat", "voice", "integrations", "phone", "connection", "shortcuts",
       "memory", "workflows", "automation", "vision",
     ]) {
       assert.ok(ids.includes(id), `missing hub page: ${id}`);
     }
+    assert.ok(!ids.includes("supabase"), "the legacy bring-your-own-Supabase wizard must stay out of normal navigation");
   });
 });
