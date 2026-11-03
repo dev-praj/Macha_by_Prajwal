@@ -262,7 +262,25 @@ pub async fn copilot_device_start(window: WebviewWindow) -> Result<Value, String
     only_settings(&window)?;
     let (url, key) = project()?;
     let client = client()?;
-    let session = refresh(&client, &url, &key).await?;
+    let session = match refresh(&client, &url, &key).await {
+        Ok(session) => session,
+        Err(_) if secrets::get_internal(REFRESH).is_none() => {
+            // Copilot accounts are keyed by the app's Google identity. If the
+            // user has not signed in (or the saved session expired), start the
+            // existing Google flow before beginning GitHub device authorization.
+            match remote_sign_in(window.clone()).await {
+                Ok(_) => {}
+                Err(sign_in_error) if secrets::get_internal(REFRESH).is_none() => {
+                    return Err(sign_in_error);
+                }
+                // OAuth can persist the Google session before device registration
+                // reports a transient error. Continue if that session now exists.
+                Err(_) => {}
+            }
+            refresh(&client, &url, &key).await?
+        }
+        Err(error) => return Err(error),
+    };
     crate::api_service::copilot_start(&session.access).await
 }
 
