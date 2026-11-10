@@ -218,6 +218,7 @@ const server = createServer(async (request, response) => {
       // Do not log request headers, body, OAuth credentials, or upstream errors.
       const code = error?.code;
       if (code === "copilot_account_not_found") return send(response, 404, { error: code });
+      if (code === "copilot_account_already_linked") return send(response, 409, { error: code });
       if (code === "copilot_subscription_inactive" || code === "copilot_subscription_unverified" || code === "copilot_needs_reconnect") {
         return send(response, 409, { error: code });
       }

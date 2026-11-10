@@ -178,6 +178,7 @@ export const Bridge = {
 
   /** Shrink the window down to the invisible wake strip (hidden) or back to full. */
   setCollapsed: (collapsed: boolean) => call<void>("set_collapsed", { collapsed }),
+  setExpandedChat: (expanded: boolean) => call<void>("set_expanded_chat", { expanded }),
 
   /**
    * Pushes the island shape in window coordinates. Rust flips click-through from

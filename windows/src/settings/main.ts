@@ -366,7 +366,38 @@ function apiSection(
       }
       copilotFeedback.append(h("div", { class: "notice err", text: "GitHub device code expired. Start the connection again." }));
     } catch (error) {
-      copilotFeedback.append(h("div", { class: "notice err", text: `Could not connect GitHub Copilot: ${String(error).replace(/^Error:\s*/, "")}` }));
+      if (String(error).includes("Sign in to Macha to connect GitHub Copilot")) {
+        const signIn = h("button", { class: "primary", text: "Sign in to Macha" });
+        signIn.addEventListener("click", async () => {
+          signIn.disabled = true;
+          copilotConnect.disabled = true;
+          copilotAdd.disabled = true;
+          try {
+            try {
+              await Bridge.remoteSignIn();
+            } catch (signInError) {
+              const status = await Bridge.remoteStatus().catch(() => null);
+              if (!status?.signedIn) throw signInError;
+            }
+            await beginCopilotDeviceFlow();
+          } catch (signInError) {
+            copilotFeedback.append(h("div", {
+              class: "notice err",
+              text: `Could not sign in to Macha: ${String(signInError).replace(/^Error:\s*/, "")}`,
+            }));
+          } finally {
+            signIn.disabled = false;
+            copilotConnect.disabled = false;
+            copilotAdd.disabled = false;
+          }
+        });
+        copilotFeedback.append(h("div", { class: "notice warn" },
+          h("div", { text: "Sign in to Macha to connect GitHub Copilot" }),
+          signIn,
+        ));
+      } else {
+        copilotFeedback.append(h("div", { class: "notice err", text: `Could not connect GitHub Copilot: ${String(error).replace(/^Error:\s*/, "")}` }));
+      }
     } finally {
       copilotConnect.disabled = false;
       copilotAdd.disabled = false;
@@ -1322,9 +1353,11 @@ function avatarSection(): HTMLElement {
       try {
         await Bridge.saveSettingsStrict(settings);
         State.settings = { ...State.settings, ...settings };
+        setAvatarSelection(choice);
         feedback.textContent = `${avatarLabel(choice)} is now your avatar.`;
       } catch (error) {
         settings.avatar = previous;
+        setAvatarSelection(previous);
         for (const [index, option] of choices.entries()) {
           const selected = choiceIds[index] === previous;
           option.classList.toggle("selected", selected);
@@ -1345,7 +1378,7 @@ function avatarSection(): HTMLElement {
     h("h2", {}, h("span", { text: "Avatar" })),
     h("p", {
       class: "hint",
-      text: "Choose the character shown in the island, agent bar, greeting, and file-drop animation.",
+      text: "Choose the character shown in chat responses, settings, the island, agent bar, greeting, and file-drop animation.",
     }),
     h("div", { class: "avatar-choices" }, ...choices),
     feedback,
@@ -3582,6 +3615,7 @@ async function main() {
     State.settings = { ...State.settings, ...boot.settings };
     version = boot.version;
   }
+  setAvatarSelection(settings.avatar);
   setLanguage(resolveLanguage(settings.language, systemLanguages()));
   const status = (await Bridge.hooksStatus()) ?? {
     installed: false, settingsPath: "", hookPath: "", hookReady: false,
@@ -3696,6 +3730,7 @@ async function main() {
   void onEvent<Settings>("settings-changed", (s) => {
     settings = { ...settings, ...s };
     State.settings = { ...State.settings, ...s };
+    setAvatarSelection(settings.avatar);
   });
 }
 

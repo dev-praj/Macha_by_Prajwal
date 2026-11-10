@@ -79,6 +79,7 @@ body.hub-window #settings-root {
 }
 
 .hub-brand-mark {
+  position: relative;
   width: 28px;
   height: 28px;
   display: grid;
@@ -87,6 +88,7 @@ body.hub-window #settings-root {
   color: #0b0c0e;
   background: #55deb1;
   font-size: 17px;
+  overflow: hidden;
 }
 
 .hub-group {

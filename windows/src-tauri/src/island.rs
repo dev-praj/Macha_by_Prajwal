@@ -104,6 +104,7 @@ pub struct PollGate {
     active: Mutex<bool>,
     cv: Condvar,
     pub collapsed: AtomicBool,
+    pub expanded_chat: AtomicBool,
     /// Keep incoming message and approval alerts on the pointer's display.
     pub notification_surface: AtomicBool,
     voice_active: AtomicBool,
@@ -120,6 +121,7 @@ impl PollGate {
             active: Mutex::new(false),
             cv: Condvar::new(),
             collapsed: AtomicBool::new(true),
+            expanded_chat: AtomicBool::new(false),
             notification_surface: AtomicBool::new(false),
             voice_active: AtomicBool::new(false),
             wake_conversation_active: AtomicBool::new(false),
@@ -258,8 +260,18 @@ pub fn apply_geometry(app: &AppHandle, pref: &str, collapsed: bool) {
         .try_state::<crate::Shared>()
         .map(|shared| shared.gate.auto_hide_enabled())
         .unwrap_or(false);
+    let expanded_chat = app
+        .try_state::<crate::Shared>()
+        .map(|shared| shared.gate.expanded_chat.load(Ordering::Relaxed))
+        .unwrap_or(false);
     let (lw, lh) = if collapsed && !auto_hide {
         (STRIP_W, STRIP_H)
+    } else if expanded_chat {
+        let screen_height = ms.height as f64 / scale;
+        (
+            480.0,
+            (screen_height * 0.85).min(screen_height - 40.0).max(1.0),
+        )
     } else {
         (PANEL_W, PANEL_H)
     };

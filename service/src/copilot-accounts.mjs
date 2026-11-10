@@ -34,6 +34,19 @@ export function createCopilotAccounts({ env = process.env, fetchImpl = fetch } =
     return response.json();
   }
 
+  async function rowsForGithubAccount(githubUserId) {
+    const query = new URLSearchParams({
+      select: "account_id,supabase_user_id",
+      github_user_id: `eq.${githubUserId}`,
+      limit: "1",
+    });
+    const response = await fetchImpl(`${supabaseUrl}/rest/v1/copilot_accounts?${query}`, {
+      headers: dbHeaders(), signal: AbortSignal.timeout(10000),
+    });
+    if (!response.ok) throw new Error("Copilot account ownership could not be checked");
+    return response.json();
+  }
+
   async function updateRecord(accountId, values) {
     const response = await fetchImpl(`${supabaseUrl}/rest/v1/copilot_accounts?account_id=eq.${encodeURIComponent(accountId)}`, {
       method: "PATCH", headers: { ...dbHeaders(), prefer: "return=minimal" }, body: JSON.stringify(values), signal: AbortSignal.timeout(10000),
@@ -160,9 +173,13 @@ export function createCopilotAccounts({ env = process.env, fetchImpl = fetch } =
       if (!token.access_token) throw new Error("GitHub authorization did not return an access token");
       const identity = await githubUser(token.access_token);
       if (identity.invalid) { flows.delete(flowId); return { status: "needs_reconnect" }; }
+      const linkedRows = await rowsForGithubAccount(identity.id);
+      if (linkedRows.some((row) => row.supabase_user_id !== user.supabaseUserId)) {
+        flows.delete(flowId);
+        throw accountError("copilot_account_already_linked");
+      }
       const subscriptionStatus = await checkCopilotSubscription(token.access_token);
-      const oldRows = await rowsFor(user);
-      const existing = oldRows.find((row) => String(row.github_user_id) === String(identity.id));
+      const existing = linkedRows.find((row) => row.supabase_user_id === user.supabaseUserId);
       const accountId = existing?.account_id || randomUUID();
       const credential = {
         accessToken: token.access_token,
@@ -187,7 +204,11 @@ export function createCopilotAccounts({ env = process.env, fetchImpl = fetch } =
       const saved = await fetchImpl(`${supabaseUrl}/rest/v1/copilot_accounts?on_conflict=supabase_user_id,github_user_id`, {
         method: "POST", headers: { ...dbHeaders(), prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(row), signal: AbortSignal.timeout(10000),
       });
-      if (!saved.ok) throw new Error("Copilot account could not be saved");
+      if (!saved.ok) {
+        const failure = await saved.json().catch(() => ({}));
+        if (failure.code === "23505") throw accountError("copilot_account_already_linked");
+        throw new Error("Copilot account could not be saved");
+      }
       flows.delete(flowId);
       return { status: "connected", account: { id: accountId, login: identity.login, status: "connected", subscriptionStatus } };
     },

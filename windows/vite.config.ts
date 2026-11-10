@@ -58,6 +58,15 @@ export default defineConfig({
         signin: resolve(__dirname, "signin.html"),
         puterChat: resolve(__dirname, "puter-chat.html"),
       },
+      output: {
+        manualChunks(id) {
+          const modulePath = id.replace(/\\/g, "/");
+          if (modulePath.includes("/node_modules/katex/")) return "katex";
+          if (/\/node_modules\/(argparse|dompurify|entities|linkify-it|markdown-it|markdown-it-texmath|mdurl|uc\.micro)\//.test(modulePath)) {
+            return "markdown";
+          }
+        },
+      },
     },
   },
 });

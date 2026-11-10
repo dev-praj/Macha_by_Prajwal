@@ -91,6 +91,7 @@ export class Island {
   private confusedRecovery: number | null = null;
   private prevViewBeforeConfused: IslandViewName = "overview";
   private lastSyncedView: IslandViewName | null = null;
+  private expandedChat = false;
 
   /** Drop sequence bookkeeping: last tick played, and whether the ✓ has fired. */
   private uploadTens = 0;
@@ -191,6 +192,7 @@ export class Island {
         State.notify();
       },
       openSettingsWindow: () => void Bridge.openSettingsWindow(),
+      toggleExpandedChat: () => this.toggleExpandedChat(),
       blip: () => Sound.play("blip"),
     };
 
@@ -292,6 +294,11 @@ export class Island {
   private setMode(mode: IslandMode) {
     const prev = State.mode;
     if (mode === prev) return;
+    if (mode === "hidden" && this.expandedChat) {
+      this.expandedChat = false;
+      State.chatExpanded = false;
+      void Bridge.setExpandedChat(false);
+    }
     State.mode = mode;
     if (mode === "expanded") Sound.play("open");
     if (prev === "expanded") {
@@ -349,12 +356,34 @@ export class Island {
   }
 
   collapse() {
+    if (this.expandedChat) {
+      this.expandedChat = false;
+      State.chatExpanded = false;
+      void Bridge.setExpandedChat(false);
+    }
     State.isPinned = false;
     this.fsm.pinned = false;
     // Drive the state machine rather than the mode: setting the mode behind its
     // back left it thinking the island was still open, and a click on the compact
     // island then did nothing — the island could never be reopened.
     this.fsm.forcePetit();
+  }
+
+  private toggleExpandedChat() {
+    this.expandedChat = !this.expandedChat;
+    State.chatExpanded = this.expandedChat;
+    if (this.expandedChat) {
+      State.isPinned = true;
+      this.fsm.pinned = true;
+      this.expand("prompt");
+      this.animateGeometry(false, true);
+    } else {
+      State.isPinned = false;
+      this.fsm.pinned = false;
+      this.animateGeometry(true, true);
+      State.notify();
+    }
+    void Bridge.setExpandedChat(this.expandedChat);
   }
 
   /** Alert from the hook server: open on this view. Pinned alerts never auto-close. */
@@ -535,14 +564,30 @@ export class Island {
   // ── Geometry ────────────────────────────────────────────────────────────────
 
   private targetSize(): { w: number; h: number; r: number } {
+    if (this.expandedChat && State.mode === "expanded" && State.view === "prompt") {
+      const screenHeight = window.screen.height || window.innerHeight;
+      return {
+        w: 480,
+        h: Math.max(1, Math.round(screenHeight * 0.85)),
+        r: EXPANDED_CORNER,
+      };
+    }
     const size = islandSize(State.mode, State.view, State.chatHistory.length);
     const r = State.mode === "expanded" ? EXPANDED_CORNER : ROUNDED_CORNER;
     return { w: size.w, h: size.h, r };
   }
 
-  private animateGeometry(shrinking: boolean) {
+  private animateGeometry(shrinking: boolean, chatTransition = false) {
     const { w, h, r } = this.targetSize();
-    if (shrinking) {
+    if (chatTransition && shrinking) {
+      this.width.curveTowards(w, 200);
+      this.height.curveTowards(h, 200);
+      this.radius.curveTowards(r, 200);
+    } else if (chatTransition) {
+      this.width.springTo(w, 0.2, 0.86);
+      this.height.springTo(h, 0.2, 0.86);
+      this.radius.springTo(r, 0.2, 0.86);
+    } else if (shrinking) {
       this.width.curveTowards(w);
       this.height.curveTowards(h);
       this.radius.curveTowards(r);
@@ -562,6 +607,10 @@ export class Island {
     this.islandEl.style.height = `${hh}px`;
     this.islandEl.style.borderRadius = `0 0 ${r}px ${r}px`;
     this.islandEl.style.transform = `translateX(-50%)`;
+    this.islandEl.classList.toggle(
+      "chat-window-expanded",
+      this.expandedChat && State.view === "prompt",
+    );
     // These follow the island as it resizes, so they belong here rather than in
     // the state-driven DOM sync.
     this.miniGrid.style.left = `${w - 40 - 14.5}px`;
@@ -569,7 +618,7 @@ export class Island {
     this.greetingCanvas.style.left = `${(w - EXPANDED_W) / 2}px`;
     this.uploadCanvas.el.style.left = `${(w - EXPANDED_W) / 2}px`;
 
-    const rect = { x: (PANEL_W - w) / 2, y: 0, w, h: hh };
+    const rect = { x: (window.innerWidth - w) / 2, y: 0, w, h: hh };
     const p = this.pushedRect;
     if (Math.abs(p.x - rect.x) > 0.5 || Math.abs(p.w - rect.w) > 0.5 || Math.abs(p.h - rect.h) > 0.5) {
       this.pushedRect = rect;
@@ -577,11 +626,11 @@ export class Island {
     }
   }
 
-  /** Island rect in window coordinates (origin top-left of the 720×320 window). */
+  /** Island rect in window coordinates (origin top-left of the native window). */
   private islandRect(): { x: number; y: number; w: number; h: number } {
     const w = this.width.value;
     const hh = this.height.value;
-    return { x: (PANEL_W - w) / 2, y: 0, w, h: hh };
+    return { x: (window.innerWidth - w) / 2, y: 0, w, h: hh };
   }
 
   // ── Window collapse (hidden → tiny wake strip, zero polling) ────────────────

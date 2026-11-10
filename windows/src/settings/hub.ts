@@ -1,4 +1,5 @@
 import { Bridge } from "../core/bridge";
+import { mountAvatarIcon } from "../macha/avatar";
 import { h, clear, svg } from "../views/dom";
 import { ICONS } from "../views/icons";
 import { HUB_GROUPS } from "./hub-pages";
@@ -104,8 +105,10 @@ export function mountSettingsHub(
 ): void {
   document.body.classList.add("hub-window");
   const sidebar = h("nav", { class: "hub-side", "aria-label": "Macha features" });
+  const brandMark = h("span", { class: "hub-brand-mark" });
+  mountAvatarIcon(brandMark, 34);
   sidebar.append(
-    h("div", { class: "hub-brand" }, h("span", { class: "hub-brand-mark", text: "M" }), h("span", { text: "Macha" })),
+    h("div", { class: "hub-brand" }, brandMark, h("span", { text: "Macha" })),
   );
   const content = h("main", { class: "hub-panel", "aria-live": "polite" });
   const pageHeader = h("header", { class: "hub-page-header" },

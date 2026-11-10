@@ -13,7 +13,9 @@ import {
 } from "../core/bridge";
 import { Sound } from "../core/sound";
 import { State, type ChatMessage } from "../core/state";
+import { renderAssistantMarkdown } from "../core/markdown";
 import { sanitizeAssistantText } from "../core/text";
+import { mountAvatarIcon, type AvatarIconDisplay } from "../macha/avatar";
 import * as TTS from "../core/tts";
 import { transcribeAudio } from "../nixi/stt";
 import {
@@ -118,35 +120,31 @@ function copyButton(label: string, value: string): HTMLButtonElement {
 }
 
 function renderReplyContent(reply: HTMLElement, text: string): void {
-  const fencedCode = /```([^\n`]*)\r?\n([\s\S]*?)```/g;
-  let cursor = 0;
-  let match: RegExpExecArray | null;
-  while ((match = fencedCode.exec(text)) !== null) {
-    if (match.index > cursor) {
-      reply.append(h("div", { class: "reply-text", text: text.slice(cursor, match.index) }));
-    }
-    const language = match[1].trim();
-    const code = match[2].replace(/\r?\n$/, "");
-    const pre = h("pre", { class: "chat-code" });
-    pre.append(h("code", { text: code }));
-    const block = h(
+  reply.replaceChildren();
+  if (!text) return;
+  const template = document.createElement("template");
+  template.innerHTML = renderAssistantMarkdown(text);
+  reply.append(template.content);
+  for (const pre of reply.querySelectorAll("pre")) {
+    const code = pre.querySelector("code");
+    if (!code) continue;
+    const language = [...code.classList]
+      .find((className) => className.startsWith("language-"))
+      ?.slice("language-".length);
+    pre.classList.add("chat-code");
+    pre.replaceWith(h(
       "div",
       { class: "chat-code-block" },
       h("div", { class: "chat-code-header" },
         h("span", { class: "chat-code-language", text: language || "Code" }),
-        copyButton("Copy code", code),
+        copyButton("Copy code", code.textContent ?? ""),
       ),
       pre,
-    );
-    reply.append(block);
-    cursor = fencedCode.lastIndex;
-  }
-  if (cursor < text.length || cursor === 0) {
-    reply.append(h("div", { class: "reply-text", text: text.slice(cursor) }));
+    ));
   }
 }
 
-function bubble(message: ChatMessage): HTMLElement {
+function bubble(message: ChatMessage, avatarDisplays?: Set<AvatarIconDisplay>): HTMLElement {
   if (message.role === "user") {
     return h(
       "div",
@@ -154,8 +152,9 @@ function bubble(message: ChatMessage): HTMLElement {
       h("div", { class: "bubble", text: message.content }),
     );
   }
-  const reply = h("div", { class: "reply" });
-  renderReplyContent(reply, message.content);
+  const content = h("div", { class: "reply-content" });
+  renderReplyContent(content, message.content);
+  const reply = h("div", { class: "reply" }, content);
   reply.append(
     h("div", { class: "chat-reply-footer" },
       message.fallbackNotice
@@ -167,7 +166,14 @@ function bubble(message: ChatMessage): HTMLElement {
       copyButton("Copy response", message.content),
     ),
   );
-  return h("div", { class: "chat-row" }, reply);
+  const avatar = h("span", { class: "assistant-avatar", title: "Macha" });
+  if (avatarDisplays) avatarDisplays.add(mountAvatarIcon(avatar, 27));
+  return h(
+    "div",
+    { class: "chat-row assistant" },
+    avatar,
+    reply,
+  );
 }
 
 function typingDots(): HTMLElement {
@@ -337,6 +343,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
   let pendingAction: AutomationAction | null = null;
   let pendingConversationId: string | null = null;
   let historyOpen = false;
+  let renderedConversationId = State.activeConversationId;
   let renderedKey = "";
   let voiceState: VoiceState = "idle";
   let voiceStartGeneration = 0;
@@ -379,6 +386,16 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
   let screenCaptureInProgress = false;
   let queuedWorkflows: WorkflowRunPayload[] = [];
   let workflowAutomationActive = false;
+  let streamingReplyText = "";
+  let streamingBubble: HTMLElement | null = null;
+  let streamingContent: HTMLElement | null = null;
+  let streamingRenderFrame: number | null = null;
+  let shouldAutoScroll = true;
+  let responseScrollAnchored = false;
+  let lockStreamScroll = false;
+  let userScrollIntent = false;
+  let scrollIntentTimer: number | null = null;
+  const avatarDisplays = new Set<AvatarIconDisplay>();
 
   const historyToggle = h("button", {
     class: "chat-action",
@@ -433,14 +450,65 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
   historyList.hidden = true;
   const chipRow = h("div", { class: "chip-row" });
   const log = h("div", { class: "chat-log" });
-  const input = h("input", {
-    type: "text",
+  const markUserScrollIntent = () => {
+    userScrollIntent = true;
+    if (scrollIntentTimer !== null) window.clearTimeout(scrollIntentTimer);
+    scrollIntentTimer = window.setTimeout(() => {
+      userScrollIntent = false;
+      scrollIntentTimer = null;
+    }, 200);
+  };
+  log.addEventListener("wheel", markUserScrollIntent, { passive: true });
+  log.addEventListener("touchstart", markUserScrollIntent, { passive: true });
+  log.addEventListener("pointerdown", markUserScrollIntent);
+  log.addEventListener("keydown", markUserScrollIntent);
+  log.addEventListener("scroll", () => {
+    if (lockStreamScroll && !userScrollIntent) return;
+    shouldAutoScroll = log.scrollHeight - log.scrollTop - log.clientHeight < 48;
+    if (userScrollIntent) {
+      userScrollIntent = false;
+      if (scrollIntentTimer !== null) {
+        window.clearTimeout(scrollIntentTimer);
+        scrollIntentTimer = null;
+      }
+    }
+  });
+  function scrollToLatestMessage(): void {
+    if (!shouldAutoScroll) return;
+    log.scrollTop = log.scrollHeight;
+    window.requestAnimationFrame(() => {
+      if (shouldAutoScroll) log.scrollTop = log.scrollHeight;
+    });
+  }
+
+  const input = h("textarea", {
     class: "chat-input",
     placeholder: "Ask me anything…",
     spellcheck: "false",
-  }) as HTMLInputElement;
+    rows: "1",
+  }) as HTMLTextAreaElement;
   const sendIcon = svg(ICONS.arrowUp, 11);
   const send = h("button", { class: "send-btn", title: "Send" }, sendIcon);
+  const attach = h("button", {
+    class: "chat-attach-button",
+    title: "Attach a file",
+    "aria-label": "Attach a file",
+    text: "+",
+    onclick: async () => {
+      try {
+        const path = await Bridge.pickFile();
+        if (!path) return;
+        const file = await Bridge.ingestFile(path);
+        const attached = { name: file.name, path: file.path };
+        if (!State.activeConversationId) State.startConversation(attached);
+        else State.updateActiveFile(attached);
+        State.notify();
+      } catch (error) {
+        console.error("[macha] could not attach a chat file", error);
+        setVoiceState("idle", String(error).replace(/^Error:\s*/, ""), true);
+      }
+    },
+  });
   const voiceButton = h(
     "button",
     { class: "voice-btn", title: "Start voice input", "aria-label": "Start voice input" },
@@ -456,7 +524,56 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
   stopSpeechButton.hidden = true;
   stopSpeechButton.addEventListener("click", () => void TTS.stop());
   const voiceStatus = h("span", { class: "voice-status", "aria-live": "polite" });
-  const bar = h("div", { class: "chat-bar" }, input, voiceStatus, voiceButton, stopSpeechButton, send);
+  const bar = h("div", { class: "chat-bar" }, attach, input, voiceStatus, voiceButton, stopSpeechButton, send);
+  const footer = h("div", {
+    class: "chat-expanded-footer",
+    text: "Macha is an AI and may make mistakes.",
+  });
+
+  function fitInput() {
+    input.style.height = "auto";
+    input.style.height = `${Math.min(input.scrollHeight, 120)}px`;
+  }
+  input.addEventListener("input", fitInput);
+
+  function showStreamingBubble() {
+    if (streamingBubble?.isConnected) return;
+    log.querySelector(".typing")?.parentElement?.remove();
+    streamingBubble = bubble({ id: -1, role: "assistant", content: "" }, avatarDisplays);
+    streamingBubble.querySelector(".chat-reply-footer")?.remove();
+    streamingContent = streamingBubble.querySelector(".reply-content");
+    log.append(streamingBubble);
+  }
+
+  function queueStreamingRender() {
+    showStreamingBubble();
+    if (streamingRenderFrame !== null) return;
+    streamingRenderFrame = window.requestAnimationFrame(() => {
+      streamingRenderFrame = null;
+      if (!streamingContent || !streamingBubble?.isConnected) return;
+      renderReplyContent(streamingContent, streamingReplyText);
+      if (!responseScrollAnchored) {
+        responseScrollAnchored = true;
+        lockStreamScroll = true;
+        shouldAutoScroll = false;
+        const logTop = log.getBoundingClientRect().top;
+        const replyTop = streamingBubble.getBoundingClientRect().top;
+        log.scrollTop = Math.max(0, log.scrollTop + replyTop - logTop - 48);
+      } else {
+        scrollToLatestMessage();
+      }
+    });
+  }
+
+  function clearStreamingReply() {
+    if (streamingRenderFrame !== null) {
+      window.cancelAnimationFrame(streamingRenderFrame);
+      streamingRenderFrame = null;
+    }
+    streamingReplyText = "";
+    streamingBubble = null;
+    streamingContent = null;
+  }
 
   function updateVoiceUi() {
     const labels: Record<VoiceState, string> = {
@@ -479,6 +596,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     voiceButton.querySelector("span")!.textContent = labels[voiceState];
     stopSpeechButton.hidden = voiceState !== "speaking";
     voiceStatus.textContent = voiceNotice;
+    voiceStatus.title = voiceNotice;
     voiceStatus.classList.toggle("error", voiceNoticeIsError);
   }
 
@@ -1225,11 +1343,11 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
 
   const el = h(
     "div",
-    { class: "view" },
+    { class: "view prompt-view" },
     h(
       "div",
       { class: "card wash chat-card" },
-      h("div", { class: "chat-body" }, toolbar, historyList, chipRow, log, bar),
+      h("div", { class: "chat-body" }, toolbar, historyList, chipRow, log, bar, footer),
     ),
   );
   (el.querySelector(".card") as HTMLElement).style.setProperty("--wash", "rgba(99,102,241,0.5)");
@@ -1255,6 +1373,11 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     const screenImageForRequest = screenImage;
     screenImage = null;
     input.value = "";
+    fitInput();
+    clearStreamingReply();
+    responseScrollAnchored = false;
+    lockStreamScroll = false;
+    shouldAutoScroll = true;
     sending = true;
     Sound.play("send");
 
@@ -1279,24 +1402,25 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     });
 
     try {
-      if (streamSpeechEnabled) {
-        streamListener = await onEvent<{ requestId: string; delta: string | null }>(
-          "chat-stream-delta",
-          (event) => {
-            if (event.requestId !== requestId) return;
-            if (event.delta === null) {
-              resolveStreamFinished?.();
-              return;
-            }
-            if (acknowledgementPending) {
-              pendingSpeechText += event.delta;
-              return;
-            }
-            streamedSpeech = true;
-            TTS.speakStreamChunk(event.delta);
-          },
-        );
-      }
+      streamListener = await onEvent<{ requestId: string; delta: string | null }>(
+        "chat-stream-delta",
+        (event) => {
+          if (event.requestId !== requestId) return;
+          if (event.delta === null) {
+            resolveStreamFinished?.();
+            return;
+          }
+          streamingReplyText += event.delta;
+          queueStreamingRender();
+          if (!streamSpeechEnabled) return;
+          if (acknowledgementPending) {
+            pendingSpeechText += event.delta;
+            return;
+          }
+          streamedSpeech = true;
+          TTS.speakStreamChunk(event.delta);
+        },
+      );
       const reply = await Bridge.chatSend(
         conversationId,
         history,
@@ -1308,7 +1432,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         voiceRequest,
         screenImageForRequest,
       );
-      if (streamSpeechEnabled) await streamFinished;
+      await streamFinished;
       const prepareStreamSpeech = streamSpeechEnabled
         ? () => {
           acknowledgementPending = false;
@@ -1330,6 +1454,9 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         );
       }
     } catch (err) {
+      const errorMessage = String(err).replace(/^Error:\s*/, "");
+      const partialResponse = sanitizeAssistantText(streamingReplyText).trim();
+      clearStreamingReply();
       if (visionOnboardingActive) {
         reportVisionOnboardingResult(
           false,
@@ -1337,15 +1464,32 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         );
       }
       if (streamedSpeech || pendingSpeechText) await TTS.stop();
-      const lastMessage = State.chatHistory[State.chatHistory.length - 1];
-      if (lastMessage?.role === "user" && lastMessage.content === query) {
-        State.chatHistory.pop();
+      if (partialResponse) {
+        State.chatHistory.push({
+          id: nextId++,
+          role: "assistant",
+          content: partialResponse,
+          fallbackNotice: cancelRequested
+            ? "Generation cancelled. The partial response was saved."
+            : `Response interrupted: ${errorMessage}`,
+        });
+        State.saveActiveConversation();
+      } else if (!cancelRequested) {
+        const timedOut = /timed?\s*out|timeout|deadline/i.test(errorMessage);
+        State.chatHistory.push({
+          id: nextId++,
+          role: "assistant",
+          content: timedOut
+            ? "No response was generated before the request timed out. Your question is still here; send it again to retry."
+            : `I couldn't complete that response: ${errorMessage}`,
+        });
         State.saveActiveConversation();
       }
       if (!cancelRequested) {
         State.stateOverride = null;
-        State.noteMessage = String(err).replace(/^Error:\s*/, "");
-        State.view = "note";
+        voiceNotice = errorMessage;
+        voiceNoticeIsError = true;
+        updateVoiceUi();
         Sound.play("error");
       }
       if (voiceRequest) await releaseVoiceSession();
@@ -1784,18 +1928,21 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     acknowledgement?: Promise<void>,
     prepareStreamSpeech?: () => { completion: Promise<void> } | undefined,
   ): Promise<void> {
+    clearStreamingReply();
     pendingAction = reply.action;
     pendingConversationId = reply.action ? conversationId : null;
     selectedAppChoiceId = null;
     actionConfirmationActive = false;
     actionConfirmationProcessing = false;
     actionConfirmationStage = "confirm";
-    const safeReplyText = sanitizeAssistantText(reply.text);
+    const safeReplyText = sanitizeAssistantText(
+      typeof reply.text === "string" ? reply.text : "",
+    );
     const content = safeReplyText || (reply.action
       ? workflowAutomationActive
         ? `Workflow is running: Macha will ${actionDescription(reply.action)} automatically.`
         : `Macha is asking to ${actionDescription(reply.action)}.`
-      : "");
+      : "Macha didn't return a response. Please try again.");
     if (content) {
       State.chatHistory.push({
         id: nextId++,
@@ -2085,7 +2232,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
     else void submit();
   });
   input.addEventListener("keydown", (e) => {
-    if ((e as KeyboardEvent).key === "Enter") {
+    if (e.key === "Enter" && (!State.chatExpanded || !e.shiftKey)) {
       e.preventDefault();
       void submit();
     }
@@ -2095,6 +2242,7 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
   return {
     el,
     sync() {
+      el.classList.toggle("chat-expanded", State.chatExpanded);
       const file = State.droppedFile;
       const wantChip = [file?.name, screenImage ? "Screen snapshot ready" : ""]
         .filter(Boolean)
@@ -2180,6 +2328,13 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
       historyList.hidden = !historyOpen;
       log.hidden = historyOpen;
 
+      if (renderedConversationId !== State.activeConversationId) {
+        renderedConversationId = State.activeConversationId;
+        shouldAutoScroll = true;
+        responseScrollAnchored = false;
+        lockStreamScroll = false;
+      }
+
       const thinking = State.stateOverride === "thinking";
       const key = `${State.activeConversationId ?? ""}:${State.chatHistory
         .map((message) => `${message.id}:${message.role}:${message.content}`)
@@ -2188,18 +2343,28 @@ export function buildPrompt(onHeightChange: () => void): ViewHost {
         ? `${pendingAction.name}:${JSON.stringify(pendingAction.arguments)}:${actionConfirmationStage}:${selectedAppChoiceId ?? ""}`
         : "";
       if (`${key}:${actionKey}:${sending}` !== renderedKey) {
+        const previousScrollTop = log.scrollTop;
         renderedKey = `${key}:${actionKey}:${sending}`;
+        for (const display of avatarDisplays) display.destroy();
+        avatarDisplays.clear();
         clear(log);
-        for (const m of State.chatHistory) log.append(bubble(m));
+        for (const m of State.chatHistory) log.append(bubble(m, avatarDisplays));
         if (pendingAction && pendingConversationId === State.activeConversationId) {
           log.append(actionCard(pendingAction));
         }
         if (thinking) log.append(typingDots());
-        log.scrollTop = log.scrollHeight;
+        if (shouldAutoScroll) scrollToLatestMessage();
+        else log.scrollTop = Math.min(previousScrollTop, log.scrollHeight);
+        if (streamingReplyText) queueStreamingRender();
       }
 
-      input.placeholder = State.chatHistory.length === 0 ? "Ask me anything…" : "Continue…";
+      input.placeholder = State.chatExpanded
+        ? "Message Macha"
+        : State.chatHistory.length === 0
+          ? "Ask me anything…"
+          : "Continue…";
       input.disabled = sending || !!pendingAction;
+      footer.hidden = !State.chatExpanded;
     },
     focus() {
       input.focus();

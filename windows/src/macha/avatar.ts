@@ -6,6 +6,7 @@ import {
 } from "./avatars/avatar-runtime";
 import { avatarData as cubeeData } from "./avatars/cubee.avatar";
 import { avatarData as oneeData } from "./avatars/onee.avatar";
+import { BotEngine } from "./engine";
 import type { BotStateName } from "../core/layout";
 import type { AvatarChoice } from "../core/state";
 export type { AvatarChoice } from "../core/state";
@@ -32,6 +33,7 @@ const DEFINITIONS: Record<CustomAvatar, AvatarDefinition> = {
 
 const RUNTIME_CACHE = new Map<CustomAvatar, ReturnType<typeof loadAvatarRuntime<AvatarAnimation>>>();
 const DISPLAYS = new Set<MountedAvatar>();
+const ICON_DISPLAYS = new Set<MountedAvatarIcon>();
 let selectedAvatar: AvatarChoice = "macha";
 let selectedState: BotStateName = "idle";
 
@@ -194,15 +196,68 @@ class MountedAvatar implements AvatarDisplay {
   }
 }
 
+export interface AvatarIconDisplay {
+  destroy(): void;
+}
+
+class MountedAvatarIcon implements AvatarIconDisplay {
+  private readonly machaCanvas = document.createElement("canvas");
+  private readonly customHost = document.createElement("div");
+  private readonly customAvatar: AvatarDisplay;
+  private readonly engine = new BotEngine();
+
+  constructor(private readonly host: HTMLElement, size: number) {
+    host.classList.add("avatar-icon");
+    const pixelRatio = Math.min(2, window.devicePixelRatio || 1);
+    this.machaCanvas.width = Math.round(size * pixelRatio);
+    this.machaCanvas.height = Math.round(size * pixelRatio);
+    this.machaCanvas.className = "avatar-icon-macha";
+    const context = this.machaCanvas.getContext("2d");
+    if (context) {
+      context.scale(pixelRatio, pixelRatio);
+      this.engine.isMini = true;
+      this.engine.setState("idle", true);
+      this.engine.draw(context, size, size);
+    }
+
+    this.customHost.className = "avatar-icon-custom";
+    host.replaceChildren(this.machaCanvas, this.customHost);
+    this.customAvatar = mountAvatar(this.customHost);
+    this.sync();
+  }
+
+  sync() {
+    this.host.dataset.avatarChoice = selectedAvatar;
+    this.host.setAttribute("aria-label", `${avatarLabel(selectedAvatar)} avatar`);
+    this.machaCanvas.hidden = selectedAvatar !== "macha";
+  }
+
+  destroy() {
+    ICON_DISPLAYS.delete(this);
+    this.customAvatar.destroy();
+    this.host.replaceChildren();
+    this.host.classList.remove("avatar-icon");
+    delete this.host.dataset.avatarChoice;
+    this.host.removeAttribute("aria-label");
+  }
+}
+
 export function mountAvatar(host: HTMLElement, choice?: AvatarChoice): AvatarDisplay {
   const display = new MountedAvatar(host, choice);
   DISPLAYS.add(display);
   return display;
 }
 
+export function mountAvatarIcon(host: HTMLElement, size: number): AvatarIconDisplay {
+  const display = new MountedAvatarIcon(host, size);
+  ICON_DISPLAYS.add(display);
+  return display;
+}
+
 export function setAvatarSelection(choice: AvatarChoice) {
   selectedAvatar = choice;
   for (const display of DISPLAYS) display.sync();
+  for (const display of ICON_DISPLAYS) display.sync();
 }
 
 export function setAvatarState(state: BotStateName) {

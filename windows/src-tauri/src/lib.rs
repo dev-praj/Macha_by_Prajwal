@@ -171,6 +171,18 @@ fn surface_notification(app: AppHandle, shared: State<Shared>) {
     island::surface_notification(&app, &shared.gate);
 }
 
+#[tauri::command]
+fn set_expanded_chat(app: AppHandle, shared: State<Shared>, expanded: bool) {
+    shared
+        .gate
+        .expanded_chat
+        .store(expanded, Ordering::Relaxed);
+    let pref = island::active_screen_preference(&shared);
+    let collapsed = shared.gate.collapsed.load(Ordering::Relaxed);
+    island::apply_geometry(&app, &pref, collapsed);
+    island::refresh_click_through(&app, &shared.gate);
+}
+
 /// The front end pushes the island shape; Rust decides click-through from it.
 #[tauri::command]
 fn set_island_rect(app: AppHandle, shared: State<Shared>, x: f64, y: f64, width: f64, height: f64) {
@@ -374,7 +386,7 @@ async fn chat_send(
     shared_context: Vec<SharedConversationContext>,
 ) -> Result<ChatReply, String> {
     let mut cancel = chat.begin_request(&request_id)?;
-    let voice_deltas = if voice_request.unwrap_or(false) {
+    let response_deltas = {
         let (sender, mut receiver) = tokio::sync::mpsc::unbounded_channel();
         let stream_app = app.clone();
         let stream_request_id = request_id.clone();
@@ -405,9 +417,7 @@ async fn chat_send(
                 ));
             }
         });
-        Some(sender)
-    } else {
-        None
+        sender
     };
     let (model, automation_folders, provider_mode, ollama_model) = {
         let settings = shared.settings.lock().unwrap();
@@ -436,7 +446,7 @@ async fn chat_send(
         &provider_mode,
         &ollama_model,
         screen_image.as_deref(),
-        voice_deltas.as_ref(),
+        Some(&response_deltas),
         workflow_phase.as_deref(),
         &mut cancel,
     )
@@ -890,6 +900,7 @@ pub fn run() {
             boot,
             save_settings,
             set_collapsed,
+            set_expanded_chat,
             set_island_rect,
             surface_notification,
             focus_window,

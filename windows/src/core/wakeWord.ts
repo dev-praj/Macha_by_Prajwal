@@ -14,7 +14,7 @@ const CALIBRATION_MS = 5000;
 const FILLER_WORDS = new Set(["um", "uh", "oh", "ah", "er", "okay", "ok", "so", "well"]);
 const GREETINGS = new Set(["hey", "hay", "hai", "hi"]);
 const NAMES = new Set([
-  "macha", "matcha", "masha", "machaa", "maacha", "maccha", "macho", "mocha",
+  "macha", "maka", "matcha", "masha", "machaa", "maacha", "maccha", "macho", "mocha",
   "marcha", "mascha", "matcher", "macher",
 ]);
 const SPLIT_NAMES: readonly (readonly [string, string])[] = [

@@ -9,6 +9,8 @@ use futures_util::StreamExt;
 use reqwest::Method;
 use url::Url;
 
+const COPILOT_FIRST_RESPONSE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(180);
+
 fn base_url() -> Result<Url, String> {
     let configured = option_env!("MACHA_API_URL").unwrap_or_default().trim();
     if configured.is_empty() {
@@ -93,7 +95,7 @@ pub async fn copilot_disconnect(access_token: &str, account_id: &str) -> Result<
 pub async fn copilot_provider_completion(access_token: &str, body: &Value) -> Result<Value, String> {
     let url = copilot_url("/v1/copilot/provider/chat")?;
     let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(70))
+        .timeout(std::time::Duration::from_secs(300))
         .build()
         .map_err(|_| "Could not prepare the Copilot request.".to_string())?;
     let response = client.post(url).bearer_auth(access_token).json(body).send().await
@@ -110,11 +112,26 @@ pub async fn copilot_provider_stream(
 ) -> Result<Value, String> {
     let url = copilot_url("/v1/copilot/provider/stream")?;
     let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(70))
+        .connect_timeout(std::time::Duration::from_secs(10))
         .build()
         .map_err(|_| "Could not prepare the Copilot request.".to_string())?;
-    let response = client.post(url).bearer_auth(access_token).json(body).send().await
-        .map_err(|_| "GitHub Copilot service is unreachable. Check your connection and try again.".to_string())?;
+    let first_response_deadline = tokio::time::Instant::now() + COPILOT_FIRST_RESPONSE_TIMEOUT;
+    let response = tokio::select! {
+        result = tokio::time::timeout(
+            first_response_deadline.saturating_duration_since(tokio::time::Instant::now()),
+            client.post(url).bearer_auth(access_token).json(body).send(),
+        ) => {
+            match result {
+                Ok(Ok(response)) => response,
+                Ok(Err(_)) => return Err("GitHub Copilot service is unreachable. Check your connection and try again.".into()),
+                Err(_) => return Err("GitHub Copilot took too long to start a response.".into()),
+            }
+        }
+        changed = cancel.changed() => {
+            if changed.is_err() || *cancel.borrow() { return Err("Request cancelled.".into()); }
+            return Err("Copilot request was interrupted.".into());
+        }
+    };
     if !response.status().is_success() { return parse_copilot_response(response).await; }
     let mut stream = response.bytes_stream();
     let mut pending = Vec::new();
@@ -124,8 +141,18 @@ pub async fn copilot_provider_stream(
             changed = cancel.changed() => {
                 if changed.is_err() || *cancel.borrow() { return Err("Request cancelled.".into()); }
             }
-            item = stream.next() => {
-                let Some(item) = item else { break; };
+            item = async {
+                if *emitted_text {
+                    Ok(stream.next().await)
+                } else {
+                    let remaining = first_response_deadline
+                        .saturating_duration_since(tokio::time::Instant::now());
+                    tokio::time::timeout(remaining, stream.next())
+                        .await
+                        .map_err(|_| "GitHub Copilot took too long to start a response.")
+                }
+            } => {
+                let Some(item) = item? else { break; };
                 let chunk = item.map_err(|_| "The Copilot response stream ended unexpectedly.".to_string())?;
                 pending.extend_from_slice(&chunk);
                 while let Some(boundary) = pending.windows(2).position(|window| window == b"\n\n") {
@@ -166,7 +193,7 @@ fn copilot_error_message(code: &str) -> &'static str {
         "copilot_subscription_unverified" => "The GitHub Copilot subscription could not be verified.",
         "copilot_account_not_found" => "Select a connected GitHub Copilot account in Settings.",
         "copilot_rate_limited" => "GitHub Copilot is rate-limited. Wait a moment and try again.",
-        "copilot_request_timeout" => "GitHub Copilot took too long to respond. Try again.",
+        "copilot_request_timeout" => "GitHub Copilot request timed out before a response was generated. Try again.",
         "unauthorized" => "Sign in with Google to use GitHub Copilot.",
         _ => "GitHub Copilot service is unavailable. Check your connection and try again.",
     }
@@ -200,6 +227,7 @@ async fn copilot_request(access_token: &str, path: &str, method: Method, body: V
     if !status.is_success() {
         return Err(match value.get("error").and_then(Value::as_str) {
             Some("copilot_service_unavailable") => "The Copilot connection service is unavailable. Try again later.",
+            Some("copilot_account_already_linked") => "This GitHub account is already linked to another Macha user.",
             Some("unauthorized") => "Sign in with Google to connect GitHub Copilot.",
             _ => "The Copilot connection request could not be completed. Try again later.",
         }.into());

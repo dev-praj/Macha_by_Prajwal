@@ -24,8 +24,9 @@ const OPENROUTER_MAX_TOKENS: u32 = 1024;
 const VOICE_OLLAMA_MAX_TOKENS: u32 = 256;
 const VOICE_OPENROUTER_MAX_TOKENS: u32 = 256;
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(3);
-const VOICE_OPENROUTER_TIMEOUT: Duration = Duration::from_secs(8);
-const VOICE_OLLAMA_TIMEOUT: Duration = Duration::from_secs(45);
+const FIRST_RESPONSE_TIMEOUT: Duration = Duration::from_secs(180);
+const VOICE_OPENROUTER_TIMEOUT: Duration = FIRST_RESPONSE_TIMEOUT;
+const VOICE_OLLAMA_TIMEOUT: Duration = FIRST_RESPONSE_TIMEOUT;
 const HEALTH_TIMEOUT: Duration = Duration::from_millis(1500);
 const HEALTH_CACHE_AGE: Duration = Duration::from_secs(15);
 const OLLAMA_START_WAIT: Duration = Duration::from_secs(5);
@@ -487,7 +488,7 @@ pub async fn chat_stream(
                     tools.clone(),
                     openrouter_model,
                     cancel,
-                    Duration::from_secs(60),
+                    FIRST_RESPONSE_TIMEOUT,
                     OPENROUTER_MAX_TOKENS,
                     deltas,
                     &mut emitted_text,
@@ -630,7 +631,7 @@ pub async fn chat_stream(
                     tools,
                     openrouter_model,
                     cancel,
-                    Duration::from_secs(60),
+                    FIRST_RESPONSE_TIMEOUT,
                     OPENROUTER_MAX_TOKENS,
                     deltas,
                     &mut emitted_text,
@@ -657,7 +658,7 @@ pub async fn chat_stream(
         tools,
         openrouter_model,
         cancel,
-        Duration::from_secs(60),
+        FIRST_RESPONSE_TIMEOUT,
         OPENROUTER_MAX_TOKENS,
         deltas,
         &mut emitted_text,
@@ -704,9 +705,9 @@ pub(crate) async fn ollama_completion_existing(
     }
     let timeout = response_timeout.unwrap_or_else(|| {
         if model == "qwen2.5:7b" {
-            Duration::from_secs(60)
+            FIRST_RESPONSE_TIMEOUT
         } else {
-            Duration::from_secs(120)
+            Duration::from_secs(300)
         }
     });
     let client = client(timeout).map_err(|error| ProviderError::local(error, true))?;
@@ -728,7 +729,7 @@ pub(crate) async fn ollama_completion_stream_existing(
     model: &str,
     wait_for_start: bool,
     cancel: &mut watch::Receiver<bool>,
-    response_timeout: Option<Duration>,
+    _response_timeout: Option<Duration>,
     max_tokens: Option<u32>,
     deltas: &tokio::sync::mpsc::UnboundedSender<String>,
     emitted_text: &mut bool,
@@ -754,14 +755,7 @@ pub(crate) async fn ollama_completion_stream_existing(
             true,
         ));
     }
-    let timeout = response_timeout.unwrap_or_else(|| {
-        if model == "qwen2.5:7b" {
-            Duration::from_secs(60)
-        } else {
-            Duration::from_secs(120)
-        }
-    });
-    let client = client(timeout).map_err(|error| ProviderError::local(error, true))?;
+    let client = streaming_client().map_err(|error| ProviderError::local(error, true))?;
     let mut body = request_body(model, messages, tools, max_tokens, true);
     body["stream"] = json!(true);
     send_json_stream(
@@ -822,7 +816,7 @@ async fn openrouter_completion(
         tools,
         model,
         cancel,
-        Duration::from_secs(60),
+        FIRST_RESPONSE_TIMEOUT,
         OPENROUTER_MAX_TOKENS,
     )
     .await
@@ -960,7 +954,7 @@ async fn direct_completion_stream(
         _ => return Err("The selected provider mode is not a direct provider.".into()),
     };
     let headers = provider_headers(provider, AuthMode::ApiKey)?;
-    let client = client(Duration::from_secs(60))
+    let client = streaming_client()
         .map_err(|error| format!("{provider_name}: {error}"))?;
     let mut body = compatible_request_body(provider_name, model, messages, tools);
     body["stream"] = json!(true);
@@ -1006,8 +1000,8 @@ async fn compatible_provider_completion(
 ) -> Result<(Value, String), String> {
     let provider_name = provider.id();
     let headers = provider_headers(provider, AuthMode::ApiKey)?;
-    let client =
-        client(Duration::from_secs(60)).map_err(|error| format!("{provider_name}: {error}"))?;
+    let client = client(Duration::from_secs(300))
+        .map_err(|error| format!("{provider_name}: {error}"))?;
     let body = compatible_request_body(provider_name, model, messages, tools);
     let response = send_json(
         &client,
@@ -1058,7 +1052,7 @@ async fn claude_completion_for_model(
     cancel: &mut watch::Receiver<bool>,
 ) -> Result<(Value, String), String> {
     let headers = provider_headers(Provider::Anthropic, AuthMode::ApiKey)?;
-    let client = client(Duration::from_secs(60)).map_err(|error| format!("Claude: {error}"))?;
+    let client = client(Duration::from_secs(300)).map_err(|error| format!("Claude: {error}"))?;
     let body = claude_request_body_for_model(messages, tools, model)?;
     let response = send_json(
         &client,
@@ -1323,7 +1317,7 @@ pub(crate) async fn openrouter_completion_stream_existing(
     tools: Option<Value>,
     model: &str,
     cancel: &mut watch::Receiver<bool>,
-    response_timeout: Duration,
+    _response_timeout: Duration,
     max_tokens: u32,
     deltas: &tokio::sync::mpsc::UnboundedSender<String>,
     emitted_text: &mut bool,
@@ -1338,7 +1332,7 @@ pub(crate) async fn openrouter_completion_stream_existing(
             accounts.rotate_left(index);
         }
     }
-    let client = client(response_timeout).map_err(|error| format!("OpenRouter: {error}"))?;
+    let client = streaming_client().map_err(|error| format!("OpenRouter: {error}"))?;
     let mut errors = Vec::new();
     for account in accounts {
         let mode = AuthMode::parse(&account.auth_mode)
@@ -1589,14 +1583,39 @@ async fn send_json_stream(
             .header("HTTP-Referer", "https://github.com/dev-praj/Macha_by_Prajwal.git")
             .header("X-Title", "Macha");
     }
+    let first_response_deadline = Instant::now() + FIRST_RESPONSE_TIMEOUT;
     let mut response = tokio::select! {
-        response = request.send() => response.map_err(classify_network_error)?,
+        response = tokio::time::timeout(
+            first_response_deadline.saturating_duration_since(Instant::now()),
+            request.send(),
+        ) => {
+            match response {
+                Ok(Ok(response)) => response,
+                Ok(Err(error)) => return Err(classify_network_error(error)),
+                Err(_) => return Err(ProviderError::local(
+                    "Request timed out before the response started.",
+                    provider == "ollama",
+                )),
+            }
+        },
         _ = cancelled(cancel) => return Err(ProviderError::local("Request cancelled.", false)),
     };
     let status = response.status();
     if !status.is_success() {
         let text = tokio::select! {
-            text = response.text() => text.map_err(classify_network_error)?,
+            text = tokio::time::timeout(
+                first_response_deadline.saturating_duration_since(Instant::now()),
+                response.text(),
+            ) => {
+                match text {
+                    Ok(Ok(text)) => text,
+                    Ok(Err(error)) => return Err(classify_network_error(error)),
+                    Err(_) => return Err(ProviderError::local(
+                        "Request timed out before the response started.",
+                        provider == "ollama",
+                    )),
+                }
+            },
             _ = cancelled(cancel) => return Err(ProviderError::local("Request cancelled.", false)),
         };
         let parsed = serde_json::from_str::<Value>(&text).ok();
@@ -1631,7 +1650,28 @@ async fn send_json_stream(
     let mut line_buffer = Vec::new();
     loop {
         let chunk = tokio::select! {
-            chunk = response.chunk() => chunk.map_err(classify_network_error)?,
+            chunk = async {
+                if *emitted_text {
+                    response.chunk().await.map_err(classify_network_error)
+                } else {
+                    let remaining =
+                        first_response_deadline.saturating_duration_since(Instant::now());
+                    if remaining.is_zero() {
+                        return Err(ProviderError::local(
+                            "Request timed out before the response started.",
+                            provider == "ollama",
+                        ));
+                    }
+                    match tokio::time::timeout(remaining, response.chunk()).await {
+                        Ok(Ok(chunk)) => Ok(chunk),
+                        Ok(Err(error)) => Err(classify_network_error(error)),
+                        Err(_) => Err(ProviderError::local(
+                            "Request timed out before the response started.",
+                            provider == "ollama",
+                        )),
+                    }
+                }
+            } => chunk?,
             _ = cancelled(cancel) => return Err(ProviderError::local("Request cancelled.", false)),
         };
         let Some(chunk) = chunk else { break };
@@ -1787,6 +1827,13 @@ fn client(response_timeout: Duration) -> Result<Client, String> {
     Client::builder()
         .connect_timeout(CONNECT_TIMEOUT)
         .timeout(response_timeout)
+        .build()
+        .map_err(|error| format!("Could not create HTTP client: {error}"))
+}
+
+fn streaming_client() -> Result<Client, String> {
+    Client::builder()
+        .connect_timeout(CONNECT_TIMEOUT)
         .build()
         .map_err(|error| format!("Could not create HTTP client: {error}"))
 }

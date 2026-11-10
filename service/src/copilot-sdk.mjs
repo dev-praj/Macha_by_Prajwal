@@ -3,6 +3,9 @@
 import { randomUUID } from "node:crypto";
 import { CopilotClient, defineTool } from "@github/copilot-sdk";
 
+const FIRST_RESPONSE_TIMEOUT_MS = 180_000;
+const MAX_RUN_TIMEOUT_MS = 24 * 60 * 60 * 1000;
+
 export function createCopilotClient(accessToken) {
   if (typeof accessToken !== "string" || !/^(gho_|ghu_)/.test(accessToken)) {
     throw new Error("A supported GitHub OAuth token is required");
@@ -52,6 +55,7 @@ export async function copilotCompletion(accessToken, { model, messages, tools, o
   const toolCalls = [];
   let session;
   let content = "";
+  let firstResponseTimer;
   const sdkTools = Array.isArray(tools) ? tools.map((tool) => {
     const fn = tool?.function;
     if (!fn || typeof fn.name !== "string") return null;
@@ -85,12 +89,22 @@ export async function copilotCompletion(accessToken, { model, messages, tools, o
       session.on("assistant.message_delta", (event) => {
         const delta = event.data?.deltaContent || "";
         if (!delta) return;
+        clearTimeout(firstResponseTimer);
         content += delta;
         onDelta(delta);
       });
     }
     try {
-      const answer = await session.sendAndWait({ prompt: promptFromMessages(messages) }, 60000);
+      const firstResponseTimeout = new Promise((_, reject) => {
+        firstResponseTimer = setTimeout(
+          () => reject(new Error("Copilot request timed out before the response started")),
+          FIRST_RESPONSE_TIMEOUT_MS,
+        );
+      });
+      const answer = await Promise.race([
+        firstResponseTimeout,
+        session.sendAndWait({ prompt: promptFromMessages(messages) }, MAX_RUN_TIMEOUT_MS),
+      ]);
       if (!content && typeof answer?.data?.content === "string") content = answer.data.content;
     } catch (error) {
       if (!toolCalls.length) throw error;
@@ -109,6 +123,7 @@ export async function copilotCompletion(accessToken, { model, messages, tools, o
   } catch (error) {
     throw mapCopilotError(error);
   } finally {
+    clearTimeout(firstResponseTimer);
     signal?.removeEventListener("abort", abortRequest);
     try {
       const stopping = client.stop();

@@ -38,4 +38,6 @@ export const ICONS = {
   stack: "M5 8h14v11.5H5V8zm1.8-3h10.4v1.6H6.8V5zm1.6-2.6h7.2V4H8.4V2.4z",
   // doc.text
   doc: "M6.5 2.6h7l4 4v14.8h-11V2.6zm6.6 1.6v3.3h3.3l-3.3-3.3zM8.6 11h6.8v1.5H8.6V11zm0 3.4h6.8v1.5H8.6v-1.5z",
+  expand: "M14 3h7v7h-2V6.41l-8.29 8.3-1.42-1.42L17.59 5H14V3zM5 5h5v2H7v10h10v-3h2v5H5V5z",
+  collapse: "M4 4h7v2H7.41l3.3 3.29-1.42 1.42L6 7.41V11H4V4zm16 0v7h-2V7.41l-3.29 3.3-1.42-1.42L16.59 6H13V4h7zm0 16h-7v-2h3.59l-3.3-3.29 1.42-1.42 3.29 3.3V13h2v7zM4 20v-7h2v3.59l3.29-3.3 1.42 1.42L7.41 18H11v2H4z",
 } as const;

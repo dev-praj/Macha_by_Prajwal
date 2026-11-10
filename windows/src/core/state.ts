@@ -256,6 +256,7 @@ class AppState {
 
   mode: IslandMode = "hidden";
   view: IslandViewName = "overview";
+  chatExpanded = false;
 
   tasks: AgentTask[] = [];
   focusId: string | null = null;

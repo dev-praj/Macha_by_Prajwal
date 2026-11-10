@@ -12,7 +12,7 @@ const normalizePublicValue = (value) => value.trim().replace(/^(['"])(.*)\1$/, "
 // Developer-owned public Supabase config is read only for local builds. Values
 // in the process environment win; never print these values to build logs.
 const buildEnv = { ...process.env };
-for (const name of ["SUPABASE_URL", "SUPABASE_ANON_KEY"]) {
+for (const name of ["SUPABASE_URL", "SUPABASE_ANON_KEY", "MACHA_API_URL"]) {
   if (buildEnv[name]) buildEnv[name] = normalizePublicValue(buildEnv[name]);
 }
 for (const path of [
@@ -23,7 +23,7 @@ for (const path of [
   try {
     const envFile = readFileSync(path, "utf8");
     for (const line of envFile.split(/\r?\n/)) {
-      const match = line.match(/^\s*(SUPABASE_URL|SUPABASE_ANON_KEY|MACHA_SUPABASE_URL|MACHA_SUPABASE_ANON_KEY)\s*=\s*(.*?)\s*$/);
+      const match = line.match(/^\s*(SUPABASE_URL|SUPABASE_ANON_KEY|MACHA_API_URL|MACHA_SUPABASE_URL|MACHA_SUPABASE_ANON_KEY)\s*=\s*(.*?)\s*$/);
       if (match) {
         const name = match[1].replace(/^MACHA_/, "");
         if (!buildEnv[name]) buildEnv[name] = normalizePublicValue(match[2]);
