@@ -87,6 +87,31 @@ pub async fn copilot_provider_accounts(access_token: &str) -> Result<Value, Stri
     copilot_request(access_token, "/v1/copilot/provider/accounts", Method::GET, Value::Null).await
 }
 
+pub fn macha_ai_chat_url() -> Result<Url, String> {
+    copilot_url("/ai/chat")
+}
+
+pub async fn macha_ai_status(access_token: &str) -> Result<Value, String> {
+    if access_token.is_empty() {
+        return Err("Sign in with Google to use Macha AI.".into());
+    }
+    let url = copilot_url("/ai/status")?;
+    let client = reqwest::Client::builder()
+        .connect_timeout(std::time::Duration::from_secs(5))
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+        .map_err(|_| "Could not prepare the Macha AI status request.".to_string())?;
+    let response = client.get(url).bearer_auth(access_token).send().await
+        .map_err(|_| "Macha AI is offline right now. Please try again later.".to_string())?;
+    if response.status() == reqwest::StatusCode::UNAUTHORIZED {
+        return Err("Sign in with Google to use Macha AI.".into());
+    }
+    if !response.status().is_success() {
+        return Err("Macha AI is offline right now. Please try again later.".into());
+    }
+    response.json::<Value>().await.map_err(|_| "The Macha AI service returned an invalid status response.".to_string())
+}
+
 pub async fn copilot_disconnect(access_token: &str, account_id: &str) -> Result<(), String> {
     copilot_request(access_token, &format!("/v1/copilot/accounts/{account_id}"), Method::DELETE, Value::Null).await?;
     Ok(())

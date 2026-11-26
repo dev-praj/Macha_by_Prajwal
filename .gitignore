@@ -6,3 +6,4 @@ _prive/
 !.env.example
 supabase/keys-macha.env*
 .venv/
+qwen-kaggle-work/

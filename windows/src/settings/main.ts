@@ -593,6 +593,7 @@ function apiSection(
   providerMode.append(
     h("option", { value: "auto", text: "Auto — Ollama first, OpenRouter fallback" }),
     h("option", { value: "ollamaOnly", text: "Ollama only" }),
+    h("option", { value: "machaAiOnly", text: "Macha AI" }),
     h("option", { value: "openRouterOnly", text: "OpenRouter only" }),
     h("option", { value: "grokOnly", text: "Grok only" }),
     h("option", { value: "claudeOnly", text: "Claude only" }),
@@ -2388,6 +2389,7 @@ function voiceSetupSection(
       providerMode.append(
         h("option", { value: "auto", text: "Automatic — local Ollama first, OpenRouter fallback" }),
         h("option", { value: "ollamaOnly", text: "Local Ollama only — no API key" }),
+        h("option", { value: "machaAiOnly", text: "Macha AI" }),
         h("option", { value: "openRouterOnly", text: "OpenRouter" }),
         h("option", { value: "grokOnly", text: "Grok" }),
         h("option", { value: "claudeOnly", text: "Claude" }),

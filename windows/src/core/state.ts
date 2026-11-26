@@ -182,6 +182,7 @@ export interface Settings {
   providerMode:
     | "auto"
     | "ollamaOnly"
+    | "machaAiOnly"
     | "openRouterOnly"
     | "grokOnly"
     | "claudeOnly"
@@ -222,7 +223,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoHide: true,
   model: "openrouter/free",
   automationFolders: [],
-  providerMode: "auto",
+  providerMode: "machaAiOnly",
   ollamaModel: "qwen2.5:7b",
   speakRepliesMode: "voiceOnly",
   ttsEngine: "auto",

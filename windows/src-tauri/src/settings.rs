@@ -181,7 +181,7 @@ impl Default for Settings {
             auto_hide: default_auto_hide(),
             model: default_model(),
             automation_folders: Vec::new(),
-            provider_mode: default_provider_mode(),
+            provider_mode: "machaAiOnly".into(),
             ollama_model: default_ollama_model(),
             spoken_replies: false,
             speak_replies_mode: default_speak_replies_mode(),

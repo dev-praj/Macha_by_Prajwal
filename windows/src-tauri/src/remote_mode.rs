@@ -325,6 +325,15 @@ pub(crate) async fn copilot_provider_status() -> Result<Value, String> {
     crate::api_service::copilot_provider_accounts(&session.access).await
 }
 
+pub(crate) async fn macha_ai_context() -> Result<(String, String), String> {
+    let (url, key) = project()?;
+    let client = client()?;
+    let session = refresh(&client, &url, &key).await?;
+    crate::api_service::register_google_user(&session.access).await?;
+    let endpoint = crate::api_service::macha_ai_chat_url()?.to_string();
+    Ok((endpoint, session.access))
+}
+
 pub(crate) async fn copilot_provider_stream(
     body: &Value,
     cancel: &mut tokio::sync::watch::Receiver<bool>,

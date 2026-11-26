@@ -57,6 +57,7 @@ enum ProviderMode {
     Auto,
     VoiceAuto,
     OllamaOnly,
+    MachaAiOnly,
     OpenRouterOnly,
     GrokOnly,
     ClaudeOnly,
@@ -69,6 +70,7 @@ impl ProviderMode {
         match value {
             "voiceAuto" => Self::VoiceAuto,
             "ollamaOnly" => Self::OllamaOnly,
+            "machaAiOnly" => Self::MachaAiOnly,
             "openRouterOnly" => Self::OpenRouterOnly,
             "grokOnly" => Self::GrokOnly,
             "claudeOnly" => Self::ClaudeOnly,
@@ -231,6 +233,11 @@ pub async fn chat(
     cancel: &mut watch::Receiver<bool>,
 ) -> Result<ChatReply, String> {
     let mode = ProviderMode::parse(mode);
+    if mode == ProviderMode::MachaAiOnly {
+        let response = macha_ai_completion(messages, tools, cancel).await?;
+        crate::log::line("chat provider=macha-ai model=qwen-local");
+        return Ok(ChatReply { response, provider: "macha-ai".into(), model: "qwen-local".into(), fallback_notice: None });
+    }
     if is_direct_provider(mode) {
         let (provider, response, actual_model) =
             direct_completion(mode, messages, tools, cancel).await?;
@@ -436,6 +443,11 @@ pub async fn chat_stream(
 ) -> Result<ChatReply, String> {
     let mode = ProviderMode::parse(mode);
     let mut emitted_text = false;
+    if mode == ProviderMode::MachaAiOnly {
+        let response = macha_ai_completion_stream(messages, tools, cancel, deltas, &mut emitted_text).await?;
+        crate::log::line("chat stream provider=macha-ai model=qwen-local");
+        return Ok(ChatReply { response, provider: "macha-ai".into(), model: "qwen-local".into(), fallback_notice: None });
+    }
     if is_direct_provider(mode) {
         let (provider, response, actual_model) = direct_completion_stream(
             mode,
@@ -769,6 +781,66 @@ pub(crate) async fn ollama_completion_stream_existing(
         emitted_text,
     )
     .await
+}
+
+async fn macha_ai_authorization() -> Result<(String, HeaderMap), String> {
+    let (endpoint, access_token) = crate::remote_mode::macha_ai_context().await?;
+    let status = crate::api_service::macha_ai_status(&access_token).await?;
+    if !macha_ai_status_available(&status) {
+        return Err("Macha AI is offline right now. Please try again later.".into());
+    }
+    let mut headers = HeaderMap::new();
+    let value: reqwest::header::HeaderValue = format!("Bearer {access_token}").parse()
+        .map_err(|_| "Macha AI sign-in is unavailable. Sign in again.".to_string())?;
+    headers.insert(reqwest::header::AUTHORIZATION, value);
+    Ok((endpoint, headers))
+}
+
+fn macha_ai_status_available(status: &Value) -> bool {
+    status.get("available").and_then(Value::as_bool) == Some(true)
+}
+
+async fn macha_ai_completion(
+    messages: Vec<Value>, tools: Option<Value>, cancel: &mut watch::Receiver<bool>,
+) -> Result<Value, String> {
+    let auth = tokio::select! {
+        result = macha_ai_authorization() => result?,
+        _ = cancelled(cancel) => return Err("Request cancelled.".into()),
+    };
+    let client = client(Duration::from_secs(300)).map_err(|_| "Could not prepare the Macha AI request.".to_string())?;
+    let mut body = request_body("qwen-local", messages, tools, Some(4096), true);
+    if let Some(body) = body.as_object_mut() { body.remove("keep_alive"); }
+    send_json(&client, auth.0, &auth.1, "macha-ai", body, cancel).await.map_err(macha_ai_public_error)
+}
+
+async fn macha_ai_completion_stream(
+    messages: Vec<Value>, tools: Option<Value>, cancel: &mut watch::Receiver<bool>,
+    deltas: &tokio::sync::mpsc::UnboundedSender<String>, emitted_text: &mut bool,
+) -> Result<Value, String> {
+    let auth = tokio::select! {
+        result = macha_ai_authorization() => result?,
+        _ = cancelled(cancel) => return Err("Request cancelled.".into()),
+    };
+    let client = Client::builder()
+        .connect_timeout(CONNECT_TIMEOUT)
+        .timeout(Duration::from_secs(360))
+        .build()
+        .map_err(|_| "Could not prepare the Macha AI request.".to_string())?;
+    let mut body = request_body("qwen-local", messages, tools, Some(4096), true);
+    if let Some(body) = body.as_object_mut() { body.remove("keep_alive"); }
+    body["stream"] = json!(true);
+    send_json_stream(&client, auth.0, &auth.1, "macha-ai", body, cancel, deltas, emitted_text)
+        .await.map_err(macha_ai_public_error)
+}
+
+fn macha_ai_public_error(error: ProviderError) -> String {
+    if error.status == Some(StatusCode::TOO_MANY_REQUESTS) {
+        "You have reached the usage limit. Please try again later.".into()
+    } else if error.status == Some(StatusCode::SERVICE_UNAVAILABLE) || error.status.is_none() {
+        "Macha AI is offline right now. Please try again later.".into()
+    } else {
+        error.message
+    }
 }
 
 async fn ollama_completion(
